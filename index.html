@@ -634,17 +634,18 @@ function routeImages() {
 
 // ── Orphan re-assignment ──
 function assignOrphan(oldName) {
-  const input = document.getElementById('rename-' + CSS.escape(oldName));
+  // safeId must match how refreshMatrix() renders the input id attribute
+  const safeId = oldName.replace(/[^a-zA-Z0-9]/g, '_');
+  const input = document.getElementById('rename-' + safeId);
   if (!input) return;
   const newName = input.value.trim();
-  if (!newName) { input.style.borderColor='#ef4444'; return; }
-  // Find the file object
+  if (!newName) { input.style.borderColor = '#ef4444'; return; }
+
   const idx = unassignedImages.findIndex(f => f.name === oldName);
   if (idx === -1) return;
   const origFile = unassignedImages[idx];
-  // Create a new File with the renamed name
+
   const renamed = new File([origFile], newName, { type: origFile.type, lastModified: origFile.lastModified });
-  // Remove from unassigned, add to imageFiles list with new name
   unassignedImages.splice(idx, 1);
   imageFiles = imageFiles.filter(f => f.name !== oldName);
   imageFiles.push(renamed);
@@ -928,18 +929,28 @@ async function createMasterWorkbook(clientName, category) {
   // ── Tab 4: Meesho Supplier Panel ──
   const ws4 = wb.addWorksheet('03_Meesho_Bulk_Import');
   ws4.addRow([
-    "Product ID / SKU","Product Name","Product Description (Hinglish Hook)",
-    "Fabric","Available Sizes","Color","Occasion",
-    "Key Highlights","GST (%)","HSN Code",
-    "Recommended Price (INR)","Primary Image"
+    "Product ID / SKU", "Product Name", "Product Description (Hinglish Hook)",
+    "Fabric", "Available Sizes", "Color", "Occasion",
+    "Key Highlights", "GST (%)", "HSN Code",
+    "Recommended Price (INR)",
+    "Primary Image (Hero)",
+    "Other Image 1 (Size Chart)",
+    "Other Image 2 (Fabric Spec)",
+    "Other Image 3 (Care Guide)",
+    "Other Image 4 (Back View)"
   ]);
   styleRow(ws4);
   parsedSkus.forEach(sku => {
     ws4.addRow([
       sku.sku_id, sku.meesho.title, sku.meesho.hinglish_hook_description,
-      sku.flipkart.fabric, sku.sizes, '', sku.flipkart.occasion||'',
-      (sku.meesho.highlights||[]).join(' • '), 5, '62114200',
-      sku.meesho_price, sku.sku_id+'_MAIN.jpg'
+      sku.flipkart.fabric, sku.sizes, '', sku.flipkart.occasion || '',
+      (sku.meesho.highlights || []).join(' \u2022 '), 5, '62114200',
+      sku.meesho_price,
+      sku.sku_id + '_MAIN.jpg',
+      sku.sku_id + '_PT01_Size.jpg',
+      sku.sku_id + '_PT02_Fabric.jpg',
+      sku.sku_id + '_PT03_Care.jpg',
+      sku.sku_id + '_PT04_Back.jpg'
     ]);
   });
   autoFit(ws4);

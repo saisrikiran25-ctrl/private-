@@ -266,23 +266,37 @@ def _build_meesho_tab(wb: Workbook, skus: list[SKUItem]):
     headers = [
         "Product ID / SKU", "Product Name",
         "Product Description (Hinglish/Hindi Hook)",
-        "Fabric", "Available Sizes", "Key Highlights",
-        "Recommended Meesho Price (INR)", "Primary Image",
+        "Fabric", "Available Sizes", "Color", "Occasion",
+        "Key Highlights", "GST (%)", "HSN Code",
+        "Recommended Meesho Price (INR)",
+        "Primary Image (Hero)",
+        "Other Image 1 (Size Chart)",
+        "Other Image 2 (Fabric Spec)",
+        "Other Image 3 (Care Guide)",
+        "Other Image 4 (Back View)",
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
 
     for sku in skus:
-        highlights = " • ".join(sku.meesho.highlights)
+        highlights = " \u2022 ".join(sku.meesho.highlights)
         ws.append([
             sku.sku_id,
             sku.meesho.title,
             sku.meesho.hinglish_hook_description,
             sku.flipkart.fabric,
             sku.sizes,
+            "",
+            sku.flipkart.occasion or "",
             highlights,
+            5,
+            "62114200",
             sku.meesho_price,
             f"{sku.sku_id}_MAIN.jpg",
+            f"{sku.sku_id}_PT01_Size.jpg",
+            f"{sku.sku_id}_PT02_Fabric.jpg",
+            f"{sku.sku_id}_PT03_Care.jpg",
+            f"{sku.sku_id}_PT04_Back.jpg",
         ])
     _auto_width(ws)
 
