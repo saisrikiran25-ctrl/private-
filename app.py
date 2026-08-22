@@ -25,7 +25,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, List, Literal, Optional, Union
 
-import pandas as pd
 from fastapi import FastAPI, File, Form, UploadFile, Request
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from openpyxl import Workbook
@@ -444,9 +443,9 @@ CORE_SUFFIXES = ["_MAIN", "_PT01", "_PT02", "_PT03"]
 # ──────────────────────────────────────────────
 
 class SellerConfig(BaseModel):
-    amazon_quantity: int = 50
-    gst_percent: int = 5
-    hsn_code: str = "62114200"
+    amazon_quantity: int
+    gst_percent: int
+    hsn_code: str
 
 
 class BatchConfig(BaseModel):
@@ -568,11 +567,11 @@ class AlternateVariant(BaseModel):
 
 class SKUItem(BaseModel):
     sku_id: str
-    category_profile: str = "women_ethnic_kurta"
+    category_profile: str
     brand: str
     product_type: str
     color: str
-    category: str = "Women Ethnic Wear"
+    category: str
     sizes: str
     mrp: float
     meesho_price: float
@@ -766,15 +765,16 @@ def validate_truthfulness_and_claims(
                 errors.append(f"Field '{field_path}' contains unverified kidswear claim ('{term}'). Requires {req}.")
 
     elif category_profile in ["men_shirt", "men_bottomwear", "women_bottomwear"]:
-        if "fit_type" not in verified_data:
+        if "fit_type" not in verified_data and "stretch" not in verified_data:
             fit_pats = [
                 (r"\bslim\s+fit\b", "slim fit"),
                 (r"\btailored\s+fit\b", "tailored fit"),
                 (r"\bcomfort\s+fit\b", "comfort fit"),
+                (r"\bstretch\b", "stretch"),
             ]
             for pat, term in fit_pats:
                 if re.search(pat, text_lower):
-                    warnings.append(f"Field '{field_path}' uses fit term '{term}' without verified fit_type in product record.")
+                    warnings.append(f"Field '{field_path}' uses fit/stretch descriptor '{term}' without verified fit_type/stretch in product record.")
 
     return errors, warnings
 
@@ -863,16 +863,13 @@ def normalize_sku_profile_and_attributes(sku_dict: dict[str, Any], batch_config:
         if "seller_config" not in d and batch_config.seller_config:
             d["seller_config"] = batch_config.seller_config.model_dump()
 
-    # Profile Inference & Legacy Compatibility
+    # Profile Inference & Legacy Compatibility (Only for safe Women Ethnic Wear)
     sk_id = d.get("sku_id", "SKU")
     if not d.get("category_profile"):
         cat = d.get("category", "")
         if cat in ["Women Ethnic Wear", "kurtas-and-ethnic-tops"] or "kurti" in str(d).lower():
             d["category_profile"] = "women_ethnic_kurta"
-            warnings.append(f"{sk_id}: category_profile was inferred as 'women_ethnic_kurta' for legacy compatibility. Include it explicitly in future payloads.")
-        else:
-            d["category_profile"] = "women_ethnic_kurta"
-            warnings.append(f"{sk_id}: category_profile was defaulted to 'women_ethnic_kurta'.")
+            warnings.append(f"{sk_id}: category_profile was inferred as 'women_ethnic_kurta' for legacy compatibility. Include category_profile explicitly in future payloads.")
 
     # Normalize Flipkart attributes
     fk = d.get("flipkart", {})

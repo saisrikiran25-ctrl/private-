@@ -5,10 +5,12 @@ Tests:
 1. 13 Supported Profiles Positive Validation
 2. Profile-Specific Required Facts Validation (Negative Tests)
 3. Excluded Profiles Rejection (Blouse, Lingerie, Innerwear, Shapewear, etc.)
-4. Profile-Specific Claim Safety Tests (Footwear, Saree, Home Textiles, Kidswear, Shirts)
-5. Backward Compatibility (Legacy Women Ethnic Wear inference)
-6. Excel Builder Profile Dynamism & Column Integrity
-7. Full Package ZIP Generation & Cryptographic Metadata
+4. Profile-Specific Claim Safety Tests (Footwear, Saree, Home Textiles, Kidswear, Shirts, Bottomwear)
+5. Copy Quality & Marketplace Constraints (Amazon Titles, BST, Bullet 3)
+6. Schema & Seller Config Contracts (Missing schema_version, missing seller_config, missing color)
+7. Backward Compatibility (Legacy Women Ethnic Wear inference vs other categories)
+8. Excel Builder Profile Dynamism & Column Integrity (17-column Master Summary, dynamic Flipkart columns)
+9. Full Package ZIP Generation & Cryptographic Metadata
 """
 
 import io
@@ -37,6 +39,7 @@ from app import (
     validate_amazon_title_quality,
     validate_truthfulness_and_claims,
     validate_amazon_backend_search_terms,
+    validate_bullet_3_safety,
     build_workbook,
     build_alternates_workbook,
     build_package_metadata,
@@ -109,7 +112,17 @@ def run_tests():
     errs, _ = validate_sku_category_profile(c_obj)
     assert_true(any("package_contents" in e for e in errs), "Co-ord set missing package_contents failed validation correctly")
 
-    # 3. Footwear missing sole_material
+    # 3. Women's dress missing dress_type
+    dress_sample = get_sample_skus_for_profile("women_dress")[0]
+    dress_bad = json.loads(json.dumps(dress_sample))
+    del dress_bad["verified"]["dress_type"]
+    if "dress_type" in dress_bad["flipkart"]["attributes"]:
+        del dress_bad["flipkart"]["attributes"]["dress_type"]
+    d_obj = SKUItem(**dress_bad)
+    errs, _ = validate_sku_category_profile(d_obj)
+    assert_true(any("dress_type" in e for e in errs), "Women's dress missing dress_type failed validation correctly")
+
+    # 4. Footwear missing sole_material
     fw_sample = get_sample_skus_for_profile("footwear")[0]
     fw_bad = json.loads(json.dumps(fw_sample))
     del fw_bad["verified"]["sole_material"]
@@ -119,7 +132,7 @@ def run_tests():
     errs, _ = validate_sku_category_profile(fw_obj)
     assert_true(any("sole_material" in e for e in errs), "Footwear missing sole_material failed validation correctly")
 
-    # 4. Home textile missing dimensions
+    # 5. Home textile missing dimensions
     ht_sample = get_sample_skus_for_profile("home_textiles")[0]
     ht_bad = json.loads(json.dumps(ht_sample))
     del ht_bad["verified"]["dimensions"]
@@ -129,7 +142,7 @@ def run_tests():
     errs, _ = validate_sku_category_profile(ht_obj)
     assert_true(any("dimensions" in e for e in errs), "Home textiles missing dimensions failed validation correctly")
 
-    # 5. Kidswear missing age_group
+    # 6. Kidswear missing age_group
     kids_sample = get_sample_skus_for_profile("kidswear")[0]
     kids_bad = json.loads(json.dumps(kids_sample))
     del kids_bad["verified"]["age_group"]
@@ -148,6 +161,7 @@ def run_tests():
             "sku_id": "SKU_EXC_01",
             "category_profile": exc_key,
             "brand": "TestBrand",
+            "category": "Apparel",
             "product_type": "Test Item",
             "color": "Red",
             "sizes": "Free Size",
@@ -194,6 +208,10 @@ def run_tests():
     c_errs, _ = validate_truthfulness_and_claims("amazon.title", "400 TC Pure Cotton Bedsheet", "home_textiles", {})
     assert_true(any("thread count" in e for e in c_errs), "Unverified home textile thread count claim blocked")
 
+    # Home textile claiming unverified softness / superiority
+    c_errs, _ = validate_truthfulness_and_claims("meesho.hinglish_hook_description", "Ultra-soft luxury cotton bedsheet", "home_textiles", {})
+    assert_true(any("luxury" in e for e in c_errs), "Unverified luxury claim blocked in home textiles")
+
     # Kidswear claiming unverified skin-safe
     c_errs, _ = validate_truthfulness_and_claims("meesho.hinglish_hook_description", "Skin-safe cotton frock for girls", "kidswear", {})
     assert_true(any("skin-safe" in e for e in c_errs), "Unverified kidswear skin-safe claim blocked")
@@ -202,8 +220,102 @@ def run_tests():
     _, c_warns = validate_truthfulness_and_claims("amazon.title", "Men's Slim Fit Shirt", "men_shirt", {})
     assert_true(any("slim fit" in w for w in c_warns), "Unverified slim fit descriptor triggers advisory warning")
 
+    # Men's bottomwear unverified stretch warning
+    _, c_warns = validate_truthfulness_and_claims("amazon.bullet_points[1]", "Stretch comfort chinos", "men_bottomwear", {})
+    assert_true(any("comfort" in w or "stretch" in str(c_warns) for w in c_warns), "Unverified comfort/stretch descriptor in bottomwear triggers advisory warning")
+
+    # Performance claims: breathable, quick-dry, zero fading
+    c_errs, _ = validate_truthfulness_and_claims("amazon.bullet_points[1]", "100% breathable and quick-dry cotton", "women_ethnic_kurta", {})
+    assert_true(any("breathable" in e for e in c_errs) and any("quick-dry" in e for e in c_errs), "Breathable and quick-dry hard claims blocked")
+
+    c_errs, _ = validate_truthfulness_and_claims("amazon.bullet_points[3]", "Guaranteed zero fading color", "women_ethnic_kurta", {})
+    assert_true(any("zero fading" in e or "guaranteed" in e for e in c_errs), "Zero fading and guaranteed claims blocked")
+
     print("\n=======================================================")
-    print("  TEST SUITE 5: Legacy v2.0 Backward Compatibility")
+    print("  TEST SUITE 5: Copy Quality, Amazon Titles, BST & Bullet 3")
+    print("=======================================================")
+
+    # Amazon Title with duplicate brand
+    t_errs, _ = validate_amazon_title_quality("Anvi Fabrics Women Cotton Kurta by Anvi Fabrics", "Anvi Fabrics")
+    assert_true(any("brand name 'Anvi Fabrics' 2 times" in e for e in t_errs), "Amazon title with duplicate brand blocked")
+
+    # Amazon Title with duplicate phrase stack
+    t_errs, _ = validate_amazon_title_quality("Anvi Fabrics Pure Cotton Cotton Floral Print Printed Kurta", "Anvi Fabrics")
+    assert_true(len(t_errs) >= 2, "Amazon title with duplicate word and phrase stacks blocked")
+
+    # Amazon BST with brand name
+    bst_errs, _ = validate_amazon_backend_search_terms("Anvi Fabrics Kurta", "anvi fabrics women kurta", "Anvi Fabrics")
+    assert_true(any("must not contain the brand name" in e for e in bst_errs), "Amazon BST with brand name blocked")
+
+    # Amazon BST with punctuation / commas
+    bst_errs, _ = validate_amazon_backend_search_terms("Kurta", "kurti, women top, printed", "Brand")
+    assert_true(any("must not contain punctuation or commas" in e for e in bst_errs), "Amazon BST with commas blocked")
+
+    # Amazon BST with title duplicates
+    _, bst_warns = validate_amazon_backend_search_terms("Floral Printed Anarkali Kurta", "anarkali floral printed tunic", "Brand")
+    assert_true(any("already in the title" in w for w in bst_warns), "Amazon BST with title duplicates triggers advisory warning")
+
+    # Amazon Bullet 3 without COLORFAST & DURABLE: heading
+    b3_errs, _ = validate_bullet_3_safety("LONG LASTING: Wash with cold water.")
+    assert_true(any("must start with the standard heading 'COLORFAST & DURABLE:'" in e for e in b3_errs), "Bullet 3 non-standard heading blocked")
+
+    print("\n=======================================================")
+    print("  TEST SUITE 6: Schema Contract & Seller Config Enforcement")
+    print("=======================================================")
+
+    # Missing seller_config when neither SKU nor batch provides it
+    bad_sku_no_config = {
+        "sku_id": "SKU_NOCFG_01",
+        "category_profile": "women_ethnic_kurta",
+        "brand": "Brand",
+        "category": "Women Ethnic Wear",
+        "product_type": "Kurta",
+        "color": "Red",
+        "sizes": "S, M",
+        "mrp": 999.0,
+        "meesho_price": 299.0,
+        # seller_config omitted
+        "verified": {"fabric": "Pure Cotton"},
+        "amazon": {"title": "Brand Kurta", "bullet_points": ["B1", "B2", "COLORFAST & DURABLE: Care", "B4", "B5"], "backend_search_terms": "terms", "description": "desc"},
+        "flipkart": {"title": "Brand Kurta", "search_keywords": "k", "description": "d"},
+        "meesho": {"title": "Brand Kurta", "hinglish_hook_description": "h", "english_hook_description": "e", "highlights": ["H1", "H2", "H3", "H4"]}
+    }
+    try:
+        SKUItem(**bad_sku_no_config)
+        assert_true(False, "Missing seller_config should raise ValidationError")
+    except Exception as ve:
+        assert_true("seller_config" in str(ve), "Missing seller_config correctly raised ValidationError")
+
+    # Missing color
+    bad_sku_no_color = dict(bad_sku_no_config)
+    bad_sku_no_color["seller_config"] = {"amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200"}
+    del bad_sku_no_color["color"]
+    try:
+        SKUItem(**bad_sku_no_color)
+        assert_true(False, "Missing color should raise ValidationError")
+    except Exception as ve:
+        assert_true("color" in str(ve), "Missing color correctly raised ValidationError")
+
+    # Non-ethnic category without category_profile must NOT infer women_ethnic_kurta
+    non_ethnic_no_prof = {
+        "sku_id": "SKU_FW_01",
+        "brand": "StepCraft",
+        "category": "Footwear",
+        "product_type": "Loafers",
+        "color": "Tan",
+        "sizes": "UK 8",
+        "mrp": 1999.0,
+        "meesho_price": 599.0,
+        "seller_config": {"amazon_quantity": 50, "gst_percent": 12, "hsn_code": "64029990"},
+        "amazon": {"title": "StepCraft Loafers", "bullet_points": ["B1", "B2", "COLORFAST & DURABLE: Care", "B4", "B5"], "backend_search_terms": "shoes", "description": "desc"},
+        "flipkart": {"title": "StepCraft Loafers", "search_keywords": "k", "description": "d"},
+        "meesho": {"title": "StepCraft Loafers", "hinglish_hook_description": "h", "english_hook_description": "e", "highlights": ["H1", "H2", "H3", "H4"]}
+    }
+    _, _, merged_non_ethnic = normalize_and_merge_json({"skus": [non_ethnic_no_prof]})
+    assert_true("category_profile" not in merged_non_ethnic[0], "Non-ethnic category without category_profile is NOT inferred as kurta")
+
+    print("\n=======================================================")
+    print("  TEST SUITE 7: Legacy v2.0 Backward Compatibility")
     print("=======================================================")
 
     legacy_payload = {
@@ -254,16 +366,15 @@ def run_tests():
     assert_true(merged[0]["flipkart"]["attributes"]["kurta_type"] == "Anarkali", "Legacy flat Flipkart kurta_type migrated into attributes")
 
     print("\n=======================================================")
-    print("  TEST SUITE 6: Profile-Aware Excel Workbook Integrity")
+    print("  TEST SUITE 8: Profile-Aware Excel Workbook Integrity")
     print("=======================================================")
 
-    # Test multi-profile workbook generation
     saree_sku = SKUItem(**get_sample_skus_for_profile("saree")[0])
     footwear_sku = SKUItem(**get_sample_skus_for_profile("footwear")[0])
     home_sku = SKUItem(**get_sample_skus_for_profile("home_textiles")[0])
     test_skus = [saree_sku, footwear_sku, home_sku]
 
-    img_counts = {s.sku_id: [f"{s.sku_id}_MAIN.jpg", f"{s.sku_id}_PT01.jpg", f"{s.sku_id}_PT02.jpg", f"{s.sku_id}_PT03.jpg"] for s in test_skus}
+    img_counts = {s.sku_id: [f"{s.sku_id}_MAIN.jpg", f"{s.sku_id}_PT01.jpg", f"{s.sku_id}_PT02.jpg", f"{s.sku_id}_PT03.jpg", f"{s.sku_id}_PT04.jpg", f"{s.sku_id}_PT05.jpg"] for s in test_skus}
     wb_bytes = build_workbook(test_skus, "Mixed", img_counts, "✅ Pass")
 
     wb = load_workbook(io.BytesIO(wb_bytes))
@@ -293,12 +404,16 @@ def run_tests():
     assert_true("Meesho_Alternate_Copies" in wb_alt.sheetnames, "Meesho_Alternate_Copies tab present")
 
     print("\n=======================================================")
-    print("  TEST SUITE 7: ZIP Package & Metadata Verification")
+    print("  TEST SUITE 9: ZIP Package & Metadata Verification")
     print("=======================================================")
 
     dummy_images = [
         ("SKU_SAREE_01_MAIN.jpg", b"fake_img"),
         ("SKU_SAREE_01_PT01.jpg", b"fake_img"),
+        ("SKU_SAREE_01_PT02.jpg", b"fake_img"),
+        ("SKU_SAREE_01_PT03.jpg", b"fake_img"),
+        ("SKU_SAREE_01_PT04.jpg", b"fake_img"),
+        ("SKU_SAREE_01_PT05.jpg", b"fake_img"),
         ("SKU_FOOTWEAR_01_MAIN.jpg", b"fake_img"),
         ("Unassigned_Asset_01.jpg", b"fake_img")
     ]
@@ -312,6 +427,7 @@ def run_tests():
     assert_true(f"{prefix}/{prefix}_package_metadata.json" in file_list, "Audit Metadata JSON in ZIP")
     assert_true(f"{prefix}/README.txt" in file_list, "README.txt in ZIP")
     assert_true(f"{prefix}/Organized_SKU_Images/SKU_SAREE_01/SKU_SAREE_01_MAIN.jpg" in file_list, "Saree hero image in SKU folder")
+    assert_true(f"{prefix}/Organized_SKU_Images/SKU_SAREE_01/SKU_SAREE_01_PT05.jpg" in file_list, "Saree PT05 image in SKU folder")
     assert_true(f"{prefix}/Organized_SKU_Images/Unassigned_Assets/Unassigned_Asset_01.jpg" in file_list, "Unassigned image in Unassigned folder")
 
     # Verify metadata JSON contents

@@ -37,9 +37,9 @@ def test_api():
     master_name = [n for n in namelist if n.endswith("_Master_Marketplace_Upload.xlsx")][0]
     wb = openpyxl.load_workbook(io.BytesIO(zf.read(master_name)))
     ws = wb["Master_Summary"]
-    assert len(ws[1]) == 15, f"Expected 15 cols, got {len(ws[1])}"
-    assert ws[1][14].value == "Status Scope / Meaning"
-    print("  ✓ Sample ZIP Master_Summary sheet has 15 columns with Status Scope / Meaning")
+    assert len(ws[1]) == 17, f"Expected 17 cols, got {len(ws[1])}"
+    assert ws[1][16].value == "Status Scope / Meaning"
+    print("  ✓ Sample ZIP Master_Summary sheet has 17 columns with Status Scope / Meaning")
 
     # 3. Validation Endpoint - Clean sample payload
     from app import get_sample_skus, EXPECTED_SCHEMA_VERSION

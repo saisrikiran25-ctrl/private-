@@ -138,14 +138,14 @@ def run_tests():
     ws_summary = wb["Master_Summary"]
     
     headers = [cell.value for cell in ws_summary[1]]
-    assert len(headers) == 15, f"Expected 15 columns in Master_Summary, got {len(headers)}: {headers}"
-    assert headers[13] == "Package Readiness", f"Col 14 header mismatch: {headers[13]}"
-    assert headers[14] == "Status Scope / Meaning", f"Col 15 header mismatch: {headers[14]}"
+    assert len(headers) == 17, f"Expected 17 columns in Master_Summary, got {len(headers)}: {headers}"
+    assert headers[15] == "Package Readiness", f"Col 16 header mismatch: {headers[15]}"
+    assert headers[16] == "Status Scope / Meaning", f"Col 17 header mismatch: {headers[16]}"
     
     row2 = [cell.value for cell in ws_summary[2]]
-    assert row2[13] == "✅ Structurally Complete – Seller Review Required", f"Readiness status mismatch: {row2[13]}"
-    assert row2[14] == STRUCTURAL_READINESS_DISCLAIMER, f"Scope meaning cell mismatch: {row2[14]}"
-    print("  ✓ Master_Summary 15-column structure and Status Scope / Meaning column verified")
+    assert row2[15] == "✅ Structurally Complete – Seller Review Required", f"Readiness status mismatch: {row2[15]}"
+    assert row2[16] == STRUCTURAL_READINESS_DISCLAIMER, f"Scope meaning cell mismatch: {row2[16]}"
+    print("  ✓ Master_Summary 17-column structure and Status Scope / Meaning column verified")
 
     # 3.3 Generated README check
     readme_text = generate_readme("TestClient", "Batch_01", "Women Ethnic Wear")

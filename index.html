@@ -1596,6 +1596,20 @@ function validateTruthfulnessAndClaims(fpath, text, profId = "women_ethnic_kurta
     if (/\bhypoallergenic\b/i.test(text) && !vStr.includes("hypoallergenic")) errs.push(`Field '${fpath}' contains unverified claim ('hypoallergenic').`);
   } else if (profId === "kidswear") {
     if (/\bskin-?safe\b/i.test(text) && !vStr.includes("skin-safe")) errs.push(`Field '${fpath}' contains unverified kidswear claim ('skin-safe').`);
+  } else if (["men_shirt", "men_bottomwear", "women_bottomwear"].includes(profId)) {
+    if (!vStr.includes("fit_type") && !vStr.includes("stretch")) {
+      const fitPats = [
+        [/\bslim\s+fit\b/i, "slim fit"],
+        [/\btailored\s+fit\b/i, "tailored fit"],
+        [/\bcomfort\s+fit\b/i, "comfort fit"],
+        [/\bstretch\b/i, "stretch"]
+      ];
+      for (const [pat, term] of fitPats) {
+        if (pat.test(text)) {
+          warns.push(`Field '${fpath}' uses fit/stretch descriptor '${term}' without verified fit_type/stretch in product record.`);
+        }
+      }
+    }
   }
 
   return { errs, warns };
