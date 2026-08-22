@@ -7,6 +7,10 @@ __pycache__/
 venv/
 .env/
 
+# Package outputs
+output/
+*.zip
+
 # IDE
 .vscode/
 .idea/

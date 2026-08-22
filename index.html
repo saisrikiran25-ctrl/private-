@@ -173,10 +173,9 @@
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Strict Audit Trail &amp; Validation Engine
-        </div>
+        <button onclick="loadSampleJson()" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5">
+          ✨ Load Sample (v2.0)
+        </button>
         <a href="https://github.com/saisrikiran25-ctrl/private-" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
           GitHub
@@ -187,7 +186,7 @@
 
   <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
-    <!-- Global Advisory Alerts (Feature #7) -->
+    <!-- Global Advisory Alerts (Performance / Limits) -->
     <div id="globalAdvisoryPanel" class="hidden glass-panel-lighter p-4 border border-amber-500/30 bg-amber-500/5 rounded-xl space-y-1.5">
       <div class="flex items-center gap-2 text-xs font-bold text-amber-400">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
@@ -234,12 +233,14 @@
         <div class="flex items-center gap-3">
           <div class="section-number">2</div>
           <div>
-            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion &amp; Structured Validation</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Paste or upload listing JSON — validated per SKU (<code class="text-emerald-400 font-mono text-[11px]">"To be confirmed"</code> allowed as review flag)</p>
+            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion &amp; Schema v2.0 Validation</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Requires <code class="text-emerald-400 font-mono text-[11px]">"schema_version": "v2.0"</code> · <code class="text-emerald-400 font-mono text-[11px]">"To be confirmed"</code> accepted as review flag</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="loadSampleJson()" class="text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition-all">✨ Load Sample</button>
+          <div id="schemaContractBadge" class="badge badge-missing">
+            <span id="schemaContractText">Schema: Unchecked</span>
+          </div>
           <div id="jsonBadge" class="badge badge-missing">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
             <span id="jsonBadgeText">No JSON</span>
@@ -251,7 +252,7 @@
         <button onclick="setJsonMode('file')" id="tabFile" class="px-4 py-2 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-slate-300">📁 Upload File</button>
       </div>
       <div id="pasteMode">
-        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='Paste JSON array or batch object with strict schema…&#10;{ "batch_config": { "brand": "…", "category": "Women Ethnic Wear", "seller_config": { "amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200" } }, "skus": [ … ] }'></textarea>
+        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='{&#10;  "schema_version": "v2.0",&#10;  "batch_config": {&#10;    "brand": "Anvi Fabrics",&#10;    "category": "Women Ethnic Wear",&#10;    "seller_config": { "amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200" }&#10;  },&#10;  "skus": [ … ]&#10;}'></textarea>
       </div>
       <div id="fileMode" class="hidden">
         <div class="border-2 border-dashed border-slate-700/50 rounded-xl p-8 text-center cursor-pointer hover:border-emerald-500/40 transition-all" onclick="document.getElementById('jsonFileInput').click()">
@@ -265,7 +266,7 @@
         </div>
       </div>
 
-      <!-- Feature #4: Per-SKU Structured Validation Results -->
+      <!-- Structured Validation Results Breakdown -->
       <div id="validationResultsPanel" class="hidden mt-4 space-y-3">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <div class="text-xs font-bold text-slate-300">Structured Validation Breakdown by SKU</div>
@@ -308,7 +309,6 @@
 
       <!-- Filter chips + Asset Matrix -->
       <div id="matrixSection" class="hidden mt-6">
-        <!-- Filter chips -->
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2 flex-wrap">
             <button class="filter-chip active" id="chip-all"     onclick="applyFilter('all')">All SKUs <span id="cnt-all"     class="ml-1 opacity-70">0</span></button>
@@ -319,10 +319,8 @@
           <button onclick="clearImages()" class="text-xs text-slate-500 hover:text-red-400 transition-colors">Clear all</button>
         </div>
 
-        <!-- SKU grid -->
         <div id="skuImageGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
 
-        <!-- Orphaned assets drawer -->
         <div id="orphanPanel" class="hidden mt-4 glass-panel-lighter p-4">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2 text-xs font-semibold text-amber-400">
@@ -334,7 +332,6 @@
           <div id="orphanList" class="space-y-2"></div>
         </div>
 
-        <!-- Compliance legend -->
         <div id="complianceLegend" class="hidden mt-4 p-3 glass-panel-lighter flex flex-wrap gap-4 text-xs text-slate-400">
           <span class="flex items-center gap-1.5"><span class="slot-badge slot-warn px-1.5">⚠</span> Below Amazon 1000px zoom threshold</span>
           <span class="flex items-center gap-1.5"><span class="slot-badge slot-warn px-1.5">⚠</span> Exceeds 5 MB upload limit</span>
@@ -349,8 +346,14 @@
         <div class="section-number">4</div>
         <div>
           <h2 class="text-base font-bold text-white">Pre-Flight Review &amp; Package Generation</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Generates client handover ZIP containing marketplace mapping workbooks, package_metadata.json audit trail, and organized images</p>
+          <p class="text-xs text-slate-400 mt-0.5">Structural completeness check before generating client delivery ZIP</p>
         </div>
+      </div>
+
+      <!-- Structural Notice Disclaimer -->
+      <div class="mb-5 p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs text-slate-300 flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        <span><strong>Operational Note:</strong> Structural completeness indicates valid syntax, character limits, and image assets. It does not guarantee marketplace acceptance. Final review by the seller is required before portal upload.</span>
       </div>
 
       <!-- Checklist -->
@@ -369,7 +372,7 @@
         </div>
         <div class="glass-panel-lighter p-4 flex items-center gap-3">
           <div id="checkWarnings" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div><p class="text-xs font-semibold text-slate-300">Readiness</p><p class="text-xs text-slate-500" id="checkWarningsText">—</p></div>
+          <div><p class="text-xs font-semibold text-slate-300">Readiness Status</p><p class="text-xs text-slate-500" id="checkWarningsText">—</p></div>
         </div>
       </div>
 
@@ -393,14 +396,29 @@
           </span>
           <span id="btnLoading" class="hidden"><span class="spinner"></span>Packaging…</span>
         </button>
-        <p class="text-xs text-slate-500">Includes Master Workbook + 5x Alternates Workbook + Audit Metadata (SHA-256) + SKU Images + Upload Guide</p>
+        <p class="text-xs text-slate-500">Includes Master Workbook + 5x Alternates Workbook + Audit Metadata (SHA-256) + Organized Images + Upload Guide</p>
       </div>
     </section>
 
-    <footer class="text-center py-8 text-xs text-slate-600 space-y-1">
+    <!-- Scope & Limitations Collapsible -->
+    <details class="glass-panel-lighter p-4 rounded-xl border border-slate-800 text-xs text-slate-400 space-y-2">
+      <summary class="font-bold text-slate-300 cursor-pointer flex items-center justify-between">
+        <span>⚖️ Operational Scope &amp; Limitations Boundary</span>
+        <span class="text-emerald-400 font-normal">Click to expand</span>
+      </summary>
+      <ul class="list-disc list-inside space-y-1 pt-2 text-slate-400">
+        <li><strong>Copy &amp; Mapping Preparation:</strong> Prepares listing copy and multi-tab Excel mapping workbooks based on seller data.</li>
+        <li><strong>No Policy Guarantee:</strong> Does not guarantee automatic marketplace approval or exemption from category gates.</li>
+        <li><strong>Asset Verification:</strong> Verifies image slots via canonical filename tokens; does not evaluate physical image content.</li>
+        <li><strong>Tax &amp; Legal Disclaimer:</strong> GST rates and HSN classifications are seller-configured and do not constitute official tax advice.</li>
+        <li><strong>Final Confirmation:</strong> All catalog records must be reviewed and confirmed by the brand prior to live portal submission.</li>
+      </ul>
+    </details>
+
+    <footer class="text-center py-8 text-xs text-slate-600 space-y-2">
       <p>Listing Factory v2.0 — Multi-Marketplace Packaging Studio</p>
       <p>Marketplace Mapping Workbooks for Amazon.in, Flipkart &amp; Meesho · Non-destructive schema validation</p>
-      <p class="text-slate-700 text-[11px] pt-1">Note: Output workbooks are structured mapping files intended for transfer into official portal upload templates.</p>
+      <p class="text-slate-500 text-[11.5px]">Support: <span class="font-mono text-slate-400">support@listingfactory.internal</span> · Mon–Fri 10:00–18:00 IST · Critical bugs prioritized</p>
     </footer>
   </main>
 </div>
@@ -410,6 +428,7 @@
 // ── Global Constants & Versioning ──
 const TOOL_VERSION = "Listing Factory v2.0";
 const JSON_PROMPT_VERSION = "JSON Prompt v1.0 – 2026-08-22";
+const EXPECTED_SCHEMA_VERSION = "v2.0";
 const TO_BE_CONFIRMED = "To be confirmed";
 const MAX_SKUS_SOFT_LIMIT = 50;
 const MAX_TOTAL_IMAGE_SIZE_MB = 200;
@@ -449,19 +468,21 @@ const SLOT_LABELS  = {
 // ── State ──
 let currentJsonText = '';
 let parsedSkus = [];
-let skuValidationResults = []; // [{ sku_id, valid, errors: [], warnings: [] }]
+let currentSchemaVersion = null;
+let skuValidationResults = [];
 let globalValidationWarnings = [];
 let globalValidationErrors = [];
-let imageFiles = [];          // File[]
-let imageMap = {};            // { sku_id: File[] }
-let unassignedImages = [];    // File[]
-let complianceMap = {};       // { filename: { w,h,sizeBytes,issues[] } }
+let imageFiles = [];
+let imageMap = {};
+let unassignedImages = [];
+let complianceMap = {};
 let jsonValid = false;
 let jsonMode = 'paste';
 let filterMode = 'all';
 
-// ── Strict Sample Data (with batch_config support) ──
+// ── Valid v2.0 Schema Sample ──
 const SAMPLE = {
+  schema_version: "v2.0",
   batch_config: {
     brand: "Anvi Fabrics",
     category: "Women Ethnic Wear",
@@ -725,15 +746,15 @@ jsonTextarea.addEventListener('input', () => {
   debounceTimer = setTimeout(() => { currentJsonText = jsonTextarea.value; validateJsonClientSide(); }, 300);
 });
 
-// ── Helper to calculate SHA-256 in browser (Feature #1) ──
+// ── SHA-256 for browser metadata audit trail ──
 async function sha256Hex(str) {
   const enc = new TextEncoder().encode(str);
   const buf = await crypto.subtle.digest('SHA-256', enc);
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── Feature #1: Package Metadata / Audit Trail Builder ──
-async function buildPackageMetadataClient(client, batch, category, skus) {
+// ── Package Metadata Builder ──
+async function buildPackageMetadataClient(client, batch, category, skus, schemaVer = EXPECTED_SCHEMA_VERSION) {
   const skuEntries = [];
   for (const sku of skus) {
     const inputRec = {
@@ -772,6 +793,7 @@ async function buildPackageMetadataClient(client, batch, category, skus) {
   return {
     tool_version: TOOL_VERSION,
     json_prompt_version: JSON_PROMPT_VERSION,
+    schema_version: schemaVer,
     generated_at: isoLocal,
     client: client,
     batch: batch,
@@ -780,10 +802,11 @@ async function buildPackageMetadataClient(client, batch, category, skus) {
   };
 }
 
-// ── Feature #4 & #5: Strict Client-Side JSON Validation & Batch Config Merging ──
+// ── Client-Side JSON Validation & Schema Contract Checking ──
 function validateJsonClientSide() {
   if (!currentJsonText.trim()) {
     setJsonBadge(false, 'No JSON'); jsonValid = false; parsedSkus = []; skuValidationResults = [];
+    setSchemaBadge(null);
     hideSkuStats(); hideValidationBreakdown(); hideGlobalAdvisories(); updatePreflightChecks(); refreshMatrix(); return;
   }
 
@@ -797,9 +820,10 @@ function validateJsonClientSide() {
     let raw = JSON.parse(currentJsonText);
     let batchConfig = null;
     let skuList = [];
+    let schemaVer = null;
 
-    // Feature #5: Normalize raw object or batch_config wrapper
     if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
+      schemaVer = raw.schema_version;
       if ('batch_config' in raw || 'skus' in raw) {
         batchConfig = raw.batch_config || {};
         skuList = Array.isArray(raw.skus) ? raw.skus : [raw.skus];
@@ -812,7 +836,25 @@ function validateJsonClientSide() {
       throw new Error('Expected a JSON array or batch object.');
     }
 
-    // Auto-fill configuration fields if batch_config is present and inputs are empty
+    currentSchemaVersion = schemaVer;
+
+    // Quaternary Section 2 (#2): Schema Version Contract
+    if (schemaVer && schemaVer !== EXPECTED_SCHEMA_VERSION) {
+      setSchemaBadge(false, schemaVer);
+      globalErrs.push(`Expected schema_version '${EXPECTED_SCHEMA_VERSION}', got '${schemaVer}'. Please regenerate JSON using current prompt.`);
+      jsonValid = false;
+      parsedSkus = [];
+      skuValidationResults = [];
+      setJsonBadge(false, 'Schema Incompatible', true);
+      showValidationBreakdown([], 1, 0, `Schema Version Incompatible: got '${schemaVer}', expected '${EXPECTED_SCHEMA_VERSION}'`);
+      updatePreflightChecks();
+      return;
+    } else if (schemaVer === EXPECTED_SCHEMA_VERSION) {
+      setSchemaBadge(true, schemaVer);
+    } else {
+      setSchemaBadge(null);
+    }
+
     if (batchConfig) {
       if (batchConfig.brand && !document.getElementById('clientName').value) {
         document.getElementById('clientName').value = batchConfig.brand;
@@ -822,7 +864,6 @@ function validateJsonClientSide() {
       }
     }
 
-    // Feature #7: Performance Safeguards (Soft Limit on SKU count)
     if (skuList.length > MAX_SKUS_SOFT_LIMIT) {
       globalWarns.push(`Batch contains ${skuList.length} SKUs (recommended soft limit: ${MAX_SKUS_SOFT_LIMIT}). Consider splitting into smaller batches for optimal browser packaging.`);
     }
@@ -832,7 +873,6 @@ function validateJsonClientSide() {
       const skuErrors = [];
       const skuWarnings = [];
 
-      // Merge batch_config defaults
       const brand = item.brand || (batchConfig && batchConfig.brand) || '';
       const category = item.category || (batchConfig && batchConfig.category) || document.getElementById('category').value || 'Women Ethnic Wear';
       const color = item.color || '';
@@ -841,7 +881,6 @@ function validateJsonClientSide() {
       const mrp = Number(item.mrp);
       const meeshoPrice = Number(item.meesho_price);
 
-      // Seller Config merge
       const defaultSc = (batchConfig && batchConfig.seller_config) || {};
       const itemSc = item.seller_config || {};
       const sc = {
@@ -850,7 +889,6 @@ function validateJsonClientSide() {
         hsn_code: String(itemSc.hsn_code || defaultSc.hsn_code || '62114200')
       };
 
-      // Base field validations
       if (!item.sku_id) skuErrors.push('Missing required field "sku_id"');
       if (!brand) skuErrors.push('Missing required field "brand"');
       if (!productType) skuErrors.push('Missing required field "product_type"');
@@ -859,7 +897,7 @@ function validateJsonClientSide() {
       if (isNaN(mrp)) skuErrors.push('Missing or invalid "mrp"');
       if (isNaN(meeshoPrice)) skuErrors.push('Missing or invalid "meesho_price"');
 
-      // Feature #2: Check for "To be confirmed"
+      // Check for "To be confirmed"
       for (const [k, v] of Object.entries(item)) {
         if (typeof v === 'string' && v.trim().toLowerCase() === TO_BE_CONFIRMED.toLowerCase()) {
           skuWarnings.push(`Field '${k}' is marked '${TO_BE_CONFIRMED}'`);
@@ -895,10 +933,10 @@ function validateJsonClientSide() {
         skuErrors.push('Amazon description is missing');
       }
 
-      // Flipkart validations (Controlled Attributes + "To be confirmed" allowed)
+      // Flipkart validations
       const fk = item.flipkart || {};
       if (!fk.title || !fk.title.trim()) skuErrors.push('Flipkart title is missing');
-      if (fk.fabric && !ALLOWED_FABRICS.includes(fk.fabric)) skuErrors.push(`Flipkart fabric "${fk.fabric}" not in allowed values: [${ALLOWED_FABRICS.join(', ')}]`);
+      if (fk.fabric && !ALLOWED_FABRICS.includes(fk.fabric)) skuErrors.push(`Flipkart fabric "${fk.fabric}" not in allowed values`);
       if (fk.kurta_type && !ALLOWED_KURTA_TYPES.includes(fk.kurta_type)) skuErrors.push(`Flipkart kurta_type "${fk.kurta_type}" not in allowed values`);
       if (fk.neck && !ALLOWED_NECKS.includes(fk.neck)) skuErrors.push(`Flipkart neck "${fk.neck}" not in allowed values`);
       if (fk.sleeve && !ALLOWED_SLEEVES.includes(fk.sleeve)) skuErrors.push(`Flipkart sleeve "${fk.sleeve}" not in allowed values`);
@@ -923,7 +961,6 @@ function validateJsonClientSide() {
         skuErrors.push(`Meesho highlights must contain exactly 4 items (got ${highlights.length})`);
       }
 
-      // Alternates validation (if present, must have exactly 5 variants)
       const alts = item.alternates || [];
       if (alts.length > 0 && alts.length !== 5) {
         skuErrors.push(`When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
@@ -1024,6 +1061,7 @@ function validateJsonClientSide() {
     skuValidationResults = [];
     globalValidationErrors = [`JSON Syntax Error: ${err.message}`];
     setJsonBadge(false, 'Invalid JSON Syntax', true);
+    setSchemaBadge(null);
     if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
     hideSkuStats();
     showValidationBreakdown([], 1, 0, err.message);
@@ -1032,6 +1070,21 @@ function validateJsonClientSide() {
   }
 
   updatePreflightChecks();
+}
+
+function setSchemaBadge(isCompatible, ver) {
+  const badge = document.getElementById('schemaContractBadge');
+  const text = document.getElementById('schemaContractText');
+  if (isCompatible === true) {
+    badge.className = 'badge badge-present';
+    text.textContent = `Schema: ${ver} – Compatible`;
+  } else if (isCompatible === false) {
+    badge.className = 'badge badge-error';
+    text.textContent = `Schema: ${ver} – Incompatible`;
+  } else {
+    badge.className = 'badge badge-missing';
+    text.textContent = 'Schema: v2.0 Contract';
+  }
 }
 
 function setJsonBadge(valid, text, isError = false) {
@@ -1067,7 +1120,6 @@ function showSkuStats(skus) {
 }
 function hideSkuStats() { document.getElementById('skuStats').classList.add('hidden'); }
 
-// ── Feature #4: UI Validation Results Breakdown (Per SKU) ──
 function showValidationBreakdown(results, totalErrors, totalWarns, syntaxErr = null) {
   const panel = document.getElementById('validationResultsPanel');
   const container = document.getElementById('skuValidationContainer');
@@ -1106,7 +1158,6 @@ function showValidationBreakdown(results, totalErrors, totalWarns, syntaxErr = n
 }
 function hideValidationBreakdown() { document.getElementById('validationResultsPanel').classList.add('hidden'); }
 
-// ── Feature #7: Global Advisories Panel ──
 function showGlobalAdvisories(warns) {
   const panel = document.getElementById('globalAdvisoryPanel');
   const list = document.getElementById('globalAdvisoryList');
@@ -1152,10 +1203,9 @@ async function runComplianceChecks(files) {
   else { cc.classList.add('hidden'); }
   if (total > 0) document.getElementById('complianceLegend').classList.remove('hidden');
 
-  // Feature #7: Image total size check
   const totalImageSizeMb = files.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024);
   if (totalImageSizeMb > MAX_TOTAL_IMAGE_SIZE_MB) {
-    const sizeWarn = `Total image size is ${totalImageSizeMb.toFixed(1)} MB (recommended soft limit: ${MAX_TOTAL_IMAGE_SIZE_MB} MB). Consider compressing high-res assets for faster delivery.`;
+    const sizeWarn = `Total image size is ${totalImageSizeMb.toFixed(1)} MB (recommended soft limit: ${MAX_TOTAL_IMAGE_SIZE_MB} MB). Consider optimizing high-resolution assets.`;
     if (!globalValidationWarnings.includes(sizeWarn)) {
       globalValidationWarnings.push(sizeWarn);
       showGlobalAdvisories(globalValidationWarnings);
@@ -1373,7 +1423,7 @@ function updatePreflightChecks() {
   let readinessText = '—';
   let readinessType = null;
   if (!jsonValid) {
-    readinessText = '❌ Not Ready (Fix Errors)';
+    readinessText = '❌ Not Ready – Fix Errors First';
     readinessType = 'error';
   } else {
     const allCorePresent = parsedSkus.length > 0 && parsedSkus.every(sku => {
@@ -1383,10 +1433,10 @@ function updatePreflightChecks() {
     const hasTbc = skuValidationResults.some(r => r.warnings.some(w => w.includes(TO_BE_CONFIRMED)));
 
     if (allCorePresent && totalWarnings === 0 && !hasTbc) {
-      readinessText = '✅ Ready for Review';
+      readinessText = '✅ Structurally Complete – Seller Review Required';
       readinessType = 'ok';
     } else {
-      readinessText = '⚠️ Review Recommended';
+      readinessText = '⚠️ Warnings – Seller Review Required';
       readinessType = 'warn';
     }
   }
@@ -1432,7 +1482,7 @@ function showComplianceModal() {
   document.getElementById('complianceModal').classList.remove('hidden');
 }
 
-// ── Master Excel Workbook Builder (Feature #2: Review Flags column) ──
+// ── Master Excel Workbook Builder (Quaternary: Clear Readiness Labeling) ──
 async function createMasterWorkbook(clientName, category) {
   const wb = new ExcelJS.Workbook();
   wb.creator = `${TOOL_VERSION}`;
@@ -1476,16 +1526,16 @@ async function createMasterWorkbook(clientName, category) {
     const coreFoundCount = CORE_SLOTS.filter(slot => files.some(fn => fn.toUpperCase().includes(slot))).length;
     const coveragePct = `${Math.round((coreFoundCount / 4) * 100)}% (${coreFoundCount}/4 Core)`;
 
-    // Check if this SKU has unconfirmed fields (Feature #2)
     const skuRes = skuValidationResults.find(r => r.sku_id === sku.sku_id);
     const hasTbc = skuRes && skuRes.warnings.some(w => w.includes(TO_BE_CONFIRMED));
     const reviewFlags = hasTbc ? '⚠️ Has unconfirmed fields' : '—';
 
-    let readiness = "❌ Not Ready";
+    // Quaternary #1: Clear Readiness Phrasing
+    let readiness = "❌ Not Ready – Fix Errors First";
     if (jsonValid && coreFoundCount === 4 && !hasTbc && (!skuRes || skuRes.warnings.length === 0)) {
-      readiness = "✅ Ready for Review";
+      readiness = "✅ Structurally Complete – Seller Review Required";
     } else if (jsonValid) {
-      readiness = "⚠️ Review Recommended";
+      readiness = "⚠️ Warnings – Seller Review Required";
     }
 
     const valStatus = jsonValid ? ((skuRes && skuRes.warnings.length > 0) ? "⚠️ Warnings" : "✅ Pass") : "❌ Errors";
@@ -1660,7 +1710,6 @@ async function createAlternatesWorkbook(clientName) {
     });
   }
 
-  // Tab 1: Amazon 5x Alternates
   const wsAmz = wb.addWorksheet('Amazon_Alternate_Copies');
   wsAmz.addRow([
     "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
@@ -1673,7 +1722,6 @@ async function createAlternatesWorkbook(clientName) {
   ]);
   styleRow(wsAmz);
 
-  // Tab 2: Flipkart 5x Alternates
   const wsFk = wb.addWorksheet('Flipkart_Alternate_Copies');
   wsFk.addRow([
     "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
@@ -1683,7 +1731,6 @@ async function createAlternatesWorkbook(clientName) {
   ]);
   styleRow(wsFk);
 
-  // Tab 3: Meesho 5x Alternates
   const wsMe = wb.addWorksheet('Meesho_Alternate_Copies');
   wsMe.addRow([
     "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
@@ -1736,7 +1783,7 @@ async function createAlternatesWorkbook(clientName) {
   return await wb.xlsx.writeBuffer();
 }
 
-// ── Handover Instructions Generator (Feature #1, #2, #3) ──
+// ── Handover Instructions Generator (Quaternary: Disclaimer, Checklist, Scope, SLA) ──
 function generateReadme(client, batch, category = "Women Ethnic Wear") {
   const categoryKeyword = CATEGORY_MAP[category] || 'kurtas-and-ethnic-tops';
   return `================================================================================
@@ -1746,11 +1793,16 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   Generated           : ${new Date().toLocaleString()}
   Tool Version        : ${TOOL_VERSION}
   JSON Prompt Version : ${JSON_PROMPT_VERSION}
+  Schema Version      : ${EXPECTED_SCHEMA_VERSION}
   Target Category     : ${category}
 
 ================================================================================
   IMPORTANT NOTICE & DISCLAIMER
 ================================================================================
+
+  This package is structurally complete but must be reviewed by the seller for
+  marketplace policy compliance, category template alignment, and final attribute
+  verification before upload.
 
   The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
   organize, validate, and prepare listing data. They are not direct official portal
@@ -1758,9 +1810,26 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   their respective Seller Central, Seller Hub, or Supplier Panel category upload
   templates.
 
-  Processing and QC review times mentioned below are industry averages and can
-  vary based on portal queue, account health, and category policy. Ensure all
-  tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
+================================================================================
+  SELLER PRE-UPLOAD CHECKLIST
+================================================================================
+
+  Before uploading to marketplaces, please confirm:
+    [ ] Fabric, care, size, and color details match your physical product.
+    [ ] GST (%), HSN code, and pricing values are correct for your account.
+    [ ] Data is mapped into the latest official marketplace templates for your category.
+    [ ] Images meet each marketplace's current image policy (size, white background, count).
+    [ ] All fields marked 'To be confirmed' have been finalized with confirmed values.
+
+================================================================================
+  SCOPE & LIMITATIONS
+================================================================================
+
+  • This tool prepares listing copy and mapping workbooks based on provided data.
+  • It does not guarantee marketplace acceptance or policy compliance.
+  • It does not verify image visual content beyond filename-based slot assignment.
+  • It does not provide legal, tax, or official classification advice (GST/HSN).
+  • All data must be reviewed and confirmed by the seller before portal upload.
 
 ================================================================================
   TEMPLATE REFERENCE NOTES
@@ -1836,16 +1905,12 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================
-  QUALITY STANDARDS APPLIED
+  SUPPORT & SLA EXPECTATION
 ================================================================================
 
-  • Amazon Title Length           : Enforced ≤ 180 characters.
-  • Amazon Backend Search Terms   : Enforced ≤ 240 bytes (UTF-8 strict).
-  • Meesho Product Title          : Enforced ≤ 60 characters.
-  • Flipkart Attributes           : Validated against controlled marketplace taxonomy.
-  • Tax & Commercial Values       : Ingested dynamically from seller configuration.
-  • Package Readiness Status      : "Ready for Review" indicates structural &
-                                    image completeness, pending portal upload.
+  Support is provided on a best-effort basis (Monday–Friday, 10:00–18:00 IST).
+  Critical packaging issues and broken ZIP archives are prioritized.
+  Contact catalog support: support@listingfactory.internal
 
 ================================================================================`;
 }
@@ -1859,7 +1924,7 @@ function setProgress(pct, label) {
 function showProgress() { document.getElementById('progressArea').classList.remove('hidden'); setProgress(0,'Initialising…'); }
 function hideProgress() { document.getElementById('progressArea').classList.add('hidden'); }
 
-// ── Package Generation Engine (Feature #1: Includes package_metadata.json) ──
+// ── Package Generation Engine ──
 async function generatePackage(skipComplianceCheck) {
   if (!jsonValid) {
     alert('Cannot generate package: Please resolve schema and validation errors first.');
@@ -1900,14 +1965,13 @@ async function generatePackage(skipComplianceCheck) {
       altXlsxBuffer = await createAlternatesWorkbook(safeClient);
     }
 
-    // Step 1c: Package Metadata Audit Trail (Feature #1)
+    // Step 1c: Package Metadata Audit Trail
     setProgress(32, 'Building package audit metadata (SHA-256)…');
-    const metadataObj = await buildPackageMetadataClient(safeClient, safeBatch, category, parsedSkus);
+    const metadataObj = await buildPackageMetadataClient(safeClient, safeBatch, category, parsedSkus, currentSchemaVersion || EXPECTED_SCHEMA_VERSION);
     const metadataStr = JSON.stringify(metadataObj, null, 2);
 
     setProgress(38, 'Assembling ZIP archive…');
 
-    // Step 2: Build ZIP (STORE mode for images)
     const zip = new JSZip();
     const root = zip.folder(zipPrefix);
 
@@ -1916,7 +1980,6 @@ async function generatePackage(skipComplianceCheck) {
       const altXlsxName = `${safeClient}_Alternate_Listing_Copies.xlsx`;
       root.file(altXlsxName, altXlsxBuffer, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
     }
-    // Add package_metadata.json (Feature #1)
     root.file('package_metadata.json', metadataStr, { compression: 'DEFLATE' });
     root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch, category), { compression: 'DEFLATE' });
 

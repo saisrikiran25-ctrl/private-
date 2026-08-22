@@ -14,6 +14,7 @@ Open:    http://127.0.0.1:8000
 
 from __future__ import annotations
 
+import glob
 import hashlib
 import io
 import json
@@ -46,10 +47,14 @@ import uvicorn
 
 TOOL_VERSION = "Listing Factory v2.0"
 JSON_PROMPT_VERSION = "JSON Prompt v1.0 – 2026-08-22"
+EXPECTED_SCHEMA_VERSION = "v2.0"
 TO_BE_CONFIRMED = "To be confirmed"
 
 MAX_SKUS_SOFT_LIMIT = 50
 MAX_TOTAL_IMAGE_SIZE_MB = 200
+
+OUTPUT_DIR = Path(__file__).parent / "output"
+OUTPUT_DIR.mkdir(exist_ok=True)
 
 
 # ──────────────────────────────────────────────
@@ -267,6 +272,7 @@ def build_package_metadata(
     skus: list[SKUItem],
     tool_version: str = TOOL_VERSION,
     json_prompt_version: str = JSON_PROMPT_VERSION,
+    schema_version: str = EXPECTED_SCHEMA_VERSION,
 ) -> dict:
     """
     Build package audit metadata including SHA-256 input and output hashes per SKU.
@@ -303,6 +309,7 @@ def build_package_metadata(
     return {
         "tool_version": tool_version,
         "json_prompt_version": json_prompt_version,
+        "schema_version": schema_version,
         "generated_at": now_iso,
         "client": client,
         "batch": batch,
@@ -393,15 +400,15 @@ def _build_master_summary(
         has_tbc = _sku_has_unconfirmed_fields(sku)
         review_flags = "⚠️ Has unconfirmed fields" if has_tbc else "—"
         
-        # Package readiness logic
+        # Quaternary Enhancement #1: Clear Readiness Phrasing
         if validation_status == "✅ Pass" and core_found == 4 and not has_tbc:
-            readiness = "✅ Ready for Review"
+            readiness = "✅ Structurally Complete – Seller Review Required"
         elif validation_status == "✅ Pass":
-            readiness = "⚠️ Review Recommended"
+            readiness = "⚠️ Warnings – Seller Review Required"
         elif "Warning" in validation_status:
-            readiness = "⚠️ Review Recommended"
+            readiness = "⚠️ Warnings – Seller Review Required"
         else:
-            readiness = "❌ Not Ready"
+            readiness = "❌ Not Ready – Fix Errors First"
 
         ws.append([
             sku.sku_id,
@@ -663,11 +670,16 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   Generated           : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
   Tool Version        : {TOOL_VERSION}
   JSON Prompt Version : {JSON_PROMPT_VERSION}
+  Schema Version      : {EXPECTED_SCHEMA_VERSION}
   Target Category     : {category}
 
 ================================================================================
   IMPORTANT NOTICE & DISCLAIMER
 ================================================================================
+
+  This package is structurally complete but must be reviewed by the seller for
+  marketplace policy compliance, category template alignment, and final attribute
+  verification before upload.
 
   The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
   organize, validate, and prepare listing data. They are not direct official portal
@@ -675,9 +687,26 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   their respective Seller Central, Seller Hub, or Supplier Panel category upload
   templates.
 
-  Processing and QC review times mentioned below are industry averages and can
-  vary based on portal queue, account health, and category policy. Ensure all
-  tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
+================================================================================
+  SELLER PRE-UPLOAD CHECKLIST
+================================================================================
+
+  Before uploading to marketplaces, please confirm:
+    [ ] Fabric, care, size, and color details match your physical product.
+    [ ] GST (%), HSN code, and pricing values are correct for your account.
+    [ ] Data is mapped into the latest official marketplace templates for your category.
+    [ ] Images meet each marketplace's current image policy (size, white background, count).
+    [ ] All fields marked 'To be confirmed' have been finalized with confirmed values.
+
+================================================================================
+  SCOPE & LIMITATIONS
+================================================================================
+
+  • This tool prepares listing copy and mapping workbooks based on provided data.
+  • It does not guarantee marketplace acceptance or policy compliance.
+  • It does not verify image visual content beyond filename-based slot assignment.
+  • It does not provide legal, tax, or official classification advice (GST/HSN).
+  • All data must be reviewed and confirmed by the seller before portal upload.
 
 ================================================================================
   TEMPLATE REFERENCE NOTES
@@ -753,16 +782,12 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================
-  QUALITY STANDARDS APPLIED
+  SUPPORT & SLA EXPECTATION
 ================================================================================
 
-  • Amazon Title Length           : Enforced ≤ 180 characters.
-  • Amazon Backend Search Terms   : Enforced ≤ 240 bytes (UTF-8 strict).
-  • Meesho Product Title          : Enforced ≤ 60 characters.
-  • Flipkart Attributes           : Validated against controlled marketplace taxonomy.
-  • Tax & Commercial Values       : Ingested dynamically from seller configuration.
-  • Package Readiness Status      : "Ready for Review" indicates structural &
-                                    image completeness, pending portal upload.
+  Support is provided on a best-effort basis (Monday–Friday, 10:00–18:00 IST).
+  Critical packaging issues and broken ZIP archives are prioritized.
+  Contact catalog support: support@listingfactory.internal
 
 ================================================================================
 """
@@ -803,18 +828,21 @@ def route_images(
 # JSON Payload Normalization & Batch Config Merge
 # ──────────────────────────────────────────────
 
-def normalize_and_merge_json(raw_data: Any) -> tuple[Optional[BatchConfig], list[dict]]:
+def normalize_and_merge_json(raw_data: Any) -> tuple[Optional[str], Optional[BatchConfig], list[dict]]:
     """
     Normalizes JSON payload which can be:
-    1. A raw list of SKU dicts: [ {...}, {...} ]
-    2. An object with batch_config and skus: { "batch_config": {...}, "skus": [...] }
+    1. An object with schema_version, batch_config, and skus:
+       { "schema_version": "v2.0", "batch_config": {...}, "skus": [...] }
+    2. A raw list of SKU dicts: [ {...}, {...} ]
     3. A single SKU dict: { "sku_id": "...", ... }
-    Applies batch_config inheritance to individual SKUs where fields are omitted.
+    Returns (schema_version, batch_config, merged_skus).
     """
+    schema_ver: Optional[str] = None
     batch_cfg: Optional[BatchConfig] = None
     sku_raw_list: list[dict] = []
 
     if isinstance(raw_data, dict):
+        schema_ver = raw_data.get("schema_version")
         if "batch_config" in raw_data or "skus" in raw_data:
             if "batch_config" in raw_data and isinstance(raw_data["batch_config"], dict):
                 batch_cfg = BatchConfig(**raw_data["batch_config"])
@@ -827,7 +855,6 @@ def normalize_and_merge_json(raw_data: Any) -> tuple[Optional[BatchConfig], list
     else:
         raise ValueError("Invalid JSON structure: Expected a JSON object or array of SKUs.")
 
-    # Merge batch_config into each SKU dict if present
     merged_skus = []
     for item in sku_raw_list:
         sku_dict = dict(item)
@@ -845,7 +872,7 @@ def normalize_and_merge_json(raw_data: Any) -> tuple[Optional[BatchConfig], list
                 sku_dict["seller_config"] = default_sc
         merged_skus.append(sku_dict)
 
-    return batch_cfg, merged_skus
+    return schema_ver, batch_cfg, merged_skus
 
 
 # ──────────────────────────────────────────────
@@ -858,7 +885,8 @@ def build_zip(
     category: str,
     skus: list[SKUItem],
     image_files: list[tuple[str, bytes]],
-    validation_status: str = "✅ Pass"
+    validation_status: str = "✅ Pass",
+    schema_version: str = EXPECTED_SCHEMA_VERSION
 ) -> bytes:
     """Build the full delivery ZIP archive in-memory."""
     sku_ids = [s.sku_id for s in skus]
@@ -870,7 +898,9 @@ def build_zip(
 
     xlsx_bytes = build_workbook(skus, category, image_map, validation_status)
     readme_text = generate_readme(client, batch, category)
-    metadata_dict = build_package_metadata(client, batch, category, skus, TOOL_VERSION, JSON_PROMPT_VERSION)
+    metadata_dict = build_package_metadata(
+        client, batch, category, skus, TOOL_VERSION, JSON_PROMPT_VERSION, schema_version
+    )
     metadata_bytes = json.dumps(metadata_dict, indent=2, ensure_ascii=False).encode("utf-8")
 
     has_alternates = any(len(s.alternates) > 0 for s in skus)
@@ -904,19 +934,114 @@ def build_zip(
 
 
 # ──────────────────────────────────────────────
+# Sample Data Generator for Dry-Run (Section 3 - #3)
+# ──────────────────────────────────────────────
+
+def get_sample_skus() -> list[dict]:
+    return [
+        {
+            "sku_id": "SKU_SAMPLE_01",
+            "brand": "SampleBrand",
+            "product_type": "Pure Cotton Kurti",
+            "color": "Indigo Blue",
+            "category": "Women Ethnic Wear",
+            "sizes": "S, M, L, XL, XXL",
+            "mrp": 1299.0,
+            "meesho_price": 349.0,
+            "seller_config": {
+                "amazon_quantity": 50,
+                "gst_percent": 5,
+                "hsn_code": "62114200"
+            },
+            "amazon": {
+                "title": "SampleBrand Women's Pure Cotton Straight Kurti with Pocket | Daily Office Wear",
+                "bullet_points": [
+                    "100% PURE COTTON: Soft, breathable 60s count fabric for all-day comfort.",
+                    "POCKET UTILITY: Includes convenient deep side pocket for phone and essentials.",
+                    "COLORFAST GUARANTEE: Pre-washed cotton resists color fading and shrinkage.",
+                    "VERSATILE STYLING: Pairs easily with denim, palazzo pants, or ethnic trousers.",
+                    "PRECISE SIZING: Standard regular Indian fit from S(36) to XXL(44)."
+                ],
+                "backend_search_terms": "cotton kurti women straight kurta daily wear office festive ethnic top",
+                "description": "Experience daily comfort and elegance with SampleBrand Pure Cotton Straight Kurti."
+            },
+            "flipkart": {
+                "title": "SampleBrand Women Solid Pure Cotton Straight Kurta (Blue)",
+                "fabric": "Pure Cotton",
+                "kurta_type": "Straight",
+                "neck": "Round Neck",
+                "sleeve": "3/4 Sleeve",
+                "length_type": "Calf Length",
+                "pattern": "Solid",
+                "occasion": "Casual",
+                "search_keywords": "cotton kurti, straight kurta women, summer kurti",
+                "description": "Crafted from breathable pure cotton, this straight kurta combines understated elegance with everyday practicality."
+            },
+            "meesho": {
+                "title": "Pure Cotton Straight Kurti with Pocket",
+                "hinglish_hook_description": "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily wear aur office ke liye best choice.",
+                "english_hook_description": "Premium pure cotton straight kurti tailored with a functional pocket for smart everyday wear.",
+                "highlights": [
+                    "Fabric: 100% Pure Cotton",
+                    "Pocket: 1 Side Pocket Included",
+                    "Fit: Regular Straight Fit",
+                    "Care: Hand or Machine Wash"
+                ]
+            },
+            "alternates": [
+                {
+                    "variant_id": f"V{i+1}",
+                    "angle_theme": theme,
+                    "amazon": {
+                        "title": f"SampleBrand Women's Cotton Kurti - {theme} Edition",
+                        "bullet_points": [
+                            f"COMFORT {i+1}: Ultra-breathable weave for active daily ventilation.",
+                            "DESIGN: Tailored silhouette designed for versatile ethnic styling.",
+                            "DURABILITY: Tested colorfast fabric retains crisp tone across 40+ washes.",
+                            "VERSATILITY: Complements office trousers and ethnic skirts seamlessly.",
+                            "CARE: Easy machine wash with mild detergent."
+                        ],
+                        "backend_search_terms": f"cotton kurti {theme.lower()} women ethnic kurta",
+                        "description": f"Designed specifically for {theme.lower()}. A premium wardrobe essential."
+                    },
+                    "flipkart": {
+                        "title": f"SampleBrand Women Cotton Kurta - {theme}",
+                        "search_keywords": f"kurti {theme.lower()}, cotton kurta",
+                        "description": f"Elegant pure cotton kurta tailored for {theme.lower()}."
+                    },
+                    "meesho": {
+                        "title": f"Cotton Kurti - {theme}",
+                        "hinglish_hook_description": f"Har din ke liye badhiya cotton kurti! {theme} ke liye ekdum perfect.",
+                        "english_hook_description": f"Premium daily cotton kurti crafted for {theme.lower()}.",
+                        "highlights": ["Fabric: Cotton", f"Theme: {theme}", "Fit: Regular", "Wash: Normal"]
+                    }
+                }
+                for i, theme in enumerate([
+                    "Daily Office & Workwear",
+                    "Festive Celebrations",
+                    "Summer Cooling Comfort",
+                    "Durable Essential",
+                    "Modern Fusion Styling"
+                ])
+            ]
+        }
+    ]
+
+
+# ──────────────────────────────────────────────
 # FastAPI Application
 # ──────────────────────────────────────────────
 
 app = FastAPI(title="Listing Factory", version="2.0.0")
 
 
-# ── Validation endpoint (Feature #4: Structured Validation Results by SKU) ──
+# ── Validation endpoint (Quaternary: Schema Version Contract & Per-SKU Breakdown) ──
 
 @app.post("/api/validate-json")
 async def validate_json(request: Request):
     """
     Strictly validate AI-generated JSON listing data against the schema.
-    Returns per-SKU structured errors and warnings, plus global safeguards.
+    Enforces schema_version contract, structured per-SKU errors, and advisory warnings.
     """
     try:
         body = await request.json()
@@ -930,12 +1055,27 @@ async def validate_json(request: Request):
             }, status_code=400)
         
         data = json.loads(raw)
-        batch_cfg, merged_skus = normalize_and_merge_json(data)
+        schema_ver, batch_cfg, merged_skus = normalize_and_merge_json(data)
 
         global_warnings = []
         global_errors = []
 
-        # Feature #7: Performance Safeguards (Soft Warnings)
+        # Quaternary Section 2 (#2): Schema Version Contract
+        if schema_ver is not None and schema_ver != EXPECTED_SCHEMA_VERSION:
+            global_errors.append(
+                f"Expected schema_version '{EXPECTED_SCHEMA_VERSION}', got '{schema_ver}'. "
+                "Please regenerate JSON using the current prompt."
+            )
+            return JSONResponse({
+                "valid": False,
+                "schema_version": schema_ver,
+                "expected_schema_version": EXPECTED_SCHEMA_VERSION,
+                "global_errors": global_errors,
+                "global_warnings": [],
+                "sku_results": []
+            }, status_code=400)
+
+        # Performance Safeguards (Soft Limit on SKU count)
         if len(merged_skus) > MAX_SKUS_SOFT_LIMIT:
             global_warnings.append(
                 f"Batch has {len(merged_skus)} SKUs (recommended soft limit: {MAX_SKUS_SOFT_LIMIT}). "
@@ -947,11 +1087,11 @@ async def validate_json(request: Request):
         overall_valid = True
 
         for idx, item in enumerate(merged_skus):
-            sk_id = item.get("sku_id") or f"SKU_{String(idx+1).padStart(2,'0')}" if "String" in globals() else f"SKU_{idx+1:02d}"
+            sk_id = item.get("sku_id") or f"SKU_{idx+1:02d}"
             sku_errors = []
             sku_warnings = []
 
-            # Check for "To be confirmed" fields (Feature #2)
+            # Check for "To be confirmed" fields
             for key, val in item.items():
                 if isinstance(val, str) and val.strip().lower() == TO_BE_CONFIRMED.lower():
                     sku_warnings.append(f"Field '{key}' is marked '{TO_BE_CONFIRMED}'")
@@ -991,6 +1131,8 @@ async def validate_json(request: Request):
         if not overall_valid:
             return JSONResponse({
                 "valid": False,
+                "schema_version": schema_ver or EXPECTED_SCHEMA_VERSION,
+                "expected_schema_version": EXPECTED_SCHEMA_VERSION,
                 "sku_count": len(merged_skus),
                 "global_errors": global_errors,
                 "global_warnings": global_warnings,
@@ -999,6 +1141,8 @@ async def validate_json(request: Request):
 
         return JSONResponse({
             "valid": True,
+            "schema_version": schema_ver or EXPECTED_SCHEMA_VERSION,
+            "expected_schema_version": EXPECTED_SCHEMA_VERSION,
             "sku_count": len(parsed_skus),
             "global_errors": [],
             "global_warnings": global_warnings,
@@ -1021,7 +1165,7 @@ async def validate_json(request: Request):
         }, status_code=400)
 
 
-# ── Generation endpoint ──
+# ── Generation endpoint (Section 5 - #5: Versioned Output Archival) ──
 
 @app.post("/api/generate")
 async def generate_package(
@@ -1031,10 +1175,10 @@ async def generate_package(
     json_data: str = Form(...),
     images: list[UploadFile] = File(default=[]),
 ):
-    """Generate the full delivery ZIP package with mapping workbooks and organized images."""
+    """Generate the full delivery ZIP package with mapping workbooks and versioned disk archive."""
     try:
         raw = json.loads(json_data)
-        batch_cfg, merged_skus = normalize_and_merge_json(raw)
+        schema_ver, batch_cfg, merged_skus = normalize_and_merge_json(raw)
         skus = [SKUItem(**item) for item in merged_skus]
     except Exception as e:
         return JSONResponse({"error": f"Schema validation error: {e}"}, status_code=400)
@@ -1049,8 +1193,28 @@ async def generate_package(
     safe_client = re.sub(r"[^\w\-]", "_", client_name.strip() or "Client")
     safe_batch = re.sub(r"[^\w\-]", "_", batch_id.strip() or "Batch_01")
     cat = category.strip() or "Women Ethnic Wear"
+    ver_str = schema_ver or EXPECTED_SCHEMA_VERSION
 
-    zip_bytes = build_zip(safe_client, safe_batch, cat, skus, image_files, validation_status="✅ Pass")
+    zip_bytes = build_zip(
+        safe_client, safe_batch, cat, skus, image_files,
+        validation_status="✅ Pass", schema_version=ver_str
+    )
+
+    # Section 5 (#5): Versioned Output Archival
+    pattern = str(OUTPUT_DIR / f"{safe_client}_{safe_batch}_v*.zip")
+    existing_files = glob.glob(pattern)
+    existing_versions = []
+    for f in existing_files:
+        m = re.search(r"_v(\d+)\.zip$", f)
+        if m:
+            existing_versions.append(int(m.group(1)))
+    next_ver = (max(existing_versions) + 1) if existing_versions else 1
+    versioned_file = OUTPUT_DIR / f"{safe_client}_{safe_batch}_v{next_ver}.zip"
+    try:
+        versioned_file.write_bytes(zip_bytes)
+    except Exception as io_err:
+        print(f"Warning: could not write versioned archive {versioned_file}: {io_err}")
+
     zip_name = f"{safe_client}_{safe_batch}_Handover_Package.zip"
 
     return StreamingResponse(
@@ -1058,6 +1222,46 @@ async def generate_package(
         media_type="application/zip",
         headers={"Content-Disposition": f'attachment; filename="{zip_name}"'},
     )
+
+
+# ── Sample / Dry-Run Endpoint (Section 3 - #3) ──
+
+@app.post("/api/generate-sample")
+async def generate_sample():
+    """Generate and return a sample handover ZIP archive for testing and demos."""
+    sample_skus_raw = get_sample_skus()
+    skus = [SKUItem(**item) for item in sample_skus_raw]
+    zip_bytes = build_zip(
+        client="SampleBrand",
+        batch="Sample_Batch_01",
+        category="Women Ethnic Wear",
+        skus=skus,
+        image_files=[],
+        validation_status="✅ Pass",
+        schema_version=EXPECTED_SCHEMA_VERSION
+    )
+    return StreamingResponse(
+        io.BytesIO(zip_bytes),
+        media_type="application/zip",
+        headers={"Content-Disposition": 'attachment; filename="Sample_Handover_Package.zip"'},
+    )
+
+
+# ── History & Rollback Endpoint (Section 5 - #5) ──
+
+@app.get("/api/history")
+async def get_history(client: Optional[str] = None, batch: Optional[str] = None):
+    """Retrieve archived package versions from the output directory."""
+    files = []
+    for p in OUTPUT_DIR.glob("*.zip"):
+        st = p.stat()
+        files.append({
+            "filename": p.name,
+            "size_bytes": st.st_size,
+            "created_at": datetime.fromtimestamp(st.st_mtime).isoformat(),
+        })
+    files.sort(key=lambda x: x["created_at"], reverse=True)
+    return JSONResponse({"packages": files})
 
 
 # ── Frontend route (serves index.html from disk) ──
