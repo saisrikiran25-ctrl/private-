@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Listing Factory — Multi-Marketplace Packaging Studio</title>
-  <meta name="description" content="Automated packaging, validation, and delivery engine for Indian e-commerce cataloging. Supports Amazon.in, Flipkart, and Meesho bulk uploads.">
+  <title>Listing Factory — Multi-Marketplace Packaging Studio v2.0</title>
+  <meta name="description" content="Automated packaging, validation, and delivery engine for Indian e-commerce cataloging. Generates structured marketplace mapping workbooks for Amazon.in, Flipkart, and Meesho.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -85,6 +85,7 @@
     .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
     .badge-present { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
     .badge-missing { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
+    .badge-error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
 
     /* Generate button */
     .btn-generate { position: relative; background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%); color: white; font-weight: 700; font-size: 16px; padding: 16px 40px; border-radius: 14px; border: none; cursor: pointer; overflow: hidden; transition: all 0.3s ease; }
@@ -102,6 +103,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .warning-item { background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.2); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #fbbf24; }
+    .error-item { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #f87171; }
 
     .section-number { width: 32px; height: 32px; background: linear-gradient(135deg, #059669, #10b981); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; flex-shrink: 0; }
 
@@ -136,8 +138,8 @@
           <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
         </div>
         <div>
-          <h3 class="font-bold text-white">Image Compliance Issues</h3>
-          <p class="text-xs text-slate-400">Some images may be rejected by marketplace portals</p>
+          <h3 class="font-bold text-white">Image Compliance Notice</h3>
+          <p class="text-xs text-slate-400">Some images have advisory compliance issues</p>
         </div>
       </div>
       <button onclick="closeComplianceModal()" class="text-slate-500 hover:text-slate-300 transition-colors">
@@ -165,14 +167,14 @@
           <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg>
         </div>
         <div>
-          <h1 class="text-lg font-bold text-white tracking-tight">Listing Factory</h1>
-          <p class="text-xs text-slate-400 font-medium">Multi-Marketplace Packaging Studio</p>
+          <h1 class="text-lg font-bold text-white tracking-tight">Listing Factory <span class="text-xs font-mono font-normal text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 ml-1">v2.0</span></h1>
+          <p class="text-xs text-slate-400 font-medium">Multi-Marketplace Packaging Studio (Amazon.in · Flipkart · Meesho)</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
         <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Client-Side Engine
+          Strict Validation Engine
         </div>
         <a href="https://github.com/saisrikiran25-ctrl/private-" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -222,8 +224,8 @@
         <div class="flex items-center gap-3">
           <div class="section-number">2</div>
           <div>
-            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Paste or upload your Claude / Gemini JSON output</p>
+            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion &amp; Strict Validation</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Paste or upload listing JSON — strictly validated against marketplace rules (no silent truncation)</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -239,7 +241,7 @@
         <button onclick="setJsonMode('file')" id="tabFile" class="px-4 py-2 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-slate-300">📁 Upload File</button>
       </div>
       <div id="pasteMode">
-        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='Paste JSON array here…&#10;[{ "sku_id": "SKU_01", "brand": "…", … }]'></textarea>
+        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='Paste JSON array conforming to strict schema…&#10;[{ "sku_id": "SKU_01", "brand": "…", "color": "…", "seller_config": { "amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200" }, … }]'></textarea>
       </div>
       <div id="fileMode" class="hidden">
         <div class="border-2 border-dashed border-slate-700/50 rounded-xl p-8 text-center cursor-pointer hover:border-emerald-500/40 transition-all" onclick="document.getElementById('jsonFileInput').click()">
@@ -252,13 +254,25 @@
           <span id="jsonFileLabel"></span>
         </div>
       </div>
+
+      <!-- Errors Panel -->
+      <div id="errorsPanel" class="hidden mt-4 space-y-2">
+        <div class="flex items-center gap-2 text-xs font-semibold text-red-400 mb-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376H2.697L13.949 3.378c.866-1.5 3.032-1.5 3.898 0l9.252 16.248Z"/></svg>
+          Schema &amp; Constraint Errors (Fix Required)
+        </div>
+        <div id="errorsList" class="space-y-1.5"></div>
+      </div>
+
+      <!-- Warnings Panel -->
       <div id="warningsPanel" class="hidden mt-4 space-y-2">
         <div class="flex items-center gap-2 text-xs font-semibold text-amber-400 mb-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-          Validation Warnings
+          Advisory Warnings
         </div>
         <div id="warningsList" class="space-y-1.5"></div>
       </div>
+
       <div id="skuStats" class="hidden mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
     </section>
 
@@ -269,7 +283,7 @@
           <div class="section-number">3</div>
           <div>
             <h2 class="text-base font-bold text-white">Image Assets Drop Zone</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Drag &amp; drop bulk images — auto-matched to SKUs by filename prefix</p>
+            <p class="text-xs text-slate-400 mt-0.5">Bulk images auto-matched to SKUs by canonical prefix: <code class="text-emerald-400">SKU_XX_MAIN.jpg</code>, <code class="text-emerald-400">SKU_XX_PT01.jpg</code> ... <code class="text-emerald-400">SKU_XX_PT05.jpg</code></p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -288,7 +302,7 @@
           <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
         </div>
         <p class="text-sm font-semibold text-slate-300">Drop images here or click to browse</p>
-        <p class="text-xs text-slate-500 mt-2">Supports <span class="text-slate-400">.jpg .jpeg .png .webp</span> — Format: <span class="font-mono text-emerald-400/80">SKU_01_MAIN.jpg</span></p>
+        <p class="text-xs text-slate-500 mt-2">Canonical Naming: <span class="font-mono text-emerald-400">SKU_01_MAIN.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT01.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT02.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT03.jpg</span></p>
       </div>
 
       <!-- Filter chips + Asset Matrix -->
@@ -297,7 +311,7 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2 flex-wrap">
             <button class="filter-chip active" id="chip-all"     onclick="applyFilter('all')">All SKUs <span id="cnt-all"     class="ml-1 opacity-70">0</span></button>
-            <button class="filter-chip"        id="chip-complete"onclick="applyFilter('complete')">Complete <span id="cnt-complete" class="ml-1 opacity-70">0</span></button>
+            <button class="filter-chip"        id="chip-complete"onclick="applyFilter('complete')">Complete (4/4 Core) <span id="cnt-complete" class="ml-1 opacity-70">0</span></button>
             <button class="filter-chip"        id="chip-incomplete" onclick="applyFilter('incomplete')">Incomplete <span id="cnt-incomplete" class="ml-1 opacity-70">0</span></button>
             <button class="filter-chip"        id="chip-orphaned" onclick="applyFilter('orphaned')">Orphaned <span id="cnt-orphaned" class="ml-1 opacity-70">0</span></button>
           </div>
@@ -312,9 +326,9 @@
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2 text-xs font-semibold text-amber-400">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-              Orphaned Assets — Filename didn't match any SKU
+              Orphaned Assets — Filename prefix didn't match any SKU_ID
             </div>
-            <span class="text-xs text-slate-500">Rename to re-assign (e.g., SKU_01_MAIN.jpg)</span>
+            <span class="text-xs text-slate-500">Rename to canonical format: <code class="text-emerald-400">SKU_01_MAIN.jpg</code></span>
           </div>
           <div id="orphanList" class="space-y-2"></div>
         </div>
@@ -322,8 +336,8 @@
         <!-- Compliance legend -->
         <div id="complianceLegend" class="hidden mt-4 p-3 glass-panel-lighter flex flex-wrap gap-4 text-xs text-slate-400">
           <span class="flex items-center gap-1.5"><span class="slot-badge slot-warn px-1.5">⚠</span> Below Amazon 1000px zoom threshold</span>
-          <span class="flex items-center gap-1.5"><span class="slot-badge slot-warn px-1.5">⚠</span> Exceeds 5 MB Meesho limit</span>
-          <span class="flex items-center gap-1.5"><span class="slot-badge slot-miss">✗</span> Required slot missing</span>
+          <span class="flex items-center gap-1.5"><span class="slot-badge slot-warn px-1.5">⚠</span> Exceeds 5 MB upload limit</span>
+          <span class="flex items-center gap-1.5"><span class="slot-badge slot-miss">✗</span> Required core slot missing</span>
         </div>
       </div>
     </section>
@@ -333,8 +347,8 @@
       <div class="flex items-center gap-3 mb-6">
         <div class="section-number">4</div>
         <div>
-          <h2 class="text-base font-bold text-white">Pre-Flight Check &amp; Generate</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Review validation status and generate your delivery package</p>
+          <h2 class="text-base font-bold text-white">Pre-Flight Review &amp; Package Generation</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Generates client handover ZIP containing marketplace mapping workbooks and organized images</p>
         </div>
       </div>
 
@@ -346,22 +360,22 @@
         </div>
         <div class="glass-panel-lighter p-4 flex items-center gap-3">
           <div id="checkJson" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div><p class="text-xs font-semibold text-slate-300">JSON Data</p><p class="text-xs text-slate-500" id="checkJsonText">No data</p></div>
+          <div><p class="text-xs font-semibold text-slate-300">JSON Schema</p><p class="text-xs text-slate-500" id="checkJsonText">No data</p></div>
         </div>
         <div class="glass-panel-lighter p-4 flex items-center gap-3">
           <div id="checkImages" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div><p class="text-xs font-semibold text-slate-300">Images</p><p class="text-xs text-slate-500" id="checkImagesText">None uploaded</p></div>
+          <div><p class="text-xs font-semibold text-slate-300">Core Assets</p><p class="text-xs text-slate-500" id="checkImagesText">None uploaded</p></div>
         </div>
         <div class="glass-panel-lighter p-4 flex items-center gap-3">
           <div id="checkWarnings" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
-          <div><p class="text-xs font-semibold text-slate-300">Warnings</p><p class="text-xs text-slate-500" id="checkWarningsText">—</p></div>
+          <div><p class="text-xs font-semibold text-slate-300">Readiness</p><p class="text-xs text-slate-500" id="checkWarningsText">—</p></div>
         </div>
       </div>
 
       <!-- Progress bar area -->
       <div id="progressArea" class="hidden mb-5 space-y-2">
         <div class="flex justify-between text-xs text-slate-400">
-          <span id="progressLabel">Building Excel…</span>
+          <span id="progressLabel">Building Master Excel mapping workbook…</span>
           <span id="progressPct">0%</span>
         </div>
         <div class="progress-bar-track">
@@ -378,20 +392,29 @@
           </span>
           <span id="btnLoading" class="hidden"><span class="spinner"></span>Packaging…</span>
         </button>
-        <p class="text-xs text-slate-500">Excel workbook + organized images + ZIP — 100% in-browser, STORE-mode compression for speed</p>
+        <p class="text-xs text-slate-500">Includes Master Mapping Workbook + 5x Alternates Workbook + SKU Images + Upload Guide</p>
       </div>
     </section>
 
-    <footer class="text-center py-8 text-xs text-slate-600">
+    <footer class="text-center py-8 text-xs text-slate-600 space-y-1">
       <p>Listing Factory v2.0 — Multi-Marketplace Packaging Studio</p>
-      <p class="mt-1">Amazon.in · Flipkart · Meesho — Complete marketplace schemas with compliance validation</p>
+      <p>Marketplace Mapping Workbooks for Amazon.in, Flipkart &amp; Meesho · Non-destructive schema validation</p>
+      <p class="text-slate-700 text-[11px] pt-1">Note: Output workbooks are structured mapping files intended for transfer into official portal upload templates.</p>
     </footer>
   </main>
 </div>
 
 <!-- ══════════════ JavaScript Engine ══════════════ -->
 <script>
-// ── Constants ──
+// ── Controlled Marketplace Taxonomies (Strict Flipkart Attributes) ──
+const ALLOWED_FABRICS = ["Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton"];
+const ALLOWED_KURTA_TYPES = ["Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani"];
+const ALLOWED_NECKS = ["Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck"];
+const ALLOWED_SLEEVES = ["3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve"];
+const ALLOWED_LENGTHS = ["Calf Length", "Ankle Length", "Knee Length", "Above Knee"];
+const ALLOWED_PATTERNS = ["Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani"];
+const ALLOWED_OCCASIONS = ["Casual", "Festive", "Casual & Festive", "Party", "Formal"];
+
 const CATEGORY_MAP = {
   "Women Ethnic Wear": "kurtas-and-ethnic-tops",
   "Men Western Wear": "mens-casual-shirts",
@@ -399,13 +422,26 @@ const CATEGORY_MAP = {
   "Footwear": "casual-shoes",
   "Home & Kitchen": "home-furnishing"
 };
-const CORE_SLOTS   = ['_MAIN','_PT01','_PT02','_PT03'];
-const EXTRA_SLOTS  = ['_PT04','_PT05','_PT06','_PT07','_PT08'];
-const SLOT_LABELS  = { _MAIN:'MAIN', _PT01:'PT01', _PT02:'PT02', _PT03:'PT03', _PT04:'PT04', _PT05:'PT05', _PT06:'PT06', _PT07:'PT07', _PT08:'PT08' };
+
+// Canonical image naming slots
+const CORE_SLOTS   = ['_MAIN', '_PT01', '_PT02', '_PT03'];
+const EXTRA_SLOTS  = ['_PT04', '_PT05', '_PT06', '_PT07', '_PT08'];
+const SLOT_LABELS  = {
+  _MAIN: 'MAIN',
+  _PT01: 'PT01',
+  _PT02: 'PT02',
+  _PT03: 'PT03',
+  _PT04: 'PT04',
+  _PT05: 'PT05',
+  _PT06: 'PT06',
+  _PT07: 'PT07',
+  _PT08: 'PT08'
+};
 
 // ── State ──
 let currentJsonText = '';
 let parsedSkus = [];
+let validationErrors = [];
 let validationWarnings = [];
 let imageFiles = [];          // File[]
 let imageMap = {};            // { sku_id: File[] }
@@ -415,41 +451,215 @@ let jsonValid = false;
 let jsonMode = 'paste';
 let filterMode = 'all';
 
-// ── Sample Data ──
+// ── Strict Sample Data Conforming to v2.0 Schema ──
 const SAMPLE = [{
-  sku_id:"SKU_01", brand:"Anvi Fabrics", product_type:"Anarkali Kurti",
-  sizes:"S, M, L, XL, XXL, 3XL", mrp:1299, meesho_price:349,
-  amazon:{ title:"Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Breathable Summer Ethnic Wear",
-    bullet_points:["100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
+  sku_id: "SKU_01",
+  brand: "Anvi Fabrics",
+  product_type: "Anarkali Kurti",
+  color: "Navy Blue",
+  sizes: "S, M, L, XL, XXL, 3XL",
+  mrp: 1299,
+  meesho_price: 349,
+  seller_config: {
+    amazon_quantity: 50,
+    gst_percent: 5,
+    hsn_code: "62114200"
+  },
+  amazon: {
+    title: "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Breathable Summer Ethnic Wear",
+    bullet_points: [
+      "100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
       "ANARKALI FIT WITH POCKETS: Flattering flared design with functional side pockets.",
       "COLORFAST & WASHABLE: Pre-shrunk fabric ensures no bleeding or shrinkage.",
       "VERSATILE STYLING: Pairs with leggings, palazzos, or jeans.",
-      "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."],
-    backend_search_terms:"cotton kurti women anarkali kurta daily wear office festive summer ethnic top",
-    description:"Upgrade your ethnic wardrobe with Anvi Fabrics Pure Cotton Kurti..." },
-  flipkart:{ title:"Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
-    fabric:"Pure Cotton", kurta_type:"Anarkali", neck:"Mandarin Neck", sleeve:"3/4 Sleeve",
-    length_type:"Calf Length", pattern:"Floral Print", occasion:"Casual & Festive",
-    search_keywords:"anarkali kurti, cotton kurta women, summer kurti" },
-  meesho:{ title:"Trendy Pure Cotton Printed Anarkali Kurti with Pockets",
-    hinglish_hook_description:"100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
-    highlights:["Fabric: Pure Cotton (Soft & Breathable)","Style: Flared Anarkali with Side Pockets","Sizes: S to 3XL","Care: Normal Hand or Machine Wash"] },
+      "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."
+    ],
+    backend_search_terms: "cotton kurti women anarkali kurta daily wear office festive summer ethnic top",
+    description: "Upgrade your ethnic wardrobe with Anvi Fabrics Pure Cotton Kurti. Crafted from lightweight 60s count cotton."
+  },
+  flipkart: {
+    title: "Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
+    fabric: "Pure Cotton",
+    kurta_type: "Anarkali",
+    neck: "Mandarin Neck",
+    sleeve: "3/4 Sleeve",
+    length_type: "Calf Length",
+    pattern: "Floral Print",
+    occasion: "Casual & Festive",
+    search_keywords: "anarkali kurti, cotton kurta women, summer kurti",
+    description: "Anvi Fabrics presents this elegant printed pure cotton anarkali kurta designed for all-day comfort and effortless styling."
+  },
+  meesho: {
+    title: "Pure Cotton Flared Anarkali Kurti with Pockets",
+    hinglish_hook_description: "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
+    english_hook_description: "Premium pure cotton anarkali kurti crafted with functional side pockets and flattering flared silhouette for everyday elegance.",
+    highlights: [
+      "Fabric: Pure Cotton (Soft & Breathable)",
+      "Style: Flared Anarkali with Side Pockets",
+      "Sizes: S to 3XL",
+      "Care: Normal Hand or Machine Wash"
+    ]
+  },
   alternates: [
-    { variant_id:"V1", angle_theme:"Daily Office & Workwear",
-      amazon:{ title:"Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
-        bullet_points:["FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.","DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.","COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.","VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.","SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."],
-        backend_search_terms:"office kurti women cotton formal ethnic workwear daily professional kurta",
-        description:"Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings." },
-      flipkart:{ title:"Anvi Fabrics Women Cotton Office Wear Anarkali Kurta", search_keywords:"office kurti, formal kurta women, cotton workwear", description:"Professional cotton anarkali for the modern working woman." },
-      meesho:{ title:"Office Wear Pure Cotton Anarkali Kurti - Daily Professional", hinglish_hook_description:"Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.", english_hook_description:"Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.", highlights:["Fabric: Premium Cotton","Style: Office-Ready Anarkali","Pockets: Deep Side Pockets","Care: Machine Washable"] }
+    {
+      variant_id: "V1",
+      angle_theme: "Daily Office & Workwear",
+      amazon: {
+        title: "Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
+        bullet_points: [
+          "FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.",
+          "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.",
+          "COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.",
+          "VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.",
+          "SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."
+        ],
+        backend_search_terms: "office kurti women cotton formal ethnic workwear daily professional kurta",
+        description: "Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings."
+      },
+      flipkart: {
+        title: "Anvi Fabrics Women Cotton Office Wear Anarkali Kurta",
+        search_keywords: "office kurti, formal kurta women, cotton workwear",
+        description: "Professional cotton anarkali for the modern working woman with deep pockets and tailored fit."
+      },
+      meesho: {
+        title: "Office Wear Pure Cotton Anarkali Kurti",
+        hinglish_hook_description: "Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.",
+        english_hook_description: "Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.",
+        highlights: [
+          "Fabric: Premium Cotton",
+          "Style: Office-Ready Anarkali",
+          "Pockets: Deep Side Pockets",
+          "Care: Machine Washable"
+        ]
+      }
     },
-    { variant_id:"V2", angle_theme:"Festive & Wedding Celebrations",
-      amazon:{ title:"Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
-        bullet_points:["FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.","DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.","COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.","VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.","SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."],
-        backend_search_terms:"festive kurti women party wear wedding cotton anarkali celebration ethnic",
-        description:"Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour." },
-      flipkart:{ title:"Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta", search_keywords:"festive kurti, party wear kurta, wedding kurti women", description:"Elegant cotton anarkali for festivals, weddings, and celebrations." },
-      meesho:{ title:"Festive Party Wear Cotton Anarkali Kurti - Wedding & Puja", hinglish_hook_description:"Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.", english_hook_description:"Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.", highlights:["Fabric: Festive Cotton","Style: Elegant Anarkali Flare","Occasion: Wedding & Puja","Care: Gentle Wash"] }
+    {
+      variant_id: "V2",
+      angle_theme: "Festive & Wedding Celebrations",
+      amazon: {
+        title: "Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
+        bullet_points: [
+          "FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.",
+          "DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.",
+          "COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.",
+          "VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.",
+          "SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."
+        ],
+        backend_search_terms: "festive kurti women party wear wedding cotton anarkali celebration ethnic",
+        description: "Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour."
+      },
+      flipkart: {
+        title: "Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta",
+        search_keywords: "festive kurti, party wear kurta, wedding kurti women",
+        description: "Elegant cotton anarkali tailored for festivals, weddings, and celebration gatherings."
+      },
+      meesho: {
+        title: "Festive Party Wear Cotton Anarkali Kurti",
+        hinglish_hook_description: "Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.",
+        english_hook_description: "Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.",
+        highlights: [
+          "Fabric: Festive Cotton",
+          "Style: Elegant Anarkali Flare",
+          "Occasion: Wedding & Puja",
+          "Care: Gentle Wash"
+        ]
+      }
+    },
+    {
+      variant_id: "V3",
+      angle_theme: "Summer Heat & Breathable Comfort",
+      amazon: {
+        title: "Breathable Summer Cotton Anarkali Kurti for Women | Lightweight Daily Wear",
+        bullet_points: [
+          "FABRIC & COMFORT: Ultra-breathable weave provides active ventilation in peak summer.",
+          "DESIGN & UTILITY: Relaxed airy flare prevents cling and keeps you fresh all day long.",
+          "COLORFAST & DURABLE: Sun-resistant eco dyes keep the navy print crisp and bright.",
+          "VERSATILE STYLING: Match with cotton pants or breezy palazzo skirts.",
+          "SIZING & CARE: Standard Indian sizing with generous ease."
+        ],
+        backend_search_terms: "summer kurti breathable cotton airy lightweight comfortable kurta",
+        description: "Beat the heat in effortless style with this ultra-lightweight summer cotton anarkali."
+      },
+      flipkart: {
+        title: "Anvi Fabrics Women Summer Breathable Cotton Kurta",
+        search_keywords: "summer cotton kurti, breezy anarkali kurta, breathable wear",
+        description: "Lightweight summer cotton kurti designed for maximum airflow and cooling comfort."
+      },
+      meesho: {
+        title: "Summer Special Breathable Cotton Kurti",
+        hinglish_hook_description: "Garmiyon ke liye sabse thanda aur aaramdayak cotton! Paseene se rahat aur stylish look.",
+        english_hook_description: "Stay cool and confident all summer with breathable 100% pure cotton.",
+        highlights: [
+          "Fabric: 100% Breathable Cotton",
+          "Season: Summer Essential",
+          "Feel: Ultra Soft & Airy",
+          "Care: Hand/Machine Wash"
+        ]
+      }
+    },
+    {
+      variant_id: "V4",
+      angle_theme: "High-Value Everyday Essential",
+      amazon: {
+        title: "Durable Daily Wear Cotton Anarkali Kurti | Value Pack Ethnic Kurta with Pockets",
+        bullet_points: [
+          "FABRIC & COMFORT: Heavy-duty 60s cotton built for 50+ washes without fading.",
+          "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
+          "COLORFAST & DURABLE: Tested colorfast dyes ensure zero shrinkage or pilling.",
+          "VERSATILE STYLING: Everyday workhorse piece suitable for home, market, and travel.",
+          "SIZING & CARE: Easy wash-and-wear care routine."
+        ],
+        backend_search_terms: "durable kurti daily wear long lasting cotton kurta value pocket",
+        description: "An unbeatable combination of durability, utility pockets, and premium cotton feel."
+      },
+      flipkart: {
+        title: "Anvi Fabrics Women Durable Everyday Cotton Kurta",
+        search_keywords: "daily wear kurti, durable cotton kurta, pocket anarkali",
+        description: "Built for everyday endurance with reinforced seams, functional pockets, and colorfast cotton."
+      },
+      meesho: {
+        title: "Durable Everyday Cotton Anarkali Kurti",
+        hinglish_hook_description: "Rozana pehanne ke liye sabse majboot cotton kurti! Bar bar dhone par bhi rang nahi chhootega.",
+        english_hook_description: "High-durability everyday ethnic kurti with dual side pockets.",
+        highlights: [
+          "Fabric: Tough Daily Cotton",
+          "Durability: 50+ Wash Tested",
+          "Pockets: 2 Side Pockets",
+          "Value: Top Rating Quality"
+        ]
+      }
+    },
+    {
+      variant_id: "V5",
+      angle_theme: "Gifting & Modern Fusion",
+      amazon: {
+        title: "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Perfect Gift for Her",
+        bullet_points: [
+          "FABRIC & COMFORT: Premium drape that looks stunning on every body type.",
+          "DESIGN & UTILITY: Contemporary silhouette blending Indian ethnic flare with modern utility.",
+          "COLORFAST & DURABLE: Comes pre-inspected with pristine finish and elegant tagging.",
+          "VERSATILE STYLING: Pairs effortlessly with denim jeans, palazzos, or jeggings.",
+          "SIZING & CARE: Gift-ready sizing range S to 3XL."
+        ],
+        backend_search_terms: "gift kurti for women fusion anarkali modern ethnic denim pairing",
+        description: "The ideal gift for birthdays, anniversaries, and festive gifting. A versatile modern classic."
+      },
+      flipkart: {
+        title: "Anvi Fabrics Women Modern Fusion Cotton Anarkali",
+        search_keywords: "gifting kurti, fusion anarkali kurta, trendy ethnic wear",
+        description: "Contemporary fusion styling crafted for festive gifting and trendy everyday outings."
+      },
+      meesho: {
+        title: "Trendy Fusion Style Cotton Anarkali Kurti",
+        hinglish_hook_description: "Gifting ke liye best item! Jeans ya palazzo ke saath super trendy look deta hai.",
+        english_hook_description: "Chic modern fusion kurti. Perfect for gifting and contemporary styling.",
+        highlights: [
+          "Style: Modern Fusion Flare",
+          "Occasion: Perfect for Gifting",
+          "Pairing: Jeans & Palazzo",
+          "Quality: Premium Finish"
+        ]
+      }
     }
   ]
 }];
@@ -499,89 +709,247 @@ jsonTextarea.addEventListener('input', () => {
   debounceTimer = setTimeout(() => { currentJsonText = jsonTextarea.value; validateJsonClientSide(); }, 300);
 });
 
-// ── JSON Validation Engine ──
+// ── Strict Client-Side JSON Validation Engine (No Silent Truncation) ──
 function validateJsonClientSide() {
   if (!currentJsonText.trim()) {
-    setJsonBadge(false,'No JSON'); jsonValid = false; parsedSkus = []; validationWarnings = [];
-    hideSkuStats(); hideWarnings(); updatePreflightChecks(); refreshMatrix(); return;
+    setJsonBadge(false, 'No JSON'); jsonValid = false; parsedSkus = []; validationWarnings = []; validationErrors = [];
+    hideSkuStats(); hideWarnings(); hideErrors(); updatePreflightChecks(); refreshMatrix(); return;
   }
+
+  const errors = [];
+  const warnings = [];
+  const skus = [];
+  const encoder = new TextEncoder();
+
   try {
     let raw = JSON.parse(currentJsonText);
     if (!Array.isArray(raw)) raw = [raw];
-    const encoder = new TextEncoder(), warnings = [], skus = [];
+
     raw.forEach((item, idx) => {
-      const sk = item.sku_id || ('SKU_' + String(idx+1).padStart(2,'0'));
-      const amz = item.amazon || {}, fk = item.flipkart || {}, me = item.meesho || {};
-      const title = amz.title || '';
-      if (title.length > 180) warnings.push(sk + ': Amazon title exceeds 180 chars (' + title.length + ')');
+      const sk = item.sku_id || `SKU_${String(idx+1).padStart(2,'0')}`;
+      
+      // 1. Base required fields
+      if (!item.sku_id) errors.push(`${sk}: Missing required field "sku_id"`);
+      if (!item.brand) errors.push(`${sk}: Missing required field "brand"`);
+      if (!item.product_type) errors.push(`${sk}: Missing required field "product_type"`);
+      if (!item.color) errors.push(`${sk}: Missing required field "color"`);
+      if (!item.sizes) errors.push(`${sk}: Missing required field "sizes"`);
+      if (item.mrp === undefined || item.mrp === null || isNaN(Number(item.mrp))) errors.push(`${sk}: Missing or invalid "mrp"`);
+      if (item.meesho_price === undefined || item.meesho_price === null || isNaN(Number(item.meesho_price))) errors.push(`${sk}: Missing or invalid "meesho_price"`);
+
+      // 2. Seller Config
+      const sc = item.seller_config || {};
+      if (sc.amazon_quantity === undefined || isNaN(Number(sc.amazon_quantity))) errors.push(`${sk}: Missing "seller_config.amazon_quantity"`);
+      if (sc.gst_percent === undefined || isNaN(Number(sc.gst_percent))) errors.push(`${sk}: Missing "seller_config.gst_percent"`);
+      if (!sc.hsn_code) errors.push(`${sk}: Missing "seller_config.hsn_code"`);
+
+      // 3. Amazon constraints
+      const amz = item.amazon || {};
+      const amzTitle = amz.title || '';
+      if (!amzTitle.trim()) {
+        errors.push(`${sk}: Amazon title is missing`);
+      } else if (amzTitle.length > 180) {
+        errors.push(`${sk}: Amazon title strictly exceeds 180 chars (${amzTitle.length} chars)`);
+      } else if (amzTitle.length > 165) {
+        warnings.push(`${sk}: Amazon title length is near limit (${amzTitle.length}/180 chars)`);
+      }
+
       const bst = amz.backend_search_terms || '';
       const bstBytes = encoder.encode(bst).length;
-      if (bstBytes > 240) warnings.push(sk + ': Backend search terms exceed 240 bytes (' + bstBytes + ' bytes)');
-      ['fabric','kurta_type','neck','sleeve','pattern','occasion'].forEach(a => { if (!fk[a]) warnings.push(sk + ': Flipkart "' + a + '" is empty'); });
-      if (!me.hinglish_hook_description) warnings.push(sk + ': Meesho Hinglish hook is empty');
+      if (!bst.trim()) {
+        errors.push(`${sk}: Amazon backend_search_terms is missing`);
+      } else if (bstBytes > 240) {
+        errors.push(`${sk}: Amazon search terms strictly exceed 240 bytes (${bstBytes} bytes)`);
+      } else if (bstBytes > 225) {
+        warnings.push(`${sk}: Amazon search terms bytes near limit (${bstBytes}/240 bytes)`);
+      }
+
+      const bullets = amz.bullet_points || [];
+      if (!Array.isArray(bullets) || bullets.length !== 5) {
+        errors.push(`${sk}: Amazon bullet_points must contain exactly 5 points (got ${bullets.length})`);
+      }
+      if (!amz.description || !amz.description.trim()) {
+        errors.push(`${sk}: Amazon description is missing`);
+      }
+
+      // 4. Flipkart constraints (controlled attributes)
+      const fk = item.flipkart || {};
+      if (!fk.title || !fk.title.trim()) errors.push(`${sk}: Flipkart title is missing`);
+      if (!ALLOWED_FABRICS.includes(fk.fabric)) errors.push(`${sk}: Flipkart fabric "${fk.fabric}" not in allowed values: [${ALLOWED_FABRICS.join(', ')}]`);
+      if (!ALLOWED_KURTA_TYPES.includes(fk.kurta_type)) errors.push(`${sk}: Flipkart kurta_type "${fk.kurta_type}" not in allowed values: [${ALLOWED_KURTA_TYPES.join(', ')}]`);
+      if (!ALLOWED_NECKS.includes(fk.neck)) errors.push(`${sk}: Flipkart neck "${fk.neck}" not in allowed values: [${ALLOWED_NECKS.join(', ')}]`);
+      if (!ALLOWED_SLEEVES.includes(fk.sleeve)) errors.push(`${sk}: Flipkart sleeve "${fk.sleeve}" not in allowed values: [${ALLOWED_SLEEVES.join(', ')}]`);
+      if (!ALLOWED_LENGTHS.includes(fk.length_type)) errors.push(`${sk}: Flipkart length_type "${fk.length_type}" not in allowed values: [${ALLOWED_LENGTHS.join(', ')}]`);
+      if (!ALLOWED_PATTERNS.includes(fk.pattern)) errors.push(`${sk}: Flipkart pattern "${fk.pattern}" not in allowed values: [${ALLOWED_PATTERNS.join(', ')}]`);
+      if (!ALLOWED_OCCASIONS.includes(fk.occasion)) errors.push(`${sk}: Flipkart occasion "${fk.occasion}" not in allowed values: [${ALLOWED_OCCASIONS.join(', ')}]`);
+      if (!fk.search_keywords || !fk.search_keywords.trim()) errors.push(`${sk}: Flipkart search_keywords missing`);
+      if (!fk.description || !fk.description.trim()) errors.push(`${sk}: Flipkart description missing`);
+
+      // 5. Meesho constraints
+      const me = item.meesho || {};
+      const meTitle = me.title || '';
+      if (!meTitle.trim()) {
+        errors.push(`${sk}: Meesho title is missing`);
+      } else if (meTitle.length > 60) {
+        errors.push(`${sk}: Meesho title strictly exceeds 60 chars (${meTitle.length} chars)`);
+      }
+      if (!me.hinglish_hook_description || !me.hinglish_hook_description.trim()) errors.push(`${sk}: Meesho hinglish_hook_description is missing`);
+      if (!me.english_hook_description || !me.english_hook_description.trim()) errors.push(`${sk}: Meesho english_hook_description is missing`);
+      const highlights = me.highlights || [];
+      if (!Array.isArray(highlights) || highlights.length !== 4) {
+        errors.push(`${sk}: Meesho highlights must contain exactly 4 items (got ${highlights.length})`);
+      }
+
+      // 6. Alternates (optional, but if provided must be exactly 5 variants)
+      const alts = item.alternates || [];
+      if (alts.length > 0 && alts.length !== 5) {
+        errors.push(`${sk}: When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
+      }
+
       skus.push({
-        sku_id: sk, brand: item.brand||'', product_type: item.product_type||'',
-        sizes: item.sizes||'', mrp: Number(item.mrp)||0, meesho_price: Number(item.meesho_price)||0,
-        amazon: { title, bullet_points: amz.bullet_points||[], backend_search_terms: bst, description: amz.description||'' },
-        flipkart: { title: fk.title||'', fabric: fk.fabric||'', kurta_type: fk.kurta_type||'',
-          neck: fk.neck||'', sleeve: fk.sleeve||'', length_type: fk.length_type||'',
-          pattern: fk.pattern||'', occasion: fk.occasion||'', search_keywords: fk.search_keywords||'' },
-        meesho: { title: me.title||'', hinglish_hook_description: me.hinglish_hook_description||'',
-          highlights: me.highlights||[] },
-        alternates: (item.alternates||[]).map((alt, ai) => ({
-          variant_id: alt.variant_id || ('V'+(ai+1)),
-          angle_theme: alt.angle_theme || ('Angle '+(ai+1)),
-          amazon: { title: (alt.amazon||{}).title||'', bullet_points: (alt.amazon||{}).bullet_points||[],
-            backend_search_terms: (alt.amazon||{}).backend_search_terms||'', description: (alt.amazon||{}).description||'' },
-          flipkart: { title: (alt.flipkart||{}).title||'', search_keywords: (alt.flipkart||{}).search_keywords||'',
-            description: (alt.flipkart||{}).description||'' },
-          meesho: { title: (alt.meesho||{}).title||'', hinglish_hook_description: (alt.meesho||{}).hinglish_hook_description||'',
-            english_hook_description: (alt.meesho||{}).english_hook_description||'', highlights: (alt.meesho||{}).highlights||[] }
+        sku_id: sk,
+        brand: item.brand || '',
+        product_type: item.product_type || '',
+        color: item.color || '',
+        sizes: item.sizes || '',
+        mrp: Number(item.mrp) || 0,
+        meesho_price: Number(item.meesho_price) || 0,
+        seller_config: {
+          amazon_quantity: Number(sc.amazon_quantity) || 50,
+          gst_percent: Number(sc.gst_percent) || 5,
+          hsn_code: String(sc.hsn_code || '62114200')
+        },
+        amazon: {
+          title: amzTitle,
+          bullet_points: bullets,
+          backend_search_terms: bst,
+          description: amz.description || ''
+        },
+        flipkart: {
+          title: fk.title || '',
+          fabric: fk.fabric || '',
+          kurta_type: fk.kurta_type || '',
+          neck: fk.neck || '',
+          sleeve: fk.sleeve || '',
+          length_type: fk.length_type || '',
+          pattern: fk.pattern || '',
+          occasion: fk.occasion || '',
+          search_keywords: fk.search_keywords || '',
+          description: fk.description || ''
+        },
+        meesho: {
+          title: meTitle,
+          hinglish_hook_description: me.hinglish_hook_description || '',
+          english_hook_description: me.english_hook_description || '',
+          highlights: highlights
+        },
+        alternates: alts.map((alt, ai) => ({
+          variant_id: alt.variant_id || (`V${ai+1}`),
+          angle_theme: alt.angle_theme || (`Angle ${ai+1}`),
+          amazon: {
+            title: (alt.amazon || {}).title || '',
+            bullet_points: (alt.amazon || {}).bullet_points || [],
+            backend_search_terms: (alt.amazon || {}).backend_search_terms || '',
+            description: (alt.amazon || {}).description || ''
+          },
+          flipkart: {
+            title: (alt.flipkart || {}).title || '',
+            search_keywords: (alt.flipkart || {}).search_keywords || '',
+            description: (alt.flipkart || {}).description || ''
+          },
+          meesho: {
+            title: (alt.meesho || {}).title || '',
+            hinglish_hook_description: (alt.meesho || {}).hinglish_hook_description || '',
+            english_hook_description: (alt.meesho || {}).english_hook_description || '',
+            highlights: (alt.meesho || {}).highlights || []
+          }
         })),
-        bullet_count: (amz.bullet_points||[]).length
+        bullet_count: bullets.length
       });
     });
-    jsonValid = true; parsedSkus = skus; validationWarnings = warnings;
-    setJsonBadge(true, skus.length + ' SKU' + (skus.length>1?'s':'') + ' parsed');
-    if (jsonMode==='paste') { jsonTextarea.classList.remove('invalid'); jsonTextarea.classList.add('valid'); }
-    showSkuStats(skus); showWarnings(warnings); routeImages(); refreshMatrix();
+
+    validationErrors = errors;
+    validationWarnings = warnings;
+    parsedSkus = skus;
+    jsonValid = (errors.length === 0 && skus.length > 0);
+
+    if (jsonValid) {
+      setJsonBadge(true, `${skus.length} SKU${skus.length > 1 ? 's' : ''} valid`);
+      if (jsonMode === 'paste') { jsonTextarea.classList.remove('invalid'); jsonTextarea.classList.add('valid'); }
+    } else {
+      setJsonBadge(false, `${errors.length} Error${errors.length > 1 ? 's' : ''}`, true);
+      if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
+    }
+
+    showSkuStats(skus);
+    showErrors(errors);
+    showWarnings(warnings);
+    routeImages();
+    refreshMatrix();
+
   } catch(err) {
-    jsonValid = false; parsedSkus = []; validationWarnings = [];
-    setJsonBadge(false,'Invalid JSON');
-    if (jsonMode==='paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
-    hideSkuStats(); hideWarnings(); refreshMatrix();
+    jsonValid = false;
+    parsedSkus = [];
+    validationErrors = [`JSON Syntax Error: ${err.message}`];
+    validationWarnings = [];
+    setJsonBadge(false, 'Invalid JSON Syntax', true);
+    if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
+    hideSkuStats();
+    showErrors(validationErrors);
+    hideWarnings();
+    refreshMatrix();
   }
+
   updatePreflightChecks();
 }
 
-function setJsonBadge(valid, text) {
+function setJsonBadge(valid, text, isError = false) {
   const b = document.getElementById('jsonBadge'), t = document.getElementById('jsonBadgeText');
   t.textContent = text;
-  b.className = 'badge ' + (valid ? 'badge-present' : 'badge-missing');
-  b.querySelector('svg').innerHTML = valid
-    ? '<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>'
-    : '<circle cx="12" cy="12" r="10"/>';
+  if (valid) {
+    b.className = 'badge badge-present';
+    b.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>';
+  } else if (isError) {
+    b.className = 'badge badge-error';
+    b.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>';
+  } else {
+    b.className = 'badge badge-missing';
+    b.querySelector('svg').innerHTML = '<circle cx="12" cy="12" r="10"/>';
+  }
 }
 
 function showSkuStats(skus) {
   const el = document.getElementById('skuStats');
   el.classList.remove('hidden');
-  const brands = new Set(skus.map(s=>s.brand)).size;
-  const avgBullets = skus.length ? (skus.reduce((a,s)=>a+s.bullet_count,0)/skus.length).toFixed(1) : 0;
-  const stats = [{l:'Total SKUs',v:skus.length,i:'📦'},{l:'Brands',v:brands,i:'🏷️'},{l:'Avg Bullets',v:avgBullets,i:'📝'},{l:'Warnings',v:validationWarnings.length,i:validationWarnings.length>0?'⚠️':'✅'}];
-  el.innerHTML = stats.map(s=>`<div class="glass-panel-lighter p-3 text-center animate-fade-in"><div class="text-lg mb-0.5">${s.i}</div><div class="stat-value text-xl">${s.v}</div><div class="text-xs text-slate-400 mt-0.5">${s.l}</div></div>`).join('');
+  const brands = new Set(skus.map(s => s.brand)).size;
+  const avgBullets = skus.length ? (skus.reduce((a,s) => a + s.bullet_count, 0) / skus.length).toFixed(1) : 0;
+  const stats = [
+    { l: 'Total SKUs', v: skus.length, i: '📦' },
+    { l: 'Brands', v: brands, i: '🏷️' },
+    { l: 'Avg Bullets', v: avgBullets, i: '📝' },
+    { l: 'Errors / Warns', v: `${validationErrors.length} / ${validationWarnings.length}`, i: validationErrors.length > 0 ? '❌' : (validationWarnings.length > 0 ? '⚠️' : '✅') }
+  ];
+  el.innerHTML = stats.map(s => `<div class="glass-panel-lighter p-3 text-center animate-fade-in"><div class="text-lg mb-0.5">${s.i}</div><div class="stat-value text-xl">${s.v}</div><div class="text-xs text-slate-400 mt-0.5">${s.l}</div></div>`).join('');
 }
 function hideSkuStats() { document.getElementById('skuStats').classList.add('hidden'); }
+
+function showErrors(errs) {
+  const p = document.getElementById('errorsPanel'), l = document.getElementById('errorsList');
+  if (!errs.length) { p.classList.add('hidden'); return; }
+  p.classList.remove('hidden');
+  l.innerHTML = errs.map(m => `<div class="error-item animate-fade-in">• ${m}</div>`).join('');
+}
+function hideErrors() { document.getElementById('errorsPanel').classList.add('hidden'); }
 
 function showWarnings(w) {
   const p = document.getElementById('warningsPanel'), l = document.getElementById('warningsList');
   if (!w.length) { p.classList.add('hidden'); return; }
   p.classList.remove('hidden');
-  l.innerHTML = w.map(m=>`<div class="warning-item animate-fade-in">${m}</div>`).join('');
+  l.innerHTML = w.map(m => `<div class="warning-item animate-fade-in">• ${m}</div>`).join('');
 }
 function hideWarnings() { document.getElementById('warningsPanel').classList.add('hidden'); }
 
-// ── Image Compliance Checker (Enhancement #2) ──
+// ── Image Compliance Checker ──
 function checkImageCompliance(file) {
   return new Promise(resolve => {
     const issues = [];
@@ -591,16 +959,19 @@ function checkImageCompliance(file) {
       const w = img.naturalWidth, h = img.naturalHeight;
       URL.revokeObjectURL(url);
       const long = Math.max(w, h);
-      if (long < 1000) issues.push('Below Amazon 1000px zoom threshold (' + w + 'x' + h + 'px)');
-      if (long < 500)  issues.push('Below Flipkart 500px minimum (' + w + 'x' + h + 'px)');
+      if (long < 1000) issues.push(`Below Amazon 1000px zoom threshold (${w}×${h}px)`);
+      if (long < 500)  issues.push(`Below Flipkart 500px minimum (${w}×${h}px)`);
       const aspect = w / h;
       if (aspect < 0.9 || aspect > 1.1) {
-        if (Math.abs(aspect - 0.75) > 0.15) issues.push('Not square or 3:4 ratio — Meesho recommends 1:1 or 3:4');
+        if (Math.abs(aspect - 0.75) > 0.15) issues.push('Non-standard aspect ratio (1:1 square or 3:4 recommended)');
       }
-      if (file.size > 5 * 1024 * 1024) issues.push('File exceeds 5 MB (' + (file.size/1024/1024).toFixed(1) + ' MB) — Meesho limit');
+      if (file.size > 5 * 1024 * 1024) issues.push(`File exceeds 5 MB upload limit (${(file.size/1024/1024).toFixed(1)} MB)`);
       resolve({ w, h, sizeBytes: file.size, issues });
     };
-    img.onerror = () => { URL.revokeObjectURL(url); resolve({ w: 0, h: 0, sizeBytes: file.size, issues: ['Could not read image dimensions'] }); };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve({ w: 0, h: 0, sizeBytes: file.size, issues: ['Could not read image binary'] });
+    };
     img.src = url;
   });
 }
@@ -610,12 +981,12 @@ async function runComplianceChecks(files) {
   results.forEach(([name, r]) => { complianceMap[name] = r; });
   const total = Object.values(complianceMap).reduce((a,r) => a + r.issues.length, 0);
   const cc = document.getElementById('complianceCounter'), ct = document.getElementById('complianceCounterText');
-  if (total > 0) { cc.classList.remove('hidden'); ct.textContent = total + ' compliance issue' + (total>1?'s':''); }
+  if (total > 0) { cc.classList.remove('hidden'); ct.textContent = `${total} issue${total > 1 ? 's' : ''}`; }
   else { cc.classList.add('hidden'); }
   if (total > 0) document.getElementById('complianceLegend').classList.remove('hidden');
 }
 
-// ── Image Handling ──
+// ── Image Routing & Asset Matrix ──
 const dropzone = document.getElementById('imageDropzone');
 dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
 dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
@@ -630,10 +1001,10 @@ function addImages(files) {
   const seen = new Set();
   imageFiles = imageFiles.filter(f => { if (seen.has(f.name)) return false; seen.add(f.name); return true; });
   const cnt = document.getElementById('imageCounter');
-  cnt.innerHTML = '<span>' + imageFiles.length + ' image' + (imageFiles.length!==1?'s':'') + '</span>';
+  cnt.innerHTML = `<span>${imageFiles.length} image${imageFiles.length !== 1 ? 's' : ''}</span>`;
   cnt.className = imageFiles.length > 0 ? 'badge badge-present' : 'badge badge-missing';
   routeImages();
-  runComplianceChecks(imageFiles);   // non-blocking
+  runComplianceChecks(imageFiles);
   refreshMatrix();
   updatePreflightChecks();
 }
@@ -644,25 +1015,28 @@ function clearImages() {
   document.getElementById('imageCounter').innerHTML = '<span>0 images</span>';
   document.getElementById('complianceCounter').classList.add('hidden');
   document.getElementById('complianceLegend').classList.add('hidden');
-  refreshMatrix(); updatePreflightChecks();
+  refreshMatrix();
+  updatePreflightChecks();
 }
 
 function routeImages() {
   imageMap = {}; unassignedImages = [];
-  const sortedIds = [...parsedSkus.map(s=>s.sku_id)].sort((a,b)=>b.length-a.length);
+  const sortedIds = [...parsedSkus.map(s => s.sku_id)].sort((a,b) => b.length - a.length);
   imageFiles.forEach(file => {
     const stem = file.name.replace(/\.[^.]+$/,'').toUpperCase();
     let matched = false;
     for (const sid of sortedIds) {
-      if (stem.startsWith(sid.toUpperCase())) { (imageMap[sid] = imageMap[sid]||[]).push(file); matched=true; break; }
+      if (stem.startsWith(sid.toUpperCase() + '_') || stem === sid.toUpperCase()) {
+        (imageMap[sid] = imageMap[sid] || []).push(file);
+        matched = true;
+        break;
+      }
     }
     if (!matched) unassignedImages.push(file);
   });
 }
 
-// ── Orphan re-assignment ──
 function assignOrphan(oldName) {
-  // safeId must match how refreshMatrix() renders the input id attribute
   const safeId = oldName.replace(/[^a-zA-Z0-9]/g, '_');
   const input = document.getElementById('rename-' + safeId);
   if (!input) return;
@@ -677,73 +1051,71 @@ function assignOrphan(oldName) {
   unassignedImages.splice(idx, 1);
   imageFiles = imageFiles.filter(f => f.name !== oldName);
   imageFiles.push(renamed);
-  const seen = new Set(); imageFiles = imageFiles.filter(f => { if(seen.has(f.name)) return false; seen.add(f.name); return true; });
-  routeImages(); refreshMatrix(); updatePreflightChecks();
+
+  const seen = new Set();
+  imageFiles = imageFiles.filter(f => { if (seen.has(f.name)) return false; seen.add(f.name); return true; });
+
+  routeImages();
+  refreshMatrix();
+  updatePreflightChecks();
 }
 
-// ── Filter ──
 function applyFilter(mode) {
   filterMode = mode;
   ['all','complete','incomplete','orphaned'].forEach(m => {
-    document.getElementById('chip-'+m).className = 'filter-chip' + (m===mode?' active':'');
+    document.getElementById('chip-' + m).className = 'filter-chip' + (m === mode ? ' active' : '');
   });
   const cards = document.querySelectorAll('.sku-card[data-skuid]');
   cards.forEach(card => {
     const status = card.dataset.status;
     let show = false;
-    if (mode==='all') show=true;
-    else if (mode==='complete' && status==='complete') show=true;
-    else if (mode==='incomplete' && status==='incomplete') show=true;
-    else if (mode==='orphaned') show=false;  // orphans shown in separate drawer
+    if (mode === 'all') show = true;
+    else if (mode === 'complete' && status === 'complete') show = true;
+    else if (mode === 'incomplete' && status === 'incomplete') show = true;
+    else if (mode === 'orphaned') show = false;
     card.style.display = show ? '' : 'none';
   });
-  // Show/hide orphan drawer when in orphaned tab
-  if (mode==='orphaned') {
-    document.getElementById('skuImageGrid').style.display='none';
-    document.getElementById('orphanPanel').style.display = unassignedImages.length?'':'none';
+  if (mode === 'orphaned') {
+    document.getElementById('skuImageGrid').style.display = 'none';
+    document.getElementById('orphanPanel').style.display = unassignedImages.length ? '' : 'none';
   } else {
-    document.getElementById('skuImageGrid').style.display='';
-    document.getElementById('orphanPanel').style.display = unassignedImages.length?'':'none';
+    document.getElementById('skuImageGrid').style.display = '';
+    document.getElementById('orphanPanel').style.display = unassignedImages.length ? '' : 'none';
   }
 }
 
-// ── Refresh Matrix (Enhancement #1) ──
 function refreshMatrix() {
   const section = document.getElementById('matrixSection');
-  if (parsedSkus.length===0 && imageFiles.length===0) { section.classList.add('hidden'); return; }
+  if (parsedSkus.length === 0 && imageFiles.length === 0) { section.classList.add('hidden'); return; }
   section.classList.remove('hidden');
 
   const grid = document.getElementById('skuImageGrid');
   grid.innerHTML = '';
 
-  let cntComplete=0, cntIncomplete=0;
+  let cntComplete = 0, cntIncomplete = 0;
 
   parsedSkus.forEach(sku => {
-    const files = (imageMap[sku.sku_id]||[]);
-    const fileNames = files.map(f=>f.name);
+    const files = (imageMap[sku.sku_id] || []);
 
-    // Check each slot
+    // Exact canonical slots check: _MAIN, _PT01, _PT02, _PT03
     const coreStatus = CORE_SLOTS.map(slot => {
-      const matched = fileNames.find(fn => fn.toUpperCase().replace(/\.[^.]+$/,'').includes(slot.replace('_PT','_PT').slice(1)));
-      // More robust: check stem contains slot key
       const f = files.find(f => f.name.toUpperCase().includes(slot));
-      return { slot, label: SLOT_LABELS[slot], file: f||null };
+      return { slot, label: SLOT_LABELS[slot], file: f || null };
     });
     const extraStatus = EXTRA_SLOTS.map(slot => {
       const f = files.find(f => f.name.toUpperCase().includes(slot));
-      return { slot, label: SLOT_LABELS[slot], file: f||null };
+      return { slot, label: SLOT_LABELS[slot], file: f || null };
     }).filter(s => s.file);
 
-    const coreComplete = coreStatus.every(s => s.file !== null);
+    const coreFoundCount = coreStatus.filter(s => s.file !== null).length;
+    const coreComplete = (coreFoundCount === 4);
     const cardStatus = coreComplete ? 'complete' : 'incomplete';
     if (coreComplete) cntComplete++; else cntIncomplete++;
 
-    // Build slot badges
     const coreBadges = coreStatus.map(s => {
       if (!s.file) return `<span class="slot-badge slot-miss">✗ ${s.label}</span>`;
       const comp = complianceMap[s.file.name];
       if (comp && comp.issues.length > 0) {
-        const shortIssue = comp.issues[0].substring(0,35)+(comp.issues[0].length>35?'…':'');
         return `<span class="slot-badge slot-warn" title="${comp.issues.join('; ')}">⚠ ${s.label}</span>`;
       }
       return `<span class="slot-badge slot-ok">✓ ${s.label}</span>`;
@@ -755,30 +1127,29 @@ function refreshMatrix() {
       return `<span class="slot-badge slot-ok">✓ ${s.label}</span>`;
     }).join('');
 
-    const pctReady = Math.round((coreStatus.filter(s=>s.file).length / 4) * 100);
+    const pctReady = Math.round((coreFoundCount / 4) * 100);
 
     const card = document.createElement('div');
-    card.className = 'sku-card ' + cardStatus + ' animate-fade-in';
+    card.className = `sku-card ${cardStatus} animate-fade-in`;
     card.dataset.skuid = sku.sku_id;
     card.dataset.status = cardStatus;
     card.innerHTML = `
       <div class="flex items-start justify-between mb-2">
         <div>
           <div class="font-mono font-bold text-sm text-white">${sku.sku_id}</div>
-          ${sku.product_type ? `<div class="text-xs text-slate-500 mt-0.5">${sku.product_type}</div>` : ''}
+          <div class="text-xs text-slate-400 mt-0.5">${sku.product_type} ${sku.color ? `· <span class="text-slate-300">${sku.color}</span>` : ''}</div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-xs font-bold ${coreComplete?'text-emerald-400':'text-amber-400'}">${pctReady}%</span>
-          <span class="text-xs ${coreComplete?'text-emerald-400':'text-amber-400'}">${coreComplete?'✅ Ready':'⚠ Incomplete'}</span>
+          <span class="text-xs font-bold ${coreComplete ? 'text-emerald-400' : 'text-amber-400'}">${pctReady}%</span>
+          <span class="text-xs ${coreComplete ? 'text-emerald-400' : 'text-amber-400'}">${coreComplete ? '✅ 4/4 Core' : `⚠️ ${coreFoundCount}/4 Core`}</span>
         </div>
       </div>
       <div class="flex flex-wrap gap-1.5 mb-2">${coreBadges}${extraBadges}</div>
-      <div class="text-xs text-slate-500">${files.length} file${files.length!==1?'s':''} matched</div>
+      <div class="text-xs text-slate-500">${files.length} file${files.length !== 1 ? 's' : ''} matched (${files.map(f=>f.name).join(', ') || 'none'})</div>
     `;
     grid.appendChild(card);
   });
 
-  // Update chip counts
   document.getElementById('cnt-all').textContent = parsedSkus.length;
   document.getElementById('cnt-complete').textContent = cntComplete;
   document.getElementById('cnt-incomplete').textContent = cntIncomplete;
@@ -792,51 +1163,73 @@ function refreshMatrix() {
     orphanList.innerHTML = unassignedImages.map(f => {
       const comp = complianceMap[f.name];
       const sizeStr = (f.size/1024).toFixed(0) + 'KB';
-      const dimStr  = comp && comp.w ? comp.w+'x'+comp.h+'px' : '…';
+      const dimStr  = comp && comp.w ? `${comp.w}×${comp.h}px` : '…';
       const safeId  = f.name.replace(/[^a-zA-Z0-9]/g, '_');
       return `<div class="orphan-row">
         <div class="flex-shrink-0">
           <div class="text-xs font-mono text-amber-400 truncate max-w-[140px]" title="${f.name}">${f.name}</div>
           <div class="text-xs text-slate-500">${dimStr} · ${sizeStr}</div>
         </div>
-        <input id="rename-${safeId}" class="orphan-input" placeholder="New name, e.g. SKU_01_MAIN.jpg" data-orig="${f.name}">
+        <input id="rename-${safeId}" class="orphan-input" placeholder="e.g. SKU_01_MAIN.jpg" data-orig="${f.name}">
         <button class="btn-assign" onclick="assignOrphan('${f.name.replace(/'/g,"\\'")}')">Assign →</button>
       </div>`;
     }).join('');
   } else {
-    orphanPanel.style.display='none';
+    orphanPanel.style.display = 'none';
   }
 
-  // Apply current filter
   applyFilter(filterMode);
 }
 
-// ── Pre-Flight ──
+// ── Pre-Flight Checklist ──
 function updatePreflightChecks() {
   const client = document.getElementById('clientName').value.trim();
   const batch  = document.getElementById('batchId').value.trim();
   const cat    = document.getElementById('category').value;
   const cfgOk  = !!(client && batch && cat);
-  setCheck('checkConfig','checkConfigText', cfgOk, cfgOk?'All set':'Not set');
-  setCheck('checkJson','checkJsonText', jsonValid, jsonValid?parsedSkus.length+' SKUs':'No data');
-  setCheck('checkImages','checkImagesText', imageFiles.length>0, imageFiles.length>0?imageFiles.length+' files':'None uploaded');
-  const wc = validationWarnings.length;
-  setCheck('checkWarnings','checkWarningsText', wc===0&&jsonValid, wc>0?wc+' warning'+(wc>1?'s':''):(jsonValid?'None':'—'), wc>0?'warn':null);
+
+  setCheck('checkConfig', 'checkConfigText', cfgOk, cfgOk ? 'All set' : 'Not set');
+  setCheck('checkJson', 'checkJsonText', jsonValid, jsonValid ? `${parsedSkus.length} SKU${parsedSkus.length > 1 ? 's' : ''} valid` : (validationErrors.length > 0 ? `${validationErrors.length} error${validationErrors.length > 1 ? 's' : ''}` : 'No data'));
+  setCheck('checkImages', 'checkImagesText', imageFiles.length > 0, imageFiles.length > 0 ? `${imageFiles.length} file${imageFiles.length !== 1 ? 's' : ''}` : 'None uploaded');
+
+  let readinessText = '—';
+  let readinessType = null;
+  if (!jsonValid) {
+    readinessText = '❌ Not Ready (Fix Errors)';
+    readinessType = 'error';
+  } else {
+    const allCorePresent = parsedSkus.length > 0 && parsedSkus.every(sku => {
+      const files = imageMap[sku.sku_id] || [];
+      return CORE_SLOTS.every(slot => files.some(f => f.name.toUpperCase().includes(slot)));
+    });
+    if (allCorePresent && validationWarnings.length === 0) {
+      readinessText = '✅ Ready for Review';
+      readinessType = 'ok';
+    } else {
+      readinessText = '⚠️ Review Recommended';
+      readinessType = 'warn';
+    }
+  }
+  setCheck('checkWarnings', 'checkWarningsText', readinessType === 'ok', readinessText, readinessType);
+
   document.getElementById('generateBtn').disabled = !(cfgOk && jsonValid);
 }
 
 function setCheck(iconId, textId, ok, text, type) {
   const icon = document.getElementById(iconId), textEl = document.getElementById(textId);
   textEl.textContent = text;
-  if (type==='warn') {
-    icon.className='w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-400 transition-all';
-    icon.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>';
+  if (type === 'error') {
+    icon.className = 'w-8 h-8 rounded-lg bg-red-500/15 flex items-center justify-center text-red-400 transition-all';
+    icon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>';
+  } else if (type === 'warn') {
+    icon.className = 'w-8 h-8 rounded-lg bg-amber-500/15 flex items-center justify-center text-amber-400 transition-all';
+    icon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>';
   } else if (ok) {
-    icon.className='w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400 transition-all';
-    icon.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>';
+    icon.className = 'w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center text-emerald-400 transition-all';
+    icon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>';
   } else {
-    icon.className='w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all';
-    icon.innerHTML='<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
+    icon.className = 'w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500 transition-all';
+    icon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>';
   }
 }
 
@@ -845,119 +1238,175 @@ function setCheck(iconId, textId, ok, text, type) {
   document.getElementById(id).addEventListener('change', updatePreflightChecks);
 });
 
-// ── Compliance Modal ──
 function closeComplianceModal() { document.getElementById('complianceModal').classList.add('hidden'); }
 
 function showComplianceModal() {
-  const issues = Object.entries(complianceMap).filter(([,r])=>r.issues.length>0);
+  const issues = Object.entries(complianceMap).filter(([,r]) => r.issues.length > 0);
   const list = document.getElementById('complianceModalList');
   list.innerHTML = issues.map(([name, r]) => `
     <div class="warning-item">
       <div class="font-mono text-xs text-amber-300 mb-1">${name}</div>
-      ${r.issues.map(i=>`<div class="text-xs">• ${i}</div>`).join('')}
+      ${r.issues.map(i => `<div class="text-xs">• ${i}</div>`).join('')}
       <div class="text-xs text-slate-500 mt-1">${r.w}×${r.h}px · ${(r.sizeBytes/1024).toFixed(0)} KB</div>
     </div>`).join('');
   document.getElementById('complianceModal').classList.remove('hidden');
 }
 
-// ── Excel Builder (Enhancement #3 — correct marketplace schemas) ──
+// ── Master Excel Workbook Builder (Mapping File) ──
 async function createMasterWorkbook(clientName, category) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Listing Factory Studio v2';
+  wb.creator = 'Listing Factory Studio v2.0';
   wb.created = new Date();
 
-  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF0F172A'} };
-  const headerFont = { name:'Calibri', size:11, bold:true, color:{argb:'FF10B981'} };
-  const thin = { top:{style:'thin',color:{argb:'FF334155'}}, left:{style:'thin',color:{argb:'FF334155'}}, bottom:{style:'thin',color:{argb:'FF334155'}}, right:{style:'thin',color:{argb:'FF334155'}} };
+  const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  const headerFont = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF10B981' } };
+  const thinBorder = {
+    top: { style: 'thin', color: { argb: 'FF334155' } },
+    left: { style: 'thin', color: { argb: 'FF334155' } },
+    bottom: { style: 'thin', color: { argb: 'FF334155' } },
+    right: { style: 'thin', color: { argb: 'FF334155' } }
+  };
 
   function styleRow(ws) {
     ws.getRow(1).eachCell(cell => {
-      cell.fill = headerFill; cell.font = headerFont; cell.border = thin;
-      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+      cell.fill = headerFill; cell.font = headerFont; cell.border = thinBorder;
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
     ws.getRow(1).height = 30;
   }
   function autoFit(ws) {
     ws.columns.forEach(col => {
       let mx = 14;
-      col.eachCell({includeEmpty:true}, cell => { if (cell.value) mx = Math.max(mx, Math.min(String(cell.value).length+4, 50)); });
+      col.eachCell({ includeEmpty: true }, cell => { if (cell.value) mx = Math.max(mx, Math.min(String(cell.value).length + 4, 50)); });
       col.width = mx;
     });
   }
 
   // ── Tab 1: Master_Summary ──
   const ws1 = wb.addWorksheet('Master_Summary');
-  ws1.addRow(["SKU ID","Brand","Product Type","Fabric","Sizes","Amazon Title Preview","Flipkart Title Preview","Meesho Hook Preview","Images","Core Coverage","Upload Status"]);
+  ws1.addRow([
+    "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
+    "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
+    "Core Images Found", "Core Coverage", "Validation Status", "Package Readiness"
+  ]);
   styleRow(ws1);
+
   parsedSkus.forEach(sku => {
-    const files = (imageMap[sku.sku_id]||[]).map(f=>f.name);
-    const coreCount = CORE_SLOTS.filter(s => files.some(f=>f.toUpperCase().includes(s))).length;
-    const pct = Math.round(coreCount/4*100);
-    const status = pct===100 ? 'Ready' : (coreCount>0?'Partial':'Missing Images');
+    const files = (imageMap[sku.sku_id] || []).map(f => f.name);
+    const coreFoundCount = CORE_SLOTS.filter(slot => files.some(fn => fn.toUpperCase().includes(slot))).length;
+    const coveragePct = `${Math.round((coreFoundCount / 4) * 100)}% (${coreFoundCount}/4 Core)`;
+
+    let readiness = "❌ Not Ready";
+    if (jsonValid && coreFoundCount === 4 && validationWarnings.length === 0) {
+      readiness = "✅ Ready for Review";
+    } else if (jsonValid) {
+      readiness = "⚠️ Review Recommended";
+    }
+
+    const valStatus = jsonValid ? (validationWarnings.length > 0 ? "⚠️ Warnings" : "✅ Pass") : "❌ Errors";
+
     ws1.addRow([
-      sku.sku_id, sku.brand, sku.product_type, sku.flipkart.fabric, sku.sizes,
-      sku.amazon.title.substring(0,80)+(sku.amazon.title.length>80?'...':''),
-      sku.flipkart.title.substring(0,80)+(sku.flipkart.title.length>80?'...':''),
-      sku.meesho.hinglish_hook_description.substring(0,80)+(sku.meesho.hinglish_hook_description.length>80?'...':''),
-      files.length, pct+'% ('+coreCount+'/4 core)', status
+      sku.sku_id,
+      sku.brand,
+      sku.product_type,
+      sku.color,
+      sku.flipkart.fabric,
+      sku.sizes,
+      sku.amazon.title.substring(0, 80) + (sku.amazon.title.length > 80 ? '…' : ''),
+      sku.flipkart.title.substring(0, 80) + (sku.flipkart.title.length > 80 ? '…' : ''),
+      sku.meesho.hinglish_hook_description.substring(0, 80) + (sku.meesho.hinglish_hook_description.length > 80 ? '…' : ''),
+      `${coreFoundCount}/4 Slots`,
+      coveragePct,
+      valStatus,
+      readiness
     ]);
   });
   autoFit(ws1);
 
-  // ── Tab 2: Amazon.in Flat-File (correct column names) ──
+  // ── Tab 2: Amazon.in Mapping Sheet ──
   const ws2 = wb.addWorksheet('01_Amazon_Bulk_Import');
-  const itemType = CATEGORY_MAP[category]||'generic-item';
+  const itemType = CATEGORY_MAP[category] || 'kurtas-and-ethnic-tops';
   ws2.addRow([
-    "item_sku","item_name","brand_name","feed_product_type","item_type_keyword",
-    "standard_price","currency","quantity","condition_type",
-    "main_image_url","other_image_url1","other_image_url2","other_image_url3","other_image_url4",
-    "bullet_point1","bullet_point2","bullet_point3","bullet_point4","bullet_point5",
-    "generic_keyword","item_description","size","color"
+    "item_sku", "item_name", "brand_name", "feed_product_type", "item_type_keyword",
+    "standard_price", "currency", "quantity", "condition_type",
+    "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4",
+    "bullet_point1", "bullet_point2", "bullet_point3", "bullet_point4", "bullet_point5",
+    "generic_keyword", "item_description", "size", "color"
   ]);
   styleRow(ws2);
-  const enc = new TextEncoder();
+
   parsedSkus.forEach(sku => {
-    const bp = [...(sku.amazon.bullet_points||[]), '','','','',''].slice(0,5);
-    let bst = sku.amazon.backend_search_terms;
-    while (enc.encode(bst).length > 240) bst = bst.slice(0,-1);
+    const bp = sku.amazon.bullet_points;
     ws2.addRow([
-      sku.sku_id, sku.amazon.title.substring(0,200), sku.brand, 'Kurta', itemType,
-      sku.mrp, 'INR', 50, 'New',
-      sku.sku_id+'_MAIN.jpg', sku.sku_id+'_PT01_Size.jpg',
-      sku.sku_id+'_PT02_Fabric.jpg', sku.sku_id+'_PT03_Care.jpg', sku.sku_id+'_PT04_Back.jpg',
-      bp[0],bp[1],bp[2],bp[3],bp[4],
-      bst, sku.amazon.description, sku.sizes, ''
+      sku.sku_id,
+      sku.amazon.title,
+      sku.brand,
+      'Kurta',
+      itemType,
+      sku.mrp,
+      'INR',
+      sku.seller_config.amazon_quantity,
+      'New',
+      `${sku.sku_id}_MAIN.jpg`,
+      `${sku.sku_id}_PT01.jpg`,
+      `${sku.sku_id}_PT02.jpg`,
+      `${sku.sku_id}_PT03.jpg`,
+      `${sku.sku_id}_PT04.jpg`,
+      bp[0], bp[1], bp[2], bp[3], bp[4],
+      sku.amazon.backend_search_terms,
+      sku.amazon.description,
+      sku.sizes,
+      sku.color
     ]);
   });
   autoFit(ws2);
 
-  // ── Tab 3: Flipkart Seller Hub ──
+  // ── Tab 3: Flipkart Seller Hub Mapping Sheet ──
   const ws3 = wb.addWorksheet('02_Flipkart_Bulk_Import');
   ws3.addRow([
-    "Seller SKU ID","Product Title","Brand","Style Code","Ideal For","Size","Color",
-    "Pattern","Type / Kurta Type","Fabric","Neck","Sleeve","Length Type","Occasion",
-    "Net Quantity","GST (%)","HSN Code","Search Keywords",
-    "Main Image Name","Angle 1 Image","Angle 2 Image","Angle 3 Image",
+    "Seller SKU ID", "Product Title", "Brand", "Style Code", "Ideal For", "Size", "Color",
+    "Pattern", "Type / Kurta Type", "Fabric", "Neck", "Sleeve", "Length Type", "Occasion",
+    "Net Quantity", "GST (%)", "HSN Code", "Search Keywords",
+    "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image",
     "Description"
   ]);
   styleRow(ws3);
+
   parsedSkus.forEach(sku => {
     ws3.addRow([
-      sku.sku_id, sku.flipkart.title, sku.brand, sku.sku_id, 'Women', sku.sizes, '',
-      sku.flipkart.pattern, sku.flipkart.kurta_type, sku.flipkart.fabric,
-      sku.flipkart.neck, sku.flipkart.sleeve, sku.flipkart.length_type, sku.flipkart.occasion,
-      1, 5, '62114200', sku.flipkart.search_keywords,
-      sku.sku_id+'_MAIN.jpg', sku.sku_id+'_PT01_Size.jpg',
-      sku.sku_id+'_PT02_Fabric.jpg', sku.sku_id+'_PT03_Care.jpg',
-      sku.amazon.description
+      sku.sku_id,
+      sku.flipkart.title,
+      sku.brand,
+      sku.sku_id,
+      'Women',
+      sku.sizes,
+      sku.color,
+      sku.flipkart.pattern,
+      sku.flipkart.kurta_type,
+      sku.flipkart.fabric,
+      sku.flipkart.neck,
+      sku.flipkart.sleeve,
+      sku.flipkart.length_type,
+      sku.flipkart.occasion,
+      1,
+      sku.seller_config.gst_percent,
+      sku.seller_config.hsn_code,
+      sku.flipkart.search_keywords,
+      `${sku.sku_id}_MAIN.jpg`,
+      `${sku.sku_id}_PT01.jpg`,
+      `${sku.sku_id}_PT02.jpg`,
+      `${sku.sku_id}_PT03.jpg`,
+      sku.flipkart.description
     ]);
   });
   autoFit(ws3);
 
-  // ── Tab 4: Meesho Supplier Panel ──
+  // ── Tab 4: Meesho Supplier Panel Mapping Sheet ──
   const ws4 = wb.addWorksheet('03_Meesho_Bulk_Import');
   ws4.addRow([
-    "Product ID / SKU", "Product Name", "Product Description (Hinglish Hook)",
+    "Product ID / SKU", "Product Name",
+    "Product Description (Hinglish Hook)",
+    "English Hook Description",
     "Fabric", "Available Sizes", "Color", "Occasion",
     "Key Highlights", "GST (%)", "HSN Code",
     "Recommended Price (INR)",
@@ -968,17 +1417,26 @@ async function createMasterWorkbook(clientName, category) {
     "Other Image 4 (Back View)"
   ]);
   styleRow(ws4);
+
   parsedSkus.forEach(sku => {
     ws4.addRow([
-      sku.sku_id, sku.meesho.title, sku.meesho.hinglish_hook_description,
-      sku.flipkart.fabric, sku.sizes, '', sku.flipkart.occasion || '',
-      (sku.meesho.highlights || []).join(' \u2022 '), 5, '62114200',
+      sku.sku_id,
+      sku.meesho.title,
+      sku.meesho.hinglish_hook_description,
+      sku.meesho.english_hook_description,
+      sku.flipkart.fabric,
+      sku.sizes,
+      sku.color,
+      sku.flipkart.occasion,
+      (sku.meesho.highlights || []).join(' • '),
+      sku.seller_config.gst_percent,
+      sku.seller_config.hsn_code,
       sku.meesho_price,
-      sku.sku_id + '_MAIN.jpg',
-      sku.sku_id + '_PT01_Size.jpg',
-      sku.sku_id + '_PT02_Fabric.jpg',
-      sku.sku_id + '_PT03_Care.jpg',
-      sku.sku_id + '_PT04_Back.jpg'
+      `${sku.sku_id}_MAIN.jpg`,
+      `${sku.sku_id}_PT01.jpg`,
+      `${sku.sku_id}_PT02.jpg`,
+      `${sku.sku_id}_PT03.jpg`,
+      `${sku.sku_id}_PT04.jpg`
     ]);
   });
   autoFit(ws4);
@@ -986,100 +1444,32 @@ async function createMasterWorkbook(clientName, category) {
   return await wb.xlsx.writeBuffer();
 }
 
-// ── README ──
-function generateReadme(client, batch) {
-  return `================================================================================
-  LISTING FACTORY HANDOVER PACKAGE
-  Client: ${client}  |  Batch: ${batch}
-================================================================================
-
-  Generated: ${new Date().toLocaleString()}
-  Tool: Listing Factory v2.0 -- Multi-Marketplace Packaging Studio
-
-================================================================================
-  HOW TO UPLOAD -- 3-STEP GUIDE
-================================================================================
-
-  STEP 1 -- AMAZON SELLER CENTRAL (Amazon.in)
-  -------------------------------------------
-  1. Log in to sellercentral.amazon.in
-  2. Go to Catalog > Add Products via Upload > Inventory File Upload
-  3. Open tab "01_Amazon_Bulk_Import" from the Master Excel file
-  4. Copy rows into your Amazon flat-file template (match column names)
-  5. Upload images from each SKU folder to the listing
-  6. Submit. Processing usually takes 15-30 minutes.
-
-  STEP 2 -- FLIPKART SELLER HUB (seller.flipkart.com)
-  ---------------------------------------------------
-  1. Log in to seller.flipkart.com
-  2. Go to Listings > Add in Bulk > Download your category template
-  3. Open tab "02_Flipkart_Bulk_Import" from the Master Excel file
-  4. Transfer data into Flipkart template columns
-  5. Upload template + images. QC review: 24-48 hours.
-
-  STEP 3 -- MEESHO SUPPLIER PANEL (supplier.meesho.com)
-  -----------------------------------------------------
-  1. Log in to supplier.meesho.com
-  2. Go to Catalog > Add Catalog > Select your category
-  3. Open tab "03_Meesho_Bulk_Import" from the Master Excel file
-  4. Fill in catalog form using the data
-  5. Upload primary image from each SKU folder. Approval: 2-4 hours.
-
-================================================================================
-  IMAGE REQUIREMENTS REMINDER
-================================================================================
-  Amazon.in : Min 1000px on longest side for zoom, pure white background on MAIN
-  Flipkart  : Recommended 1100x1100px; minimum 500x500px square
-  Meesho    : 1:1 or 3:4 ratio; file size < 5 MB
-
-================================================================================
-  FOLDER STRUCTURE
-================================================================================
-
-  Organized_SKU_Images/
-    [SKU_01]/
-      SKU_01_MAIN.jpg       <- Hero cutout (white background)
-      SKU_01_PT01_Size.jpg  <- Size & fit chart
-      SKU_01_PT02_Fabric.jpg<- Fabric & feature spec
-      SKU_01_PT03_Care.jpg  <- Wash-care & styling guide
-      SKU_01_PT04+.jpg      <- Additional angles
-    Unassigned_Assets/      <- Images that didn't match any SKU
-
-================================================================================`;
-}
-
-// ── Progress Bar Helpers (Enhancement #4) ──
-function setProgress(pct, label) {
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressPct').textContent  = Math.round(pct) + '%';
-  document.getElementById('progressLabel').textContent = label;
-}
-
-function showProgress() { document.getElementById('progressArea').classList.remove('hidden'); setProgress(0,'Initialising…'); }
-function hideProgress() { document.getElementById('progressArea').classList.add('hidden'); }
-
-// ── Package Generation (Enhancements #3 + #4) ──
 // ── 5x Alternate Listing Copies Workbook Builder ──
 async function createAlternatesWorkbook(clientName) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Listing Factory Studio v2';
+  wb.creator = 'Listing Factory Studio v2.0';
   wb.created = new Date();
 
-  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF0F172A'} };
-  const headerFont = { name:'Calibri', size:11, bold:true, color:{argb:'FF38BDF8'} }; // Sky blue for alternates
-  const thin = { top:{style:'thin',color:{argb:'FF334155'}}, left:{style:'thin',color:{argb:'FF334155'}}, bottom:{style:'thin',color:{argb:'FF334155'}}, right:{style:'thin',color:{argb:'FF334155'}} };
+  const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
+  const headerFont = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FF38BDF8' } };
+  const thinBorder = {
+    top: { style: 'thin', color: { argb: 'FF334155' } },
+    left: { style: 'thin', color: { argb: 'FF334155' } },
+    bottom: { style: 'thin', color: { argb: 'FF334155' } },
+    right: { style: 'thin', color: { argb: 'FF334155' } }
+  };
 
   function styleRow(ws) {
     ws.getRow(1).eachCell(cell => {
-      cell.fill = headerFill; cell.font = headerFont; cell.border = thin;
-      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+      cell.fill = headerFill; cell.font = headerFont; cell.border = thinBorder;
+      cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
     });
     ws.getRow(1).height = 32;
   }
   function autoFit(ws) {
     ws.columns.forEach(col => {
       let mx = 14;
-      col.eachCell({includeEmpty:true}, cell => { if (cell.value) mx = Math.max(mx, Math.min(String(cell.value).length+4, 50)); });
+      col.eachCell({ includeEmpty: true }, cell => { if (cell.value) mx = Math.max(mx, Math.min(String(cell.value).length + 4, 50)); });
       col.width = mx;
     });
   }
@@ -1107,7 +1497,7 @@ async function createAlternatesWorkbook(clientName) {
   ]);
   styleRow(wsFk);
 
-  // Tab 3: Meesho 5x Alternates (Hinglish + English)
+  // Tab 3: Meesho 5x Alternates
   const wsMe = wb.addWorksheet('Meesho_Alternate_Copies');
   wsMe.addRow([
     "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
@@ -1118,40 +1508,37 @@ async function createAlternatesWorkbook(clientName) {
   ]);
   styleRow(wsMe);
 
-  // Populate
   parsedSkus.forEach(sku => {
     const alts = sku.alternates && sku.alternates.length > 0 ? sku.alternates : [];
     alts.forEach((alt, idx) => {
-      const vTag = alt.variant_id || ('V' + (idx+1));
-      const theme = alt.angle_theme || ('Angle ' + (idx+1));
+      const vTag = alt.variant_id || (`V${idx + 1}`);
+      const theme = alt.angle_theme || (`Angle ${idx + 1}`);
 
-      // Amazon row
       const amz = alt.amazon || {};
-      const bp = [...(amz.bullet_points||[]), '', '', '', '', ''].slice(0, 5);
+      const bp = amz.bullet_points || [];
       wsAmz.addRow([
         sku.sku_id, sku.brand, vTag, theme,
-        amz.title||'', bp[0], bp[1], bp[2], bp[3], bp[4],
-        amz.backend_search_terms||'',
-        amz.description||''
+        amz.title || '',
+        bp[0] || '', bp[1] || '', bp[2] || '', bp[3] || '', bp[4] || '',
+        amz.backend_search_terms || '',
+        amz.description || ''
       ]);
 
-      // Flipkart row
       const fk = alt.flipkart || {};
       wsFk.addRow([
         sku.sku_id, sku.brand, vTag, theme,
-        fk.title||'',
-        fk.search_keywords||'',
-        fk.description||''
+        fk.title || '',
+        fk.search_keywords || '',
+        fk.description || ''
       ]);
 
-      // Meesho row (Hinglish + English)
       const me = alt.meesho || {};
       wsMe.addRow([
         sku.sku_id, sku.brand, vTag, theme,
-        me.title||'',
-        me.hinglish_hook_description||'',
-        me.english_hook_description||'',
-        (me.highlights||[]).join(' \u2022 ')
+        me.title || '',
+        me.hinglish_hook_description || '',
+        me.english_hook_description || '',
+        (me.highlights || []).join(' • ')
       ]);
     });
   });
@@ -1163,10 +1550,115 @@ async function createAlternatesWorkbook(clientName) {
   return await wb.xlsx.writeBuffer();
 }
 
+// ── Handover Instructions Generator ──
+function generateReadme(client, batch) {
+  return `================================================================================
+  LISTING FACTORY HANDOVER PACKAGE: ${client} -- ${batch}
+================================================================================
+
+  Generated : ${new Date().toLocaleString()}
+  Tool      : Listing Factory v2.0 -- Multi-Marketplace Packaging Studio
+
+================================================================================
+  IMPORTANT NOTICE & DISCLAIMER
+================================================================================
+
+  The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
+  organize, validate, and prepare listing data. They are not direct official portal
+  flat files. Sellers and catalog teams must transfer this structured data into
+  their respective Seller Central, Seller Hub, or Supplier Panel category upload
+  templates.
+
+  Processing and QC review times mentioned below are industry averages and can
+  vary based on portal queue, account health, and category policy. Ensure all
+  tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
+
+================================================================================
+  HOW TO UPLOAD -- 3-STEP GUIDE
+================================================================================
+
+  STEP 1 ▸ AMAZON SELLER CENTRAL (sellercentral.amazon.in)
+  ────────────────────────────────────────────────────────
+  1. Navigate to: Catalog > Add Products via Upload > Upload your Inventory File.
+  2. Download the category-specific inventory flat file template for your product.
+  3. Open the "01_Amazon_Bulk_Import" tab in the Master Excel mapping file.
+  4. Copy-paste rows into Amazon's template columns matching headers carefully.
+  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04).
+  6. Submit file. (Average automated processing time: ~15-30 minutes).
+
+  STEP 2 ▸ FLIPKART SELLER HUB (seller.flipkart.com)
+  ──────────────────────────────────────────────────
+  1. Navigate to: Listings > Add in Bulk.
+  2. Download Flipkart's bulk listing template for the selected vertical.
+  3. Open the "02_Flipkart_Bulk_Import" tab in the Master Excel mapping file.
+  4. Map Flipkart-specific copy, style code, fabric, and controlled attributes.
+  5. Upload the completed template and corresponding SKU image assets.
+  6. Submit for QC review. (Average manual QC window: ~24-48 hours).
+
+  STEP 3 ▸ MEESHO SUPPLIER PANEL (supplier.meesho.com)
+  ────────────────────────────────────────────────────
+  1. Navigate to: Catalog > Add Catalog (Single / Bulk).
+  2. Select your exact product vertical.
+  3. Open the "03_Meesho_Bulk_Import" tab in the Master Excel mapping file.
+  4. Use the Hinglish hook copy, English hook copy, and bullet highlight badges.
+  5. Upload primary hero cutouts and angle shots from SKU folders.
+  6. Submit for catalog approval. (Average automated/manual review: ~2-4 hours).
+
+================================================================================
+  IMAGE NAMING & ASSET STRUCTURE
+================================================================================
+
+  Canonical Image Naming Scheme:
+    • Primary Image (Hero)        : SKU_XX_MAIN.jpg
+    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg
+    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg
+    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg
+    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg
+    • Other Image 5               : SKU_XX_PT05.jpg
+
+  Folder Hierarchy in this ZIP:
+    Organized_SKU_Images/
+      ├── [SKU_ID]/              ← One subfolder per SKU
+      │   ├── [SKU]_MAIN.jpg     ← Primary hero (pure white background #FFFFFF)
+      │   ├── [SKU]_PT01.jpg     ← Size & measurement guide
+      │   ├── [SKU]_PT02.jpg     ← Fabric texture & spec highlight
+      │   ├── [SKU]_PT03.jpg     ← Care & styling recommendations
+      │   └── [SKU]_PT04.jpg     ← Additional angles / back view
+      └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
+
+================================================================================
+  QUALITY STANDARDS APPLIED
+================================================================================
+
+  • Amazon Title Length           : Enforced ≤ 180 characters.
+  • Amazon Backend Search Terms   : Enforced ≤ 240 bytes (UTF-8 strict).
+  • Meesho Product Title          : Enforced ≤ 60 characters.
+  • Flipkart Attributes           : Validated against controlled marketplace taxonomy.
+  • Tax & Commercial Values       : Ingested dynamically from seller configuration.
+  • Package Readiness Status      : "Ready for Review" indicates structural &
+                                    image completeness, pending portal upload.
+
+================================================================================`;
+}
+
+// ── Progress Bar Helpers ──
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent  = Math.round(pct) + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+function showProgress() { document.getElementById('progressArea').classList.remove('hidden'); setProgress(0,'Initialising…'); }
+function hideProgress() { document.getElementById('progressArea').classList.add('hidden'); }
+
+// ── Package Generation Engine ──
 async function generatePackage(skipComplianceCheck) {
-  // Compliance gate
+  if (!jsonValid) {
+    alert('Cannot generate package: Please resolve schema and validation errors first.');
+    return;
+  }
+
   if (!skipComplianceCheck) {
-    const issues = Object.values(complianceMap).filter(r=>r.issues.length>0);
+    const issues = Object.values(complianceMap).filter(r => r.issues.length > 0);
     if (issues.length > 0) { showComplianceModal(); return; }
   }
   closeComplianceModal();
@@ -1183,64 +1675,60 @@ async function generatePackage(skipComplianceCheck) {
     const category   = document.getElementById('category').value || 'Women Ethnic Wear';
     const safeClient = clientName.replace(/[^\w\-]/g,'_');
     const safeBatch  = batchId.replace(/[^\w\-]/g,'_');
-    const zipPrefix  = safeClient + '_' + safeBatch + '_Handover_Package';
-    const xlsxName   = safeClient + '_Master_Marketplace_Upload.xlsx';
+    const zipPrefix  = `${safeClient}_${safeBatch}_Handover_Package`;
+    const xlsxName   = `${safeClient}_Master_Marketplace_Upload.xlsx`;
 
-    // Step 1: Build Excel
-    setProgress(5, 'Building Master Excel workbook…');
+    // Step 1: Master Excel Mapping Workbook
+    setProgress(5, 'Building Master Excel mapping workbook…');
     const xlsxBuffer = await createMasterWorkbook(safeClient, category);
     setProgress(20, 'Master Excel built.');
 
-    // Step 1b: Build Alternate Copies workbook if alternates exist
+    // Step 1b: 5x Alternate Copies workbook if alternates are present
     const hasAlternates = parsedSkus.some(s => s.alternates && s.alternates.length > 0);
     let altXlsxBuffer = null;
     if (hasAlternates) {
-      setProgress(28, 'Building 5x Alternate Copies workbook\u2026');
+      setProgress(28, 'Building 5x Alternate Copies workbook…');
       altXlsxBuffer = await createAlternatesWorkbook(safeClient);
     }
-    setProgress(35, 'Assembling ZIP archive\u2026');
+    setProgress(35, 'Assembling ZIP archive…');
 
-    // Step 2: Build ZIP with STORE compression for images (Enhancement #4)
+    // Step 2: Build ZIP (STORE mode for images)
     const zip = new JSZip();
     const root = zip.folder(zipPrefix);
 
-    // Excel + README use DEFLATE (text compresses well)
-    root.file(xlsxName, xlsxBuffer, { compression:'DEFLATE', compressionOptions:{level:6} });
+    root.file(xlsxName, xlsxBuffer, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
     if (altXlsxBuffer) {
-      const altXlsxName = safeClient + '_Alternate_Listing_Copies.xlsx';
-      root.file(altXlsxName, altXlsxBuffer, { compression:'DEFLATE', compressionOptions:{level:6} });
+      const altXlsxName = `${safeClient}_Alternate_Listing_Copies.xlsx`;
+      root.file(altXlsxName, altXlsxBuffer, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
     }
-    root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch), { compression:'DEFLATE' });
+    root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch), { compression: 'DEFLATE' });
 
-    // Organize images into SKU folders — STORE (no re-compression for JPEGs/PNGs)
-    setProgress(35, 'Routing SKU images into folders…');
+    setProgress(45, 'Routing SKU images into folders…');
     const imgRoot = root.folder('Organized_SKU_Images');
     for (const sku of parsedSkus) {
-      const matched = imageMap[sku.sku_id]||[];
+      const matched = imageMap[sku.sku_id] || [];
       if (matched.length === 0) continue;
       const skuFolder = imgRoot.folder(sku.sku_id);
       for (const fileObj of matched) {
-        skuFolder.file(fileObj.name, fileObj, { compression:'STORE' }); // instant — no re-compression
+        skuFolder.file(fileObj.name, fileObj, { compression: 'STORE' });
       }
     }
     for (const fileObj of unassignedImages) {
-      imgRoot.folder('Unassigned_Assets').file(fileObj.name, fileObj, { compression:'STORE' });
+      imgRoot.folder('Unassigned_Assets').file(fileObj.name, fileObj, { compression: 'STORE' });
     }
 
-    setProgress(55, 'Streaming ZIP… (STORE mode — fast)');
+    setProgress(60, 'Streaming ZIP archive…');
 
-    // Step 3: Stream with progress callback (Enhancement #4)
     const zipBlob = await zip.generateAsync(
-      { type:'blob', compression:'DEFLATE' },
-      meta => setProgress(55 + Math.round(meta.percent * 0.44), 'Packaging: ' + Math.round(meta.percent) + '%…')
+      { type: 'blob', compression: 'DEFLATE' },
+      meta => setProgress(60 + Math.round(meta.percent * 0.38), `Packaging: ${Math.round(meta.percent)}%…`)
     );
 
     setProgress(100, 'Done!');
     setTimeout(() => hideProgress(), 800);
 
-    saveAs(zipBlob, zipPrefix + '.zip');
+    saveAs(zipBlob, `${zipPrefix}.zip`);
 
-    // Success state
     btnLoading.classList.add('hidden'); btnContent.classList.remove('hidden');
     btnContent.innerHTML = `<svg class="w-5 h-5 inline-block mr-2 -mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>Package Downloaded!`;
     setTimeout(() => {
@@ -1250,7 +1738,7 @@ async function generatePackage(skipComplianceCheck) {
 
   } catch(err) {
     hideProgress();
-    alert('Generation Error: ' + err.message);
+    alert('Packaging Error: ' + err.message);
     console.error(err);
     btnLoading.classList.add('hidden'); btnContent.classList.remove('hidden');
     btn.disabled = false;

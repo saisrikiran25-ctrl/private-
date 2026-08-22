@@ -1,35 +1,102 @@
-# Listing Factory — Multi-Marketplace Packaging Studio
+# Listing Factory — Multi-Marketplace Packaging Studio (v2.0)
 
-Automated packaging, validation, and delivery engine for Indian e-commerce cataloging agencies.
-Takes AI-generated JSON copy (Claude/Gemini) and loose image files (ChatGPT/Canva), validates them against Amazon.in, Flipkart, and Meesho upload constraints, organizes images into SKU subfolders, auto-populates official marketplace multi-tab Excel flat files, and outputs a ready-to-deliver client ZIP archive.
+Automated packaging, validation, and delivery engine for Indian e-commerce cataloging agencies managing multi-channel uploads across **Amazon.in**, **Flipkart**, and **Meesho**.
 
-## 🚀 Live Web App (GitHub Pages)
-
-Access the live studio directly in your browser with zero installation:
-**[https://saisrikiran25-ctrl.github.io/private-/](https://saisrikiran25-ctrl.github.io/private-/)**
+Access the live studio directly in your browser with zero installation:  
+👉 **[https://saisrikiran25-ctrl.github.io/private-/](https://saisrikiran25-ctrl.github.io/private-/)**
 
 ---
 
-## ✨ Features
+## 🏗️ Architecture & The Two-Stage Pipeline
 
-- **Dual-Mode AI JSON Ingestion**: Upload `.json` files or paste directly from LLMs with real-time validation badges.
-- **Pre-Flight Validation Engine**:
-  - Amazon backend keywords capped at $\le 240$ bytes
-  - Amazon title length warnings ($\le 180$ characters)
-  - Flipkart & Meesho mandatory attribute completion checks
-- **Interactive Multi-Image Drop Zone**:
-  - Auto-matches images to SKUs by filename prefix (e.g. `SKU_01_MAIN.jpg`)
-  - Live visual checklist for core image slots (`_MAIN`, `_PT01_Size`, `_PT02_Fabric`, `_PT03_Care`)
-  - Isolates unmatched images into `Unassigned_Assets/`
-- **Master Multi-Tab Excel Workbook**:
-  1. `Master_Summary`: Executive overview with upload readiness status
-  2. `01_Amazon_Bulk_Import`: Official 18-column Amazon.in flat file schema
-  3. `02_Flipkart_Bulk_Import`: Official 17-column Flipkart Seller Hub schema
-  4. `03_Meesho_Bulk_Import`: Official 8-column Meesho Supplier Panel schema
-- **Complete Client ZIP Delivery Package**:
-  - Styled Master Excel workbook
-  - `README_Upload_Instructions.txt` (3-step marketplace guide)
-  - Organized SKU image folders
+Listing Factory operates as a dedicated two-stage production pipeline:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ STAGE 1: AI JSON Generation (Claude / Gemini / GPT-4)       │
+│ Generates strictly validated copy + 5x A/B marketing angles │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ JSON Payload
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│ STAGE 2: Listing Factory Studio (Local FastAPI / Web App)   │
+│  • Schema & Constraint Validation (No Silent Truncation)    │
+│  • Dynamic Tax & Commercial Mapping (GST, HSN, Quantity)    │
+│  • Canonical Image Routing (SKU_XX_MAIN.jpg ... PT05)       │
+│  • Multi-Tab Marketplace Mapping Workbooks (.xlsx)          │
+│  • 5x Alternate Marketing Copies Workbook (.xlsx)           │
+│  • Client Handover Delivery Archive (.zip)                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📸 Canonical Image Naming Scheme
+
+All image assets must strictly adhere to this standardized naming convention:
+
+| Role | Filename Pattern | Purpose / Content |
+|---|---|---|
+| **Primary Hero** | `SKU_XX_MAIN.jpg` | Pure white background (`#FFFFFF`), primary product hero cutout |
+| **Other Image 1** | `SKU_XX_PT01.jpg` | Size chart, measurement specifications, & fit guide |
+| **Other Image 2** | `SKU_XX_PT02.jpg` | Fabric texture, weave detail, & material spec |
+| **Other Image 3** | `SKU_XX_PT03.jpg` | Wash care instructions & styling recommendations |
+| **Other Image 4** | `SKU_XX_PT04.jpg` | Back view / alternate product angle |
+| **Other Image 5** | `SKU_XX_PT05.jpg` | Detail close-up / lifestyle photo |
+
+*Where `XX` represents the zero-padded SKU identifier (e.g., `SKU_01_MAIN.jpg`).*
+
+---
+
+## 📊 Marketplace Mapping Workbooks
+
+Listing Factory generates two structured mapping workbooks inside the client ZIP:
+
+### 1. `[Client]_Master_Marketplace_Upload.xlsx`
+Structured data sheets designed for easy copy-pasting into official marketplace upload templates:
+- **`Master_Summary`**: Executive SKU catalog overview, core coverage metrics (`4/4 Core`), validation status (`✅ Pass`), and package readiness (`✅ Ready for Review`).
+- **`01_Amazon_Bulk_Import`**: Amazon.in 23-column mapping schema with dynamic seller quantity, generic keywords ($\le 240$ bytes), 5 bullet points, and exact image filenames.
+- **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 23-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), seller GST/HSN, and Flipkart-specific descriptions.
+- **`03_Meesho_Bulk_Import`**: Meesho 16-column schema with dual Hinglish + English hook descriptions, 4 highlight badges, seller GST/HSN, and 5-slot image mappings.
+
+### 2. `[Client]_Alternate_Listing_Copies.xlsx`
+Contains 5 distinct marketing angle variations per SKU for A/B testing and seasonal refreshes:
+- **V1**: Daily Office & Workwear
+- **V2**: Festive & Wedding Celebrations
+- **V3**: Summer Heat & Breathable Comfort
+- **V4**: High-Value Everyday Essential
+- **V5**: Gifting & Modern Fusion
+
+---
+
+## 🔒 Strict Validation & Compliance Rules
+
+- **Zero Silent Mutation**: Over-length titles and search terms are rejected with clear, actionable validation errors rather than silently truncated.
+- **Amazon Constraints**: Title $\le 180$ chars; Backend search terms $\le 240$ UTF-8 bytes; exactly 5 bullet points.
+- **Flipkart Taxonomy**: Fabric, kurta type, neck, sleeve, length type, pattern, and occasion validated against allowed marketplace literals.
+- **Meesho Rules**: Title $\le 60$ chars; exactly 4 highlights; mandatory Hinglish and English hook descriptions.
+- **Dynamic Commercials**: GST (%), HSN code, and Amazon stock quantity are ingested from seller configuration.
+
+---
+
+## 📦 Client ZIP Structure
+
+```
+[Client]_[Batch]_Handover_Package/
+├── [Client]_Master_Marketplace_Upload.xlsx
+├── [Client]_Alternate_Listing_Copies.xlsx  (when alternates provided)
+├── README_Upload_Instructions.txt
+└── Organized_SKU_Images/
+    ├── SKU_01/
+    │   ├── SKU_01_MAIN.jpg
+    │   ├── SKU_01_PT01.jpg
+    │   ├── SKU_01_PT02.jpg
+    │   ├── SKU_01_PT03.jpg
+    │   └── SKU_01_PT04.jpg
+    ├── SKU_02/
+    │   └── ...
+    └── Unassigned_Assets/
+```
 
 ---
 
@@ -51,3 +118,8 @@ pip install -r requirements.txt
 python app.py
 ```
 Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser.
+
+---
+
+## 📝 Important Notice & Disclaimer
+The Excel workbooks produced by this tool are structured **Mapping Workbooks** formatted to organize catalog data for seamless copy-pasting into official Seller Central, Seller Hub, and Supplier Panel upload templates. Sellers must verify category-specific rules, tax rates, and portal guidelines prior to final submission.

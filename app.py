@@ -1,14 +1,15 @@
 """
-Listing Factory: Multi-Marketplace Packaging Studio
-====================================================
+Listing Factory: Multi-Marketplace Packaging Studio (v2.0)
+===========================================================
 A FastAPI-powered local web application for e-commerce cataloging agencies.
 Takes AI-generated JSON copy + loose image files, validates against
 Amazon.in / Flipkart / Meesho constraints, organizes images into SKU
-subfolders, auto-populates marketplace Excel flat files, and outputs
+subfolders, populates marketplace mapping Excel workbooks, and outputs
 a ready-to-deliver client ZIP archive.
 
-Run:  python app.py
-Open: http://127.0.0.1:8000
+Version: Listing Factory v2.0
+Run:     python app.py
+Open:    http://127.0.0.1:8000
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ import re
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import Any, List, Literal, Optional
 
 import pandas as pd
 from fastapi import FastAPI, File, Form, UploadFile, Request
@@ -30,7 +31,6 @@ from openpyxl.styles import (
     Alignment,
     Border,
     Font,
-    NamedStyle,
     PatternFill,
     Side,
 )
@@ -38,79 +38,175 @@ from openpyxl.utils import get_column_letter
 from pydantic import BaseModel, Field, field_validator
 import uvicorn
 
+
 # ──────────────────────────────────────────────
-# Pydantic v2 Models
+# Flipkart Controlled Attributes Literal Types
 # ──────────────────────────────────────────────
 
+FabricLiteral = Literal[
+    "Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton"
+]
+KurtaTypeLiteral = Literal[
+    "Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani"
+]
+NeckLiteral = Literal[
+    "Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck"
+]
+SleeveLiteral = Literal[
+    "3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve"
+]
+LengthTypeLiteral = Literal[
+    "Calf Length", "Ankle Length", "Knee Length", "Above Knee"
+]
+PatternLiteral = Literal[
+    "Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani"
+]
+OccasionLiteral = Literal[
+    "Casual", "Festive", "Casual & Festive", "Party", "Formal"
+]
+
+
+# ──────────────────────────────────────────────
+# Pydantic v2 Models (Strict Validation Schema)
+# ──────────────────────────────────────────────
+
+class SellerConfig(BaseModel):
+    amazon_quantity: int
+    gst_percent: int
+    hsn_code: str
+
+
 class AmazonData(BaseModel):
-    title: str = ""
-    bullet_points: list[str] = Field(default_factory=list)
-    backend_search_terms: str = ""
-    description: str = ""
+    title: str
+    bullet_points: list[str] = Field(..., min_length=5, max_length=5)
+    backend_search_terms: str
+    description: str
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if len(v) > 180:
+            raise ValueError(f"Amazon title must be ≤ 180 characters (got {len(v)} chars)")
+        if not v.strip():
+            raise ValueError("Amazon title cannot be empty")
+        return v
+
+    @field_validator("backend_search_terms")
+    @classmethod
+    def validate_bst(cls, v: str) -> str:
+        b = len(v.encode("utf-8"))
+        if b > 240:
+            raise ValueError(f"Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
+        if not v.strip():
+            raise ValueError("Amazon backend search terms cannot be empty")
+        return v
 
 
 class FlipkartData(BaseModel):
-    title: str = ""
-    fabric: str = ""
-    kurta_type: str = ""
-    neck: str = ""
-    sleeve: str = ""
-    length_type: str = ""
-    pattern: str = ""
-    occasion: str = ""
-    search_keywords: str = ""
+    title: str
+    fabric: FabricLiteral
+    kurta_type: KurtaTypeLiteral
+    neck: NeckLiteral
+    sleeve: SleeveLiteral
+    length_type: LengthTypeLiteral
+    pattern: PatternLiteral
+    occasion: OccasionLiteral
+    search_keywords: str
+    description: str
 
 
 class MeeshoData(BaseModel):
-    title: str = ""
-    hinglish_hook_description: str = ""
-    highlights: list[str] = Field(default_factory=list)
+    title: str
+    hinglish_hook_description: str
+    english_hook_description: str
+    highlights: list[str] = Field(..., min_length=4, max_length=4)
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if len(v) > 60:
+            raise ValueError(f"Meesho title must be ≤ 60 characters (got {len(v)} chars)")
+        if not v.strip():
+            raise ValueError("Meesho title cannot be empty")
+        return v
 
 
 class AlternateAmazonData(BaseModel):
-    title: str = ""
-    bullet_points: list[str] = Field(default_factory=list)
-    backend_search_terms: str = ""
-    description: str = ""
+    title: str
+    bullet_points: list[str] = Field(..., min_length=5, max_length=5)
+    backend_search_terms: str
+    description: str
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if len(v) > 180:
+            raise ValueError(f"Alternate Amazon title must be ≤ 180 characters (got {len(v)} chars)")
+        return v
+
+    @field_validator("backend_search_terms")
+    @classmethod
+    def validate_bst(cls, v: str) -> str:
+        b = len(v.encode("utf-8"))
+        if b > 240:
+            raise ValueError(f"Alternate Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
+        return v
 
 
 class AlternateFlipkartData(BaseModel):
-    title: str = ""
-    search_keywords: str = ""
-    description: str = ""
+    title: str
+    search_keywords: str
+    description: str
 
 
 class AlternateMeeshoData(BaseModel):
-    title: str = ""
-    hinglish_hook_description: str = ""
-    english_hook_description: str = ""
-    highlights: list[str] = Field(default_factory=list)
+    title: str
+    hinglish_hook_description: str
+    english_hook_description: str
+    highlights: list[str] = Field(..., min_length=4, max_length=4)
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        if len(v) > 60:
+            raise ValueError(f"Alternate Meesho title must be ≤ 60 characters (got {len(v)} chars)")
+        return v
 
 
 class AlternateVariant(BaseModel):
-    variant_id: str = ""
-    angle_theme: str = ""
-    amazon: AlternateAmazonData = Field(default_factory=AlternateAmazonData)
-    flipkart: AlternateFlipkartData = Field(default_factory=AlternateFlipkartData)
-    meesho: AlternateMeeshoData = Field(default_factory=AlternateMeeshoData)
+    variant_id: str
+    angle_theme: str
+    amazon: AlternateAmazonData
+    flipkart: AlternateFlipkartData
+    meesho: AlternateMeeshoData
 
 
 class SKUItem(BaseModel):
     sku_id: str
-    brand: str = ""
-    product_type: str = ""
-    sizes: str = ""
-    mrp: float = 0
-    meesho_price: float = 0
-    amazon: AmazonData = Field(default_factory=AmazonData)
-    flipkart: FlipkartData = Field(default_factory=FlipkartData)
-    meesho: MeeshoData = Field(default_factory=MeeshoData)
-    alternates: list[AlternateVariant] = Field(default_factory=list)
+    brand: str
+    product_type: str
+    color: str
+    sizes: str
+    mrp: float
+    meesho_price: float
+    seller_config: SellerConfig
+    amazon: AmazonData
+    flipkart: FlipkartData
+    meesho: MeeshoData
+    alternates: list[AlternateVariant] = Field(default_factory=list, max_length=5)
+
+    @field_validator("alternates")
+    @classmethod
+    def validate_alternates(cls, v: list[AlternateVariant]) -> list[AlternateVariant]:
+        if v and len(v) != 5:
+            raise ValueError(f"When alternates are provided, exactly 5 variants (V1-V5) are required (got {len(v)})")
+        return v
 
 
 # ──────────────────────────────────────────────
-# Category mapping
+# Category mapping & Image Roles
 # ──────────────────────────────────────────────
+
 CATEGORY_MAP = {
     "Women Ethnic Wear": "kurtas-and-ethnic-tops",
     "Men Western Wear": "mens-casual-shirts",
@@ -119,30 +215,26 @@ CATEGORY_MAP = {
     "Home & Kitchen": "home-furnishing",
 }
 
-# Image role suffixes
 IMAGE_ROLES = {
-    "_MAIN": "Main Hero",
-    "_PT01": "Size Chart",
-    "_PT02": "Fabric Spec",
-    "_PT03": "Care Guide",
-    "_PT04": "Back View",
-    "_PT05": "Lifestyle 1",
-    "_PT06": "Lifestyle 2",
-    "_PT07": "Detail Shot",
-    "_PT08": "Packaging",
+    "_MAIN": "Primary Image (Hero)",
+    "_PT01": "Other Image 1 (Size Chart)",
+    "_PT02": "Other Image 2 (Fabric Spec)",
+    "_PT03": "Other Image 3 (Care Guide)",
+    "_PT04": "Other Image 4 (Back View)",
+    "_PT05": "Other Image 5",
 }
 
 CORE_SUFFIXES = ["_MAIN", "_PT01", "_PT02", "_PT03"]
 
 
 # ──────────────────────────────────────────────
-# Excel Builder
+# Excel Workbook Builders
 # ──────────────────────────────────────────────
 
-def _style_header_row(ws, num_cols: int):
-    """Apply premium styling to the header row of a worksheet."""
+def _style_header_row(ws, num_cols: int, header_color: str = "10B981"):
+    """Apply styling to the header row of a worksheet."""
     header_fill = PatternFill(start_color="0F172A", end_color="0F172A", fill_type="solid")
-    header_font = Font(name="Calibri", bold=True, size=11, color="10B981")
+    header_font = Font(name="Calibri", bold=True, size=11, color=header_color)
     thin_border = Border(
         left=Side(style="thin", color="334155"),
         right=Side(style="thin", color="334155"),
@@ -155,102 +247,115 @@ def _style_header_row(ws, num_cols: int):
         cell.font = header_font
         cell.border = thin_border
         cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    ws.row_dimensions[1].height = 30
 
 
-def _auto_width(ws, min_width=12, max_width=45):
+def _auto_width(ws, min_width=12, max_width=50):
     """Auto-fit column widths based on content."""
     for col_cells in ws.columns:
         col_letter = get_column_letter(col_cells[0].column)
         max_len = 0
         for cell in col_cells:
             try:
-                cell_len = len(str(cell.value)) if cell.value else 0
+                cell_len = len(str(cell.value)) if cell.value is not None else 0
                 max_len = max(max_len, cell_len)
             except Exception:
                 pass
         ws.column_dimensions[col_letter].width = max(min_width, min(max_len + 4, max_width))
 
 
-def _build_master_summary(wb: Workbook, skus: list[SKUItem], image_map: dict[str, list[str]]):
+def _build_master_summary(
+    wb: Workbook,
+    skus: list[SKUItem],
+    image_map: dict[str, list[str]],
+    validation_status: str = "✅ Pass"
+):
     ws = wb.active
     ws.title = "Master_Summary"
     headers = [
-        "SKU ID", "Brand", "Product Type", "Fabric", "Sizes Available",
-        "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hook Preview",
-        "Image Assets Count", "Upload Status",
+        "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
+        "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
+        "Core Images Found", "Core Coverage", "Validation Status", "Package Readiness"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
 
     for sku in skus:
-        img_count = len(image_map.get(sku.sku_id, []))
-        has_core = all(
-            any(suffix.lower() in fn.lower() for fn in image_map.get(sku.sku_id, []))
-            for suffix in CORE_SUFFIXES
+        files = image_map.get(sku.sku_id, [])
+        # Core coverage based strictly on presence of _MAIN, _PT01, _PT02, _PT03
+        core_found = sum(
+            1 for suffix in CORE_SUFFIXES
+            if any(suffix.lower() in fn.lower() for fn in files)
         )
-        status = "✅ Ready" if has_core else "⚠️ Missing Images"
+        coverage_pct = f"{int((core_found / 4) * 100)}% ({core_found}/4 Core)"
+        
+        # Package readiness logic: reflects validation state and image completeness
+        if validation_status == "✅ Pass" and core_found == 4:
+            readiness = "✅ Ready for Review"
+        elif validation_status == "✅ Pass" and core_found < 4:
+            readiness = "⚠️ Review Recommended"
+        elif "Warning" in validation_status:
+            readiness = "⚠️ Review Recommended"
+        else:
+            readiness = "❌ Not Ready"
+
         ws.append([
             sku.sku_id,
             sku.brand,
             sku.product_type,
+            sku.color,
             sku.flipkart.fabric,
             sku.sizes,
-            (sku.amazon.title[:80] + "…") if len(sku.amazon.title) > 80 else sku.amazon.title,
-            (sku.flipkart.title[:80] + "…") if len(sku.flipkart.title) > 80 else sku.flipkart.title,
-            (sku.meesho.hinglish_hook_description[:80] + "…") if len(sku.meesho.hinglish_hook_description) > 80 else sku.meesho.hinglish_hook_description,
-            img_count,
-            status,
+            (sku.amazon.title[:75] + "…") if len(sku.amazon.title) > 75 else sku.amazon.title,
+            (sku.flipkart.title[:75] + "…") if len(sku.flipkart.title) > 75 else sku.flipkart.title,
+            (sku.meesho.hinglish_hook_description[:75] + "…") if len(sku.meesho.hinglish_hook_description) > 75 else sku.meesho.hinglish_hook_description,
+            f"{core_found}/4 Slots",
+            coverage_pct,
+            validation_status,
+            readiness,
         ])
     _auto_width(ws)
 
 
 def _build_amazon_tab(wb: Workbook, skus: list[SKUItem], category: str):
     ws = wb.create_sheet("01_Amazon_Bulk_Import")
-    item_type = CATEGORY_MAP.get(category, "generic-item")
+    item_type = CATEGORY_MAP.get(category, "kurtas-and-ethnic-tops")
     headers = [
-        "Seller SKU", "Product Name (Title)", "Brand Name", "Item Type Keyword",
-        "Standard Price (INR)", "Quantity",
-        "Main Image URL / Name",
-        "Other Image URL 1 (Size Chart)",
-        "Other Image URL 2 (Fabric Spec)",
-        "Other Image URL 3 (Care Guide)",
-        "Other Image URL 4",
-        "Key Product Features (Bullet 1)",
-        "Key Product Features (Bullet 2)",
-        "Key Product Features (Bullet 3)",
-        "Key Product Features (Bullet 4)",
-        "Key Product Features (Bullet 5)",
-        "Generic Keywords (Backend Search)",
-        "Product Description",
+        "item_sku", "item_name", "brand_name", "feed_product_type", "item_type_keyword",
+        "standard_price", "currency", "quantity", "condition_type",
+        "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4",
+        "bullet_point1", "bullet_point2", "bullet_point3", "bullet_point4", "bullet_point5",
+        "generic_keyword", "item_description", "size", "color"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
 
     for sku in skus:
-        bullets = sku.amazon.bullet_points + [""] * 5  # pad
-        # Enforce 240 byte cap on backend search terms
-        bst = sku.amazon.backend_search_terms
-        while len(bst.encode("utf-8")) > 240:
-            bst = bst[:-1]
+        bp = sku.amazon.bullet_points
         ws.append([
             sku.sku_id,
-            sku.amazon.title[:180],
+            sku.amazon.title,
             sku.brand,
+            "Kurta",
             item_type,
             sku.mrp,
-            50,
+            "INR",
+            sku.seller_config.amazon_quantity,
+            "New",
             f"{sku.sku_id}_MAIN.jpg",
-            f"{sku.sku_id}_PT01_Size.jpg",
-            f"{sku.sku_id}_PT02_Fabric.jpg",
-            f"{sku.sku_id}_PT03_Care.jpg",
-            f"{sku.sku_id}_PT04_Back.jpg",
-            bullets[0],
-            bullets[1],
-            bullets[2],
-            bullets[3],
-            bullets[4],
-            bst,
+            f"{sku.sku_id}_PT01.jpg",
+            f"{sku.sku_id}_PT02.jpg",
+            f"{sku.sku_id}_PT03.jpg",
+            f"{sku.sku_id}_PT04.jpg",
+            bp[0],
+            bp[1],
+            bp[2],
+            bp[3],
+            bp[4],
+            sku.amazon.backend_search_terms,
             sku.amazon.description,
+            sku.sizes,
+            sku.color,
         ])
     _auto_width(ws)
 
@@ -258,11 +363,11 @@ def _build_amazon_tab(wb: Workbook, skus: list[SKUItem], category: str):
 def _build_flipkart_tab(wb: Workbook, skus: list[SKUItem]):
     ws = wb.create_sheet("02_Flipkart_Bulk_Import")
     headers = [
-        "Seller SKU ID", "Product Title", "Brand", "Style Code", "Size",
-        "Pattern", "Type / Kurta Type", "Fabric", "Neck", "Sleeve",
-        "Length Type", "Occasion", "Search Keywords",
-        "Main Image Name", "Angle 1 Image", "Angle 2 Image",
-        "Description",
+        "Seller SKU ID", "Product Title", "Brand", "Style Code", "Ideal For", "Size", "Color",
+        "Pattern", "Type / Kurta Type", "Fabric", "Neck", "Sleeve", "Length Type", "Occasion",
+        "Net Quantity", "GST (%)", "HSN Code", "Search Keywords",
+        "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image",
+        "Description"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
@@ -273,7 +378,9 @@ def _build_flipkart_tab(wb: Workbook, skus: list[SKUItem]):
             sku.flipkart.title,
             sku.brand,
             sku.sku_id,
+            "Women",
             sku.sizes,
+            sku.color,
             sku.flipkart.pattern,
             sku.flipkart.kurta_type,
             sku.flipkart.fabric,
@@ -281,11 +388,15 @@ def _build_flipkart_tab(wb: Workbook, skus: list[SKUItem]):
             sku.flipkart.sleeve,
             sku.flipkart.length_type,
             sku.flipkart.occasion,
+            1,
+            sku.seller_config.gst_percent,
+            sku.seller_config.hsn_code,
             sku.flipkart.search_keywords,
             f"{sku.sku_id}_MAIN.jpg",
-            f"{sku.sku_id}_PT01_Size.jpg",
-            f"{sku.sku_id}_PT02_Fabric.jpg",
-            sku.amazon.description,
+            f"{sku.sku_id}_PT01.jpg",
+            f"{sku.sku_id}_PT02.jpg",
+            f"{sku.sku_id}_PT03.jpg",
+            sku.flipkart.description,
         ])
     _auto_width(ws)
 
@@ -294,46 +405,53 @@ def _build_meesho_tab(wb: Workbook, skus: list[SKUItem]):
     ws = wb.create_sheet("03_Meesho_Bulk_Import")
     headers = [
         "Product ID / SKU", "Product Name",
-        "Product Description (Hinglish/Hindi Hook)",
+        "Product Description (Hinglish Hook)",
+        "English Hook Description",
         "Fabric", "Available Sizes", "Color", "Occasion",
         "Key Highlights", "GST (%)", "HSN Code",
-        "Recommended Meesho Price (INR)",
+        "Recommended Price (INR)",
         "Primary Image (Hero)",
         "Other Image 1 (Size Chart)",
         "Other Image 2 (Fabric Spec)",
         "Other Image 3 (Care Guide)",
-        "Other Image 4 (Back View)",
+        "Other Image 4 (Back View)"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
 
     for sku in skus:
-        highlights = " \u2022 ".join(sku.meesho.highlights)
+        highlights_str = " • ".join(sku.meesho.highlights)
         ws.append([
             sku.sku_id,
             sku.meesho.title,
             sku.meesho.hinglish_hook_description,
+            sku.meesho.english_hook_description,
             sku.flipkart.fabric,
             sku.sizes,
-            "",
-            sku.flipkart.occasion or "",
-            highlights,
-            5,
-            "62114200",
+            sku.color,
+            sku.flipkart.occasion,
+            highlights_str,
+            sku.seller_config.gst_percent,
+            sku.seller_config.hsn_code,
             sku.meesho_price,
             f"{sku.sku_id}_MAIN.jpg",
-            f"{sku.sku_id}_PT01_Size.jpg",
-            f"{sku.sku_id}_PT02_Fabric.jpg",
-            f"{sku.sku_id}_PT03_Care.jpg",
-            f"{sku.sku_id}_PT04_Back.jpg",
+            f"{sku.sku_id}_PT01.jpg",
+            f"{sku.sku_id}_PT02.jpg",
+            f"{sku.sku_id}_PT03.jpg",
+            f"{sku.sku_id}_PT04.jpg",
         ])
     _auto_width(ws)
 
 
-def build_workbook(skus: list[SKUItem], category: str, image_map: dict[str, list[str]]) -> bytes:
-    """Build the full multi-tab Excel workbook and return raw bytes."""
+def build_workbook(
+    skus: list[SKUItem],
+    category: str,
+    image_map: dict[str, list[str]],
+    validation_status: str = "✅ Pass"
+) -> bytes:
+    """Build the full multi-tab Master Excel mapping workbook and return raw bytes."""
     wb = Workbook()
-    _build_master_summary(wb, skus, image_map)
+    _build_master_summary(wb, skus, image_map, validation_status)
     _build_amazon_tab(wb, skus, category)
     _build_flipkart_tab(wb, skus)
     _build_meesho_tab(wb, skus)
@@ -344,43 +462,46 @@ def build_workbook(skus: list[SKUItem], category: str, image_map: dict[str, list
 
 
 def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
-    """Build the 5x Alternate Listing Copies workbook with 3 marketplace tabs."""
+    """Build the 5x Alternate Listing Copies mapping workbook with 3 marketplace tabs."""
     wb = Workbook()
 
     # -- Tab 1: Amazon Alternates --
     ws_amz = wb.active
     ws_amz.title = "Amazon_Alternate_Copies"
-    ws_amz.append([
+    headers_amz = [
         "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
         "Alternative Title (Amazon)",
         "Bullet 1 (Fabric & Comfort)", "Bullet 2 (Design & Utility)",
         "Bullet 3 (Colorfast & Durable)", "Bullet 4 (Versatile Styling)",
         "Bullet 5 (Sizing & Care)",
         "Alternative Backend Search Terms (<240 bytes)",
-        "Alternative Description",
-    ])
-    _style_header_row(ws_amz, 12)
+        "Alternative Description"
+    ]
+    ws_amz.append(headers_amz)
+    _style_header_row(ws_amz, len(headers_amz), header_color="38BDF8")
 
     # -- Tab 2: Flipkart Alternates --
     ws_fk = wb.create_sheet("Flipkart_Alternate_Copies")
-    ws_fk.append([
+    headers_fk = [
         "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
         "Alternative Flipkart Title",
         "Alternative Search Keywords",
-        "Alternative Product Description",
-    ])
-    _style_header_row(ws_fk, 7)
+        "Alternative Product Description"
+    ]
+    ws_fk.append(headers_fk)
+    _style_header_row(ws_fk, len(headers_fk), header_color="38BDF8")
 
     # -- Tab 3: Meesho Alternates (Hinglish + English) --
     ws_me = wb.create_sheet("Meesho_Alternate_Copies")
-    ws_me.append([
+    headers_me = [
         "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
         "Alternative Product Title",
         "Hinglish Hook Description (Conversational)",
         "English Hook Description (Formal/Metro)",
-        "Key Highlights (Badges)",
-    ])
-    _style_header_row(ws_me, 8)
+        "Key Highlights (Badges)"
+    ]
+    ws_me.append(headers_me)
+    _style_header_row(ws_me, len(headers_me), header_color="38BDF8")
 
     for sku in skus:
         for idx, alt in enumerate(sku.alternates):
@@ -388,7 +509,7 @@ def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
             theme = alt.angle_theme or f"Angle {idx+1}"
 
             # Amazon row
-            bp = (alt.amazon.bullet_points + [""] * 5)[:5]
+            bp = alt.amazon.bullet_points
             ws_amz.append([
                 sku.sku_id, sku.brand, v_tag, theme,
                 alt.amazon.title,
@@ -411,7 +532,7 @@ def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
                 alt.meesho.title,
                 alt.meesho.hinglish_hook_description,
                 alt.meesho.english_hook_description,
-                " \u2022 ".join(alt.meesho.highlights),
+                " • ".join(alt.meesho.highlights),
             ])
 
     _auto_width(ws_amz)
@@ -425,76 +546,96 @@ def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
 
 
 # ──────────────────────────────────────────────
-# README generator
+# README generator (Handover Documentation)
 # ──────────────────────────────────────────────
 
 def generate_readme(client: str, batch: str) -> str:
-    return f"""
-================================================================================
+    return f"""================================================================================
   LISTING FACTORY HANDOVER PACKAGE: {client} -- {batch}
 ================================================================================
 
-  Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-  Tool: Listing Factory v1.0 — Multi-Marketplace Packaging Studio
+  Generated : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+  Tool      : Listing Factory v2.0 -- Multi-Marketplace Packaging Studio
 
 ================================================================================
-  HOW TO UPLOAD — 3-STEP GUIDE
+  IMPORTANT NOTICE & DISCLAIMER
 ================================================================================
 
-  STEP 1 ▸  AMAZON SELLER CENTRAL
-  ─────────────────────────────────
-  1. Log in to sellercentral.amazon.in
-  2. Navigate to ▸ Catalog ▸ Add Products via Upload
-  3. Choose "Flat File" upload and select your category template
-  4. Open the "01_Amazon_Bulk_Import" tab in the Master Excel file
-  5. Copy-paste the rows into Amazon's template (match columns carefully)
-  6. Upload images from each SKU folder to your product listing
-  7. Submit and wait for processing (usually 15-30 minutes)
+  The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
+  organize, validate, and prepare listing data. They are not direct official portal
+  flat files. Sellers and catalog teams must transfer this structured data into
+  their respective Seller Central, Seller Hub, or Supplier Panel category upload
+  templates.
 
-  STEP 2 ▸  FLIPKART SELLER HUB
-  ─────────────────────────────────
-  1. Log in to seller.flipkart.com
-  2. Navigate to ▸ Listings ▸ Add in Bulk
-  3. Download the Flipkart bulk listing template for your category
-  4. Open the "02_Flipkart_Bulk_Import" tab in the Master Excel file
-  5. Transfer data into Flipkart's template
-  6. Upload the filled template + images
-  7. Submit for QC review (usually 24-48 hours)
-
-  STEP 3 ▸  MEESHO SUPPLIER PANEL
-  ─────────────────────────────────
-  1. Log in to supplier.meesho.com
-  2. Navigate to ▸ Catalog ▸ Add Catalog
-  3. Select the product category
-  4. Open the "03_Meesho_Bulk_Import" tab in the Master Excel file
-  5. Fill in the Meesho catalog form or bulk upload using the data
-  6. Upload primary images from each SKU folder
-  7. Submit and wait for approval (usually 2-4 hours)
+  Processing and QC review times mentioned below are industry averages and can
+  vary based on portal queue, account health, and category policy. Ensure all
+  tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
 
 ================================================================================
-  FOLDER STRUCTURE
+  HOW TO UPLOAD -- 3-STEP GUIDE
 ================================================================================
 
-  Organized_SKU_Images/
-    ├── [SKU_ID]/            ← One folder per SKU
-    │   ├── [SKU]_MAIN.jpg   ← Primary product image (hero cutout)
-    │   ├── [SKU]_PT01*.jpg  ← Size & fit chart
-    │   ├── [SKU]_PT02*.jpg  ← Fabric & feature spec
-    │   ├── [SKU]_PT03*.jpg  ← Wash-care & styling guide
-    │   └── [SKU]_PT04+.jpg  ← Additional angles / lifestyle
-    └── Unassigned_Assets/   ← Images that didn't match any SKU
+  STEP 1 ▸ AMAZON SELLER CENTRAL (sellercentral.amazon.in)
+  ────────────────────────────────────────────────────────
+  1. Navigate to: Catalog > Add Products via Upload > Upload your Inventory File.
+  2. Download the category-specific inventory flat file template for your product.
+  3. Open the "01_Amazon_Bulk_Import" tab in the Master Excel mapping file.
+  4. Copy-paste rows into Amazon's template columns matching headers carefully.
+  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04).
+  6. Submit file. (Average automated processing time: ~15-30 minutes).
+
+  STEP 2 ▸ FLIPKART SELLER HUB (seller.flipkart.com)
+  ──────────────────────────────────────────────────
+  1. Navigate to: Listings > Add in Bulk.
+  2. Download Flipkart's bulk listing template for the selected vertical.
+  3. Open the "02_Flipkart_Bulk_Import" tab in the Master Excel mapping file.
+  4. Map Flipkart-specific copy, style code, fabric, and controlled attributes.
+  5. Upload the completed template and corresponding SKU image assets.
+  6. Submit for QC review. (Average manual QC window: ~24-48 hours).
+
+  STEP 3 ▸ MEESHO SUPPLIER PANEL (supplier.meesho.com)
+  ────────────────────────────────────────────────────
+  1. Navigate to: Catalog > Add Catalog (Single / Bulk).
+  2. Select your exact product vertical.
+  3. Open the "03_Meesho_Bulk_Import" tab in the Master Excel mapping file.
+  4. Use the Hinglish hook copy, English hook copy, and bullet highlight badges.
+  5. Upload primary hero cutouts and angle shots from SKU folders.
+  6. Submit for catalog approval. (Average automated/manual review: ~2-4 hours).
 
 ================================================================================
-  NOTES
+  IMAGE NAMING & ASSET STRUCTURE
 ================================================================================
 
-  • All titles, descriptions, and keywords are pre-optimized for search.
-  • Amazon backend search terms are capped at ≤240 bytes.
-  • Amazon titles are capped at ≤180 characters.
-  • Image filenames follow marketplace naming conventions.
-  • If any images are in "Unassigned_Assets", manually assign them.
+  Canonical Image Naming Scheme:
+    • Primary Image (Hero)        : SKU_XX_MAIN.jpg
+    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg
+    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg
+    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg
+    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg
+    • Other Image 5               : SKU_XX_PT05.jpg
 
-  For support, contact your cataloging agency team.
+  Folder Hierarchy in this ZIP:
+    Organized_SKU_Images/
+      ├── [SKU_ID]/              ← One subfolder per SKU
+      │   ├── [SKU]_MAIN.jpg     ← Primary hero (pure white background #FFFFFF)
+      │   ├── [SKU]_PT01.jpg     ← Size & measurement guide
+      │   ├── [SKU]_PT02.jpg     ← Fabric texture & spec highlight
+      │   ├── [SKU]_PT03.jpg     ← Care & styling recommendations
+      │   └── [SKU]_PT04.jpg     ← Additional angles / back view
+      └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
+
+================================================================================
+  QUALITY STANDARDS APPLIED
+================================================================================
+
+  • Amazon Title Length           : Enforced ≤ 180 characters.
+  • Amazon Backend Search Terms   : Enforced ≤ 240 bytes (UTF-8 strict).
+  • Meesho Product Title          : Enforced ≤ 60 characters.
+  • Flipkart Attributes           : Validated against controlled marketplace taxonomy.
+  • Tax & Commercial Values       : Ingested dynamically from seller configuration.
+  • Package Readiness Status      : "Ready for Review" indicates structural &
+                                    image completeness, pending portal upload.
+
 ================================================================================
 """
 
@@ -508,20 +649,21 @@ def route_images(
     image_files: list[tuple[str, bytes]],
 ) -> tuple[dict[str, list[tuple[str, bytes]]], list[tuple[str, bytes]]]:
     """
-    Routes image files to their SKU folders based on prefix matching.
+    Routes image files to their SKU folders based on prefix matching (e.g. SKU_01_MAIN.jpg).
     Returns (matched_map, unassigned_list).
     """
     matched: dict[str, list[tuple[str, bytes]]] = {sid: [] for sid in sku_ids}
     unassigned: list[tuple[str, bytes]] = []
 
-    # Sort SKU IDs longest-first so more specific IDs match first
+    # Sort SKU IDs longest-first so specific IDs match accurately
     sorted_ids = sorted(sku_ids, key=len, reverse=True)
 
     for fname, data in image_files:
         stem = Path(fname).stem.upper()
         found = False
         for sid in sorted_ids:
-            if stem.startswith(sid.upper()):
+            # Matches prefix like SKU_01_ or SKU_01
+            if stem.startswith(sid.upper() + "_") or stem == sid.upper():
                 matched[sid].append((fname, data))
                 found = True
                 break
@@ -541,20 +683,21 @@ def build_zip(
     category: str,
     skus: list[SKUItem],
     image_files: list[tuple[str, bytes]],
+    validation_status: str = "✅ Pass"
 ) -> bytes:
     """Build the full delivery ZIP archive in-memory."""
     sku_ids = [s.sku_id for s in skus]
     matched_images, unassigned_images = route_images(sku_ids, image_files)
 
-    # Build image map for workbook (just filenames per SKU)
+    # Image map for workbook (filenames per SKU)
     image_map: dict[str, list[str]] = {}
     for sid, files in matched_images.items():
         image_map[sid] = [f[0] for f in files]
 
-    xlsx_bytes = build_workbook(skus, category, image_map)
+    xlsx_bytes = build_workbook(skus, category, image_map, validation_status)
     readme_text = generate_readme(client, batch)
 
-    # Build alternates workbook if any SKU has alternates
+    # Build alternates workbook if alternates are present
     has_alternates = any(len(s.alternates) > 0 for s in skus)
     alt_xlsx_bytes = build_alternates_workbook(skus) if has_alternates else None
 
@@ -563,19 +706,19 @@ def build_zip(
 
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        # Excel workbook
+        # Master Excel mapping workbook
         zf.writestr(f"{prefix}/{xlsx_name}", xlsx_bytes)
         # Alternate copies workbook
         if alt_xlsx_bytes:
             alt_xlsx_name = f"{client}_Alternate_Listing_Copies.xlsx"
             zf.writestr(f"{prefix}/{alt_xlsx_name}", alt_xlsx_bytes)
-        # README
+        # Handover README
         zf.writestr(f"{prefix}/README_Upload_Instructions.txt", readme_text)
-        # Organized images
+        # Organized images (using STORE method for speed where possible)
         for sid, files in matched_images.items():
             for fname, data in files:
                 zf.writestr(f"{prefix}/Organized_SKU_Images/{sid}/{fname}", data)
-        # Unassigned
+        # Unassigned images
         for fname, data in unassigned_images:
             zf.writestr(f"{prefix}/Organized_SKU_Images/Unassigned_Assets/{fname}", data)
 
@@ -587,37 +730,45 @@ def build_zip(
 # FastAPI Application
 # ──────────────────────────────────────────────
 
-app = FastAPI(title="Listing Factory", version="1.0.0")
+app = FastAPI(title="Listing Factory", version="2.0.0")
 
 
-# ── Validation endpoint ──
+# ── Validation endpoint (Strict Pydantic Validation, No Silent Truncation) ──
 
 @app.post("/api/validate-json")
 async def validate_json(request: Request):
-    """Validate pasted/uploaded JSON and return parsed SKU info."""
+    """
+    Strictly validate AI-generated JSON listing data against the Pydantic schema.
+    Returns structured errors and non-critical warnings without silent mutation.
+    """
     try:
         body = await request.json()
         raw = body.get("json_text", "")
+        if not raw or not raw.strip():
+            return JSONResponse({"valid": False, "error": "JSON payload is empty."}, status_code=400)
+        
         data = json.loads(raw)
         if not isinstance(data, list):
             data = [data]
+
+        # Pydantic strict parsing
         skus = [SKUItem(**item) for item in data]
 
-        # Validation warnings
+        # Warning checks (near-boundary advisory checks)
         warnings = []
         for sku in skus:
-            if len(sku.amazon.title) > 180:
-                warnings.append(f"{sku.sku_id}: Amazon title exceeds 180 chars ({len(sku.amazon.title)})")
-            bst_bytes = len(sku.amazon.backend_search_terms.encode("utf-8"))
-            if bst_bytes > 240:
-                warnings.append(f"{sku.sku_id}: Backend search terms exceed 240 bytes ({bst_bytes})")
-            # Flipkart attribute checks
-            for attr in ["fabric", "kurta_type", "neck", "sleeve", "pattern", "occasion"]:
-                if not getattr(sku.flipkart, attr, ""):
-                    warnings.append(f"{sku.sku_id}: Flipkart '{attr}' is empty")
-            # Meesho checks
-            if not sku.meesho.hinglish_hook_description:
-                warnings.append(f"{sku.sku_id}: Meesho Hinglish hook is empty")
+            # Amazon warnings
+            t_len = len(sku.amazon.title)
+            if t_len > 165:
+                warnings.append(f"{sku.sku_id}: Amazon title length is near limit ({t_len}/180 chars)")
+            b_len = len(sku.amazon.backend_search_terms.encode("utf-8"))
+            if b_len > 225:
+                warnings.append(f"{sku.sku_id}: Amazon search terms bytes near limit ({b_len}/240 bytes)")
+            
+            # Meesho warning
+            m_len = len(sku.meesho.title)
+            if m_len > 55:
+                warnings.append(f"{sku.sku_id}: Meesho title length is near limit ({m_len}/60 chars)")
 
         sku_summaries = []
         for sku in skus:
@@ -625,9 +776,12 @@ async def validate_json(request: Request):
                 "sku_id": sku.sku_id,
                 "brand": sku.brand,
                 "product_type": sku.product_type,
+                "color": sku.color,
                 "amazon_title_len": len(sku.amazon.title),
                 "bst_bytes": len(sku.amazon.backend_search_terms.encode("utf-8")),
                 "bullet_count": len(sku.amazon.bullet_points),
+                "meesho_title_len": len(sku.meesho.title),
+                "alternates_count": len(sku.alternates),
             })
 
         return JSONResponse({
@@ -635,12 +789,21 @@ async def validate_json(request: Request):
             "sku_count": len(skus),
             "skus": sku_summaries,
             "warnings": warnings,
+            "errors": [],
         })
 
     except json.JSONDecodeError as e:
-        return JSONResponse({"valid": False, "error": f"Invalid JSON syntax: {e}"}, status_code=400)
+        return JSONResponse({
+            "valid": False,
+            "error": f"Invalid JSON syntax at line {e.lineno}, column {e.colno}: {e.msg}",
+            "errors": [f"JSON Syntax Error: {e.msg}"]
+        }, status_code=400)
     except Exception as e:
-        return JSONResponse({"valid": False, "error": str(e)}, status_code=400)
+        return JSONResponse({
+            "valid": False,
+            "error": str(e),
+            "errors": [str(e)]
+        }, status_code=400)
 
 
 # ── Generation endpoint ──
@@ -653,26 +816,26 @@ async def generate_package(
     json_data: str = Form(...),
     images: list[UploadFile] = File(default=[]),
 ):
-    """Generate the full delivery ZIP package."""
+    """Generate the full delivery ZIP package with mapping workbooks and organized images."""
     try:
         raw = json.loads(json_data)
         if not isinstance(raw, list):
             raw = [raw]
         skus = [SKUItem(**item) for item in raw]
     except Exception as e:
-        return JSONResponse({"error": f"JSON parse error: {e}"}, status_code=400)
+        return JSONResponse({"error": f"Schema validation error: {e}"}, status_code=400)
 
-    # Read all image files into memory
+    # Read image binaries
     image_files: list[tuple[str, bytes]] = []
     for img in images:
         data = await img.read()
         image_files.append((img.filename, data))
 
     # Sanitize names
-    safe_client = re.sub(r"[^\w\-]", "_", client_name)
-    safe_batch = re.sub(r"[^\w\-]", "_", batch_id)
+    safe_client = re.sub(r"[^\w\-]", "_", client_name.strip() or "Client")
+    safe_batch = re.sub(r"[^\w\-]", "_", batch_id.strip() or "Batch_01")
 
-    zip_bytes = build_zip(safe_client, safe_batch, category, skus, image_files)
+    zip_bytes = build_zip(safe_client, safe_batch, category, skus, image_files, validation_status="✅ Pass")
     zip_name = f"{safe_client}_{safe_batch}_Handover_Package.zip"
 
     return StreamingResponse(
@@ -682,7 +845,7 @@ async def generate_package(
     )
 
 
-# ── Frontend — reads index.html from disk (single source of truth with GitHub Pages) ──
+# ── Frontend route (serves index.html from disk) ──
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
@@ -692,15 +855,13 @@ async def index():
     return HTMLResponse("<h1>index.html not found. Run from the project directory.</h1>", status_code=500)
 
 
-
-
 # ──────────────────────────────────────────────
 # Entry Point
 # ──────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("\n  [*] Listing Factory - Multi-Marketplace Packaging Studio")
-    print("  " + "=" * 57)
+    print("\n  [*] Listing Factory v2.0 - Multi-Marketplace Packaging Studio")
+    print("  " + "=" * 63)
     print("  > Server running at: http://127.0.0.1:8000")
     print("  > Press Ctrl+C to stop\n")
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="info")
