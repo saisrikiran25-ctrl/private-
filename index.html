@@ -247,6 +247,18 @@
           </div>
         </div>
       </div>
+      <!-- Quality & Truthfulness Guidance Notice -->
+      <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300">
+          <span class="font-bold text-sky-400">📝 Amazon Title Guideline:</span>
+          <p class="text-slate-400 mt-1"><code class="text-slate-300">[Brand] [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])</code>. Keep titles natural and customer-readable without repeated keywords or brand tokens.</p>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-slate-300">
+          <span class="font-bold text-emerald-400">🛡️ Truth Boundary &amp; Styling:</span>
+          <p class="text-slate-400 mt-1">Styling suggestions (<em class="text-slate-300">"style with jeans or palazzos"</em>) are allowed. Unverified fit/comfort/technical claims (<em class="text-amber-300">"perfect fit", "breathable", "premium"</em>) are flagged.</p>
+        </div>
+      </div>
+
       <div class="flex gap-1 mb-4 p-1 bg-slate-900/50 rounded-lg w-fit">
         <button onclick="setJsonMode('paste')" id="tabPaste" class="px-4 py-2 text-xs font-semibold rounded-md transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">✏️ Paste JSON</button>
         <button onclick="setJsonMode('file')" id="tabFile" class="px-4 py-2 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-slate-300">📁 Upload File</button>
@@ -297,6 +309,12 @@
         </div>
       </div>
 
+      <!-- Image Role Disclaimer -->
+      <div class="mb-4 p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs text-slate-300 flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
+        <span><strong>Image Role Disclaimer:</strong> Image roles are assigned from filenames only. Listing Factory does not visually verify image content. The seller must confirm that each declared slot contains the intended image before marketplace upload.</span>
+      </div>
+
       <!-- Dropzone -->
       <div id="imageDropzone" class="dropzone p-10 text-center cursor-pointer" onclick="document.getElementById('imageInput').click()">
         <input type="file" id="imageInput" multiple accept=".jpg,.jpeg,.png,.webp" class="hidden" onchange="handleImages(event)">
@@ -304,7 +322,7 @@
           <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/></svg>
         </div>
         <p class="text-sm font-semibold text-slate-300">Drop images here or click to browse</p>
-        <p class="text-xs text-slate-500 mt-2">Canonical Naming: <span class="font-mono text-emerald-400">SKU_01_MAIN.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT01.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT02.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT03.jpg</span></p>
+        <p class="text-xs text-slate-500 mt-2">Canonical Naming: <span class="font-mono text-emerald-400">SKU_01_MAIN.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT01.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT02.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT03.jpg</span> · <span class="font-mono text-emerald-400">SKU_01_PT05.jpg</span></p>
       </div>
 
       <!-- Filter chips + Asset Matrix -->
@@ -353,7 +371,7 @@
       <!-- Structural Notice Disclaimer -->
       <div class="mb-5 p-3 rounded-xl bg-slate-900/60 border border-slate-700/60 text-xs text-slate-300 flex items-start gap-2.5">
         <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"/></svg>
-        <span><strong>Operational Note:</strong> Structural completeness indicates valid syntax, character limits, and image assets. It does not guarantee marketplace acceptance. Final review by the seller is required before portal upload.</span>
+        <span><strong>Structural Readiness Scope:</strong> Structural completeness confirms schema and package checks only. It does not verify product facts, image content, tax classification, marketplace-policy compliance, or marketplace acceptance. Seller review is required before upload.</span>
       </div>
 
       <!-- Checklist -->
@@ -433,6 +451,10 @@ const TO_BE_CONFIRMED = "To be confirmed";
 const MAX_SKUS_SOFT_LIMIT = 50;
 const MAX_TOTAL_IMAGE_SIZE_MB = 200;
 
+const STRUCTURAL_READINESS_DISCLAIMER = "Structural completeness confirms schema and package checks only. It does not verify product facts, image content, tax classification, marketplace-policy compliance, or marketplace acceptance. Seller review is required before upload.";
+
+const IMAGE_ROLE_DISCLAIMER = "Image roles are assigned from filenames only. Listing Factory does not visually verify image content. The seller must confirm that each declared slot contains the intended image before marketplace upload.";
+
 // Controlled Marketplace Taxonomies
 const ALLOWED_FABRICS = ["Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton", "To be confirmed"];
 const ALLOWED_KURTA_TYPES = ["Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani", "To be confirmed"];
@@ -450,19 +472,28 @@ const CATEGORY_MAP = {
   "Home & Kitchen": "home-furnishing"
 };
 
-// Canonical image naming slots
+// Canonical image naming slots (Declared image roles)
 const CORE_SLOTS   = ['_MAIN', '_PT01', '_PT02', '_PT03'];
 const EXTRA_SLOTS  = ['_PT04', '_PT05', '_PT06', '_PT07', '_PT08'];
 const SLOT_LABELS  = {
-  _MAIN: 'MAIN',
-  _PT01: 'PT01',
-  _PT02: 'PT02',
-  _PT03: 'PT03',
-  _PT04: 'PT04',
-  _PT05: 'PT05',
+  _MAIN: 'MAIN (Declared Hero)',
+  _PT01: 'PT01 (Declared Size Guide)',
+  _PT02: 'PT02 (Declared Fabric Spec)',
+  _PT03: 'PT03 (Declared Care Guide)',
+  _PT04: 'PT04 (Declared Back View)',
+  _PT05: 'PT05 (Declared Other 5)',
   _PT06: 'PT06',
   _PT07: 'PT07',
   _PT08: 'PT08'
+};
+
+const IMAGE_ROLES = {
+  _MAIN: "Declared Hero Image",
+  _PT01: "Declared Size Chart Slot",
+  _PT02: "Declared Fabric Specification Slot",
+  _PT03: "Declared Care Guide Slot",
+  _PT04: "Declared Back View Slot",
+  _PT05: "Declared Other Image 5 Slot"
 };
 
 // ── State ──
@@ -480,7 +511,7 @@ let jsonValid = false;
 let jsonMode = 'paste';
 let filterMode = 'all';
 
-// ── Valid v2.0 Schema Sample ──
+// ── Valid v2.0 Schema Sample (100% Factually Grounded & Truth-Boundary Safe) ──
 const SAMPLE = {
   schema_version: "v2.0",
   batch_config: {
@@ -495,22 +526,22 @@ const SAMPLE = {
   skus: [
     {
       sku_id: "SKU_01",
-      product_type: "Anarkali Kurti",
+      product_type: "Pure Cotton Anarkali Kurti",
       color: "Navy Blue",
       sizes: "S, M, L, XL, XXL, 3XL",
       mrp: 1299,
       meesho_price: 349,
       amazon: {
-        title: "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Breathable Summer Ethnic Wear",
+        title: "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Navy Blue Daily Wear",
         bullet_points: [
-          "100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
-          "ANARKALI FIT WITH POCKETS: Flattering flared design with functional side pockets.",
-          "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and rich color.",
-          "VERSATILE STYLING: Pairs with leggings, palazzos, or jeans.",
-          "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."
+          "100% PURE COTTON: Woven from 60s count pure cotton yarn for everyday wear.",
+          "ANARKALI SILHOUETTE WITH POCKETS: Flared construction with functional side pockets.",
+          "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and color.",
+          "VERSATILE STYLING: Pairs with leggings, palazzos, or denim trousers.",
+          "ACCURATE SIZING: Available from size S (36 in chest) to 3XL (46 in chest)."
         ],
-        backend_search_terms: "cotton kurti women anarkali kurta daily wear office festive summer ethnic top",
-        description: "Upgrade your ethnic wardrobe with Anvi Fabrics Pure Cotton Kurti. Crafted from lightweight 60s count cotton."
+        backend_search_terms: "tunic-dress office ethnic top formal printed attire festive apparel clothing",
+        description: "Pure Cotton Anarkali Kurti by Anvi Fabrics tailored with 60s count cotton yarn and dual side pockets."
       },
       flipkart: {
         title: "Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
@@ -521,18 +552,18 @@ const SAMPLE = {
         length_type: "Calf Length",
         pattern: "Floral Print",
         occasion: "Casual & Festive",
-        search_keywords: "anarkali kurti, cotton kurta women, summer kurti",
-        description: "Anvi Fabrics presents this elegant printed pure cotton anarkali kurta designed for all-day comfort and effortless styling."
+        search_keywords: "anarkali kurti, cotton kurta women, casual kurti",
+        description: "Anvi Fabrics printed pure cotton anarkali kurta with mandarin neck and 3/4 sleeves designed for daily ethnic styling."
       },
       meesho: {
         title: "Pure Cotton Flared Anarkali Kurti with Pockets",
-        hinglish_hook_description: "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
-        english_hook_description: "Premium pure cotton anarkali kurti crafted with functional side pockets and flattering flared silhouette for everyday elegance.",
+        hinglish_hook_description: "100% Pure Cotton fabric kurta daily office aur festive wear ke liye. Side pockets aur flared anarkali ghera ke saath.",
+        english_hook_description: "Pure cotton anarkali kurti crafted with functional side pockets and flared silhouette for everyday ethnic wear.",
         highlights: [
-          "Fabric: Pure Cotton (Soft & Breathable)",
-          "Style: Flared Anarkali with Side Pockets",
+          "Fabric: 100% Pure Cotton",
+          "Style: Flared Anarkali with Pockets",
           "Sizes: S to 3XL",
-          "Care: Normal Hand or Machine Wash"
+          "Care: Hand or Machine Wash as per Label"
         ]
       },
       alternates: [
@@ -542,26 +573,26 @@ const SAMPLE = {
           amazon: {
             title: "Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
             bullet_points: [
-              "FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.",
-              "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.",
-              "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's rich tone.",
-              "VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.",
-              "SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."
+              "60S COTTON YARN: Tightly woven cotton yarn suitable for daily office hours.",
+              "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone and essentials.",
+              "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's appearance.",
+              "VERSATILE STYLING: Pairs with formal trousers, palazzos, or churidars.",
+              "SIZING & CARE: True-to-size standard S(36) to 3XL(46) measurements."
             ],
-            backend_search_terms: "office kurti women cotton formal ethnic workwear daily professional kurta",
-            description: "Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings."
+            backend_search_terms: "formal printed attire festive apparel tunic tunic dress",
+            description: "Designed for office wear. This pure cotton anarkali features a flared hem and utility side pockets."
           },
           flipkart: {
             title: "Anvi Fabrics Women Cotton Office Wear Anarkali Kurta",
             search_keywords: "office kurti, formal kurta women, cotton workwear",
-            description: "Professional cotton anarkali for the modern working woman with deep pockets and tailored fit."
+            description: "Cotton anarkali designed for office wear with deep side pockets and mandarin collar."
           },
           meesho: {
             title: "Office Wear Pure Cotton Anarkali Kurti",
-            hinglish_hook_description: "Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.",
-            english_hook_description: "Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.",
+            hinglish_hook_description: "Office ke liye cotton kurti. Side pockets mein phone aur keys rakhne ki suvidha, daily wear ke liye upyogi.",
+            english_hook_description: "Pure cotton anarkali kurti with functional pockets for office wear and ethnic styling.",
             highlights: [
-              "Fabric: Premium Cotton",
+              "Fabric: 100% Cotton",
               "Style: Office-Ready Anarkali",
               "Pockets: Deep Side Pockets",
               "Care: Machine Washable"
@@ -572,95 +603,95 @@ const SAMPLE = {
           variant_id: "V2",
           angle_theme: "Festive & Wedding Celebrations",
           amazon: {
-            title: "Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
+            title: "Anvi Fabrics Festive Cotton Anarkali Kurti | Party Wear Ethnic Dress for Women",
             bullet_points: [
-              "FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.",
-              "DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.",
-              "COLORFAST & DURABLE: Follow the provided care label to maintain the elegance of the festive print.",
-              "VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.",
-              "SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."
+              "FESTIVE PRINTED COTTON: Traditional printed motifs crafted for ethnic celebrations.",
+              "DESIGN & UTILITY: Statement anarkali flare suited for mehendi, sangeet, and puja gatherings.",
+              "COLORFAST & DURABLE: Follow the provided care label to maintain the appearance of the festive print.",
+              "VERSATILE STYLING: Accessorize with jhumkas, bangles, and ethnic dupattas.",
+              "SIZING & CARE: Standard S to 3XL sizing. Follow wash care label instructions."
             ],
-            backend_search_terms: "festive kurti women party wear wedding cotton anarkali celebration ethnic",
-            description: "Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour."
+            backend_search_terms: "celebration traditional apparel wedding guest outfit puja tunic",
+            description: "Printed cotton anarkali suited for festivals, wedding functions, and traditional ceremonies."
           },
           flipkart: {
             title: "Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta",
             search_keywords: "festive kurti, party wear kurta, wedding kurti women",
-            description: "Elegant cotton anarkali tailored for festivals, weddings, and celebration gatherings."
+            description: "Printed cotton anarkali tailored for festivals, weddings, and celebration gatherings."
           },
           meesho: {
             title: "Festive Party Wear Cotton Anarkali Kurti",
-            hinglish_hook_description: "Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.",
-            english_hook_description: "Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.",
+            hinglish_hook_description: "Shaadi, puja ya festive party ke liye traditional printed anarkali kurti. Pure cotton fabric aur sundar ghera.",
+            english_hook_description: "Pure cotton anarkali crafted for weddings, festivals, and traditional family occasions.",
             highlights: [
-              "Fabric: Festive Cotton",
-              "Style: Elegant Anarkali Flare",
-              "Occasion: Wedding & Puja",
-              "Care: Gentle Wash"
+              "Fabric: Printed Cotton",
+              "Style: Traditional Anarkali Flare",
+              "Occasion: Wedding & Festive",
+              "Care: Wash as per Label"
             ]
           }
         },
         {
           variant_id: "V3",
-          angle_theme: "Summer Heat & Breathable Comfort",
+          angle_theme: "Summer Daily Wear",
           amazon: {
-            title: "Breathable Summer Cotton Anarkali Kurti for Women | Lightweight Daily Wear",
+            title: "Summer Cotton Anarkali Kurti for Women | Casual Ethnic Dress with Side Pockets",
             bullet_points: [
-              "FABRIC & COMFORT: Ultra-breathable weave provides active ventilation in peak summer.",
-              "DESIGN & UTILITY: Relaxed airy flare prevents cling and keeps you fresh all day long.",
+              "SUMMER COTTON WEAVE: Single-ply 60s cotton weave suited for warm weather wear.",
+              "DESIGN & UTILITY: Flared construction allows airflow with functional side pockets.",
               "COLORFAST & DURABLE: Follow the provided care label to help maintain the appearance of the fabric.",
-              "VERSATILE STYLING: Match with cotton pants or breezy palazzo skirts.",
-              "SIZING & CARE: Standard Indian sizing with generous ease."
+              "VERSATILE STYLING: Match with cotton pants or breezy palazzo trousers.",
+              "SIZING & CARE: Standard Indian sizing with regular fit."
             ],
-            backend_search_terms: "summer kurti breathable cotton airy lightweight comfortable kurta",
-            description: "Beat the heat in effortless style with this ultra-lightweight summer cotton anarkali."
+            backend_search_terms: "warm weather tunic apparel printed top casual clothing",
+            description: "Pure cotton anarkali kurti crafted for warm-weather daily wear with side pockets."
           },
           flipkart: {
-            title: "Anvi Fabrics Women Summer Breathable Cotton Kurta",
-            search_keywords: "summer cotton kurti, breezy anarkali kurta, breathable wear",
-            description: "Lightweight summer cotton kurti designed for maximum airflow and cooling comfort."
+            title: "Anvi Fabrics Women Summer Cotton Anarkali Kurta",
+            search_keywords: "summer cotton kurti, anarkali kurta, casual wear",
+            description: "Pure cotton kurti designed with anarkali silhouette for summer ethnic styling."
           },
           meesho: {
-            title: "Summer Special Breathable Cotton Kurti",
-            hinglish_hook_description: "Garmiyon ke liye sabse thanda aur aaramdayak cotton! Paseene se rahat aur stylish look.",
-            english_hook_description: "Stay cool and confident all summer with breathable 100% pure cotton.",
+            title: "Summer Daily Cotton Anarkali Kurti",
+            hinglish_hook_description: "Garmiyon ke liye pure cotton anarkali kurti. Daily wear aur casual outings ke liye badhiya.",
+            english_hook_description: "Pure cotton anarkali kurti tailored for daily summer wear and casual outings.",
             highlights: [
-              "Fabric: 100% Breathable Cotton",
-              "Season: Summer Essential",
-              "Feel: Ultra Soft & Airy",
-              "Care: Hand/Machine Wash"
+              "Fabric: 100% Pure Cotton",
+              "Season: Daily Summer Wear",
+              "Fit: Regular Flared Fit",
+              "Care: Machine Wash Normal"
             ]
           }
         },
         {
           variant_id: "V4",
-          angle_theme: "High-Value Everyday Essential",
+          angle_theme: "Everyday Essential",
           amazon: {
-            title: "Durable Daily Wear Cotton Anarkali Kurti | Value Pack Ethnic Kurta with Pockets",
+            title: "Daily Wear Cotton Anarkali Kurti | Everyday Ethnic Kurta with Dual Pockets",
             bullet_points: [
-              "FABRIC & COMFORT: Premium 60s cotton built for comfortable daily wear.",
+              "COTTON CONSTRUCTION: 60s pure cotton yarn built for repeated daily wear.",
               "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
               "COLORFAST & DURABLE: Follow the provided care label to keep the everyday fabric looking fresh.",
-              "VERSATILE STYLING: Everyday workhorse piece suitable for home, market, and travel.",
-              "SIZING & CARE: Easy wash-and-wear care routine."
+              "VERSATILE STYLING: Everyday piece suitable for home, market, and casual visits.",
+              "SIZING & CARE: Standard size range with easy wash routine."
             ],
-            backend_search_terms: "everyday kurti daily wear comfortable cotton kurta value pocket",
-            description: "An unbeatable combination of durability, utility pockets, and premium cotton feel."
+            backend_search_terms: "utility apparel reinforced home outfit casual attire",
+            description: "Everyday cotton anarkali with reinforced seams and dual utility pockets."
           },
           flipkart: {
             title: "Anvi Fabrics Women Everyday Cotton Kurta",
-            search_keywords: "daily wear kurti, comfortable cotton kurta, pocket anarkali",
-            description: "Built for everyday endurance with reinforced seams, functional pockets, and comfortable cotton."
+            search_keywords: "daily wear kurti, cotton kurta, pocket anarkali",
+            description: "Built for daily utility with reinforced seams, functional pockets, and pure cotton fabric."
           },
           meesho: {
             title: "Everyday Cotton Anarkali Kurti",
-            hinglish_hook_description: "Rozana pehanne ke liye sabse aaramdayak cotton kurti! Daily wear ke liye best quality.",
-            english_hook_description: "Comfortable everyday ethnic kurti with dual side pockets.",
+            hinglish_hook_description: "Rozana daily use ke liye pure cotton anarkali kurti. 2 side pockets ke saath.",
+            english_hook_description: "Everyday ethnic kurti with dual side pockets crafted from pure cotton.",
             highlights: [
-              "Fabric: Pure Daily Cotton",
+              "Fabric: Pure Cotton",
               "Fit: Regular Anarkali",
               "Pockets: 2 Side Pockets",
-              "Value: Top Rating Quality"
+              "Care: Normal Wash"
             ]
           }
         },
@@ -668,31 +699,31 @@ const SAMPLE = {
           variant_id: "V5",
           angle_theme: "Gifting & Modern Fusion",
           amazon: {
-            title: "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Perfect Gift for Her",
+            title: "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Contemporary Ethnic Dress",
             bullet_points: [
-              "FABRIC & COMFORT: Premium drape that looks stunning on every body type.",
-              "DESIGN & UTILITY: Contemporary silhouette blending Indian ethnic flare with modern utility.",
+              "CONTEMPORARY DRAPE: Pure cotton drape tailored for modern Indian ethnic styling.",
+              "DESIGN & UTILITY: Blends flared silhouette with functional deep side pockets.",
               "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's finish and color.",
-              "VERSATILE STYLING: Pairs effortlessly with denim jeans, palazzos, or jeggings.",
-              "SIZING & CARE: Gift-ready sizing range S to 3XL."
+              "VERSATILE STYLING: Pairs with denim jeans, ankle palazzos, or cigarette trousers.",
+              "SIZING & CARE: Complete size range S (36 in) to 3XL (46 in)."
             ],
-            backend_search_terms: "gift kurti for women fusion anarkali modern ethnic denim pairing",
-            description: "The ideal gift for birthdays, anniversaries, and festive gifting. A versatile modern classic."
+            backend_search_terms: "gifting idea contemporary tunic top party clothing present",
+            description: "Contemporary fusion anarkali kurti crafted from pure cotton with side pockets."
           },
           flipkart: {
             title: "Anvi Fabrics Women Modern Fusion Cotton Anarkali",
-            search_keywords: "gifting kurti, fusion anarkali kurta, trendy ethnic wear",
-            description: "Contemporary fusion styling crafted for festive gifting and trendy everyday outings."
+            search_keywords: "fusion anarkali kurta, modern ethnic wear, kurti",
+            description: "Contemporary fusion styling crafted for gifting and modern ethnic wear."
           },
           meesho: {
-            title: "Trendy Fusion Style Cotton Anarkali Kurti",
-            hinglish_hook_description: "Gifting ke liye best item! Jeans ya palazzo ke saath super trendy look deta hai.",
-            english_hook_description: "Chic modern fusion kurti. Perfect for gifting and contemporary styling.",
+            title: "Modern Fusion Style Cotton Anarkali Kurti",
+            hinglish_hook_description: "Jeans ya palazzo ke saath fusion look ke liye cotton anarkali kurti. Gifting aur parties ke liye ready.",
+            english_hook_description: "Contemporary fusion kurti crafted from pure cotton for gifting and modern styling.",
             highlights: [
               "Style: Modern Fusion Flare",
-              "Occasion: Perfect for Gifting",
+              "Occasion: Gifting & Casual",
               "Pairing: Jeans & Palazzo",
-              "Quality: Premium Finish"
+              "Care: Hand or Machine Wash"
             ]
           }
         }
@@ -802,12 +833,145 @@ async function buildPackageMetadataClient(client, batch, category, skus, schemaV
   };
 }
 
+// ── Validation Helpers ──
+
 const UNVERIFIED_DURABILITY_TERMS = [
   "colorfast", "colourfast", "fade resistant", "zero fade", "no fading",
   "zero bleeding", "no bleeding", "shrink resistant", "anti-shrink", "pre-shrunk",
   "pilling", "anti-pilling", "durable", "reinforced", "tested", "technology",
   "vat dye", "reactive dye", "color lock", "colour lock"
 ];
+
+const UNVERIFIED_HARD_CLAIM_PATTERNS = [
+  [/\b(ultra-?)?breathable\b/i, "breathable", "fabric breathability"],
+  [/\bairy\s+(weave|fabric|cotton)\b/i, "airy fabric", "fabric ventilation"],
+  [/\bcooling(\s+comfort)?\b/i, "cooling", "cooling performance"],
+  [/\bsweat-?absorb(ent|ing)?\b/i, "sweat-absorbent", "sweat absorption"],
+  [/\bquick-?dry\b/i, "quick-dry", "quick-drying claim"],
+  [/\bnon-?sticky\b/i, "non-sticky", "tactile performance"],
+  [/\blightweight\b/i, "lightweight", "fabric weight claim"],
+  [/\bskin-?friendly\b/i, "skin-friendly", "hypoallergenic/dermatological claim"],
+  [/\bwrinkle-?free\b/i, "wrinkle-free", "crease resistance claim"],
+  [/\bwrinkle-?resistant\b/i, "wrinkle-resistant", "crease resistance claim"],
+  [/\bzero\s+fad(e|ing)\b/i, "zero fading", "unsupported color guarantee"],
+  [/\bzero\s+bleeding\b/i, "zero bleeding", "unsupported color guarantee"],
+  [/\bno\s+(fading|bleeding)\b/i, "no fading/bleeding", "unsupported color guarantee"],
+  [/\bpre-?shrunk\b/i, "pre-shrunk", "unsupported textile processing claim"],
+  [/\banti-?pilling\b/i, "anti-pilling", "unsupported textile durability claim"],
+  [/\bsuperior(\s+quality)?\b/i, "superior quality", "unverifiable superiority claim"],
+  [/\bbest\s+quality\b/i, "best quality", "unverifiable absolute claim"],
+  [/\b(100%\s+)?guaranteed\b/i, "guaranteed", "unsupported guarantee claim"],
+  [/\bluxury\b/i, "luxury", "unverifiable luxury claim"]
+];
+
+const UNVERIFIED_WARNING_CLAIM_PATTERNS = [
+  [/\bcomfortable\s+fit\b/i, "comfortable fit", "use verified sizing measurements instead"],
+  [/\bcomfort\s+fit\b/i, "comfort fit", "use verified silhouette or cut instead"],
+  [/\bperfect\s+fit\b/i, "perfect fit", "fit is subjective; specify size dimensions"],
+  [/\brelaxed\s+fit\b/i, "relaxed fit", "use verified standard fit or silhouette"],
+  [/\beasy-?to-?wear(\s+fit)?\b/i, "easy-to-wear", "use styling suggestion instead"],
+  [/\bflattering\s+fit\b/i, "flattering fit", "subjective fit claim; state silhouette"],
+  [/\btailored\s+fit\b/i, "tailored fit", "use verified silhouette (e.g. Straight/A-line)"],
+  [/\bsmart\s+fit\b/i, "smart fit", "use standard size specifications"],
+  [/\bideal\s+fit\b/i, "ideal fit", "use verified size dimensions"],
+  [/\b(ultra-?)?soft\s+(feel|cotton|fabric|touch)\b/i, "soft feel", "tactile feel is subjective"],
+  [/\bpremium\s+(fabric|cotton|quality)\b/i, "premium fabric", "describe thread count/weave factually"],
+  [/\brich\s+(fabric|look)\b/i, "rich look", "describe visual color/print factually"]
+];
+
+function validateTruthfulnessAndClaims(fieldPath, text) {
+  const errors = [];
+  const warnings = [];
+  if (!text || typeof text !== 'string' || !text.trim() || text === TO_BE_CONFIRMED) {
+    return { errors, warnings };
+  }
+
+  for (const [regex, term, desc] of UNVERIFIED_HARD_CLAIM_PATTERNS) {
+    if (regex.test(text)) {
+      errors.push(`Field '${fieldPath}' contains unverified performance/guarantee claim ('${term}'). Remove unverified ${desc} unless explicitly documented in verified product records.`);
+    }
+  }
+
+  for (const [regex, term, suggestion] of UNVERIFIED_WARNING_CLAIM_PATTERNS) {
+    if (regex.test(text)) {
+      warnings.push(`Field '${fieldPath}' contains unverified claim/descriptor ('${term}'). Suggestion: ${suggestion}.`);
+    }
+  }
+
+  return { errors, warnings };
+}
+
+const COMMON_PRODUCT_TYPES = ["kurta", "kurti", "tunic", "top", "dress", "anarkali", "suit", "gown", "set", "shirt", "saree"];
+
+function validateAmazonTitleQuality(title, brand) {
+  const errors = [];
+  const warnings = [];
+  if (!title || !title.trim() || title === TO_BE_CONFIRMED) return { errors, warnings };
+
+  // 1. Brand repetition check
+  if (brand && brand !== TO_BE_CONFIRMED) {
+    const brandRegex = new RegExp(`\\b${brand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
+    const brandMatches = title.match(brandRegex);
+    if (brandMatches && brandMatches.length > 1) {
+      errors.push(`Amazon title contains the brand name '${brand}' ${brandMatches.length} times. Brand must only appear once at the beginning.`);
+    }
+  }
+
+  // 2. Obvious adjacent word repetition (e.g. 'Cotton Cotton', 'Blue Blue')
+  const tokens = title.match(/[A-Za-z0-9\-]+/g) || [];
+  for (let i = 0; i < tokens.length - 1; i++) {
+    const w1 = tokens[i].toLowerCase();
+    const w2 = tokens[i + 1].toLowerCase();
+    if (w1 === w2 && w1.length > 1) {
+      errors.push(`Amazon title contains malformed adjacent word repetition: '${tokens[i]} ${tokens[i+1]}'.`);
+      break;
+    }
+  }
+
+  // 3. Redundant phrase stacks
+  const redundantPatterns = [
+    [/\bfloral\s+print\s+printed\b/i, "Floral Print Printed"],
+    [/\bpure\s+cotton\s+cotton\b/i, "Pure Cotton Cotton"],
+    [/\bindigo\s+blue\s+blue\b/i, "Indigo Blue Blue"],
+    [/\ba-line\s+a\s+line\b/i, "A-Line A line"],
+    [/\ba\s+line\s+a-line\b/i, "A line A-Line"]
+  ];
+  for (const [pat, label] of redundantPatterns) {
+    if (pat.test(title)) {
+      errors.push(`Amazon title contains redundant phrase stack: '${label}'.`);
+    }
+  }
+
+  // 4. Repeated product-type terms (Warnings)
+  const titleLower = title.toLowerCase();
+  const foundTypes = [];
+  for (const pt of COMMON_PRODUCT_TYPES) {
+    const ptRegex = new RegExp(`\\b${pt}(s)?\\b`, 'i');
+    if (ptRegex.test(titleLower)) {
+      foundTypes.push(pt);
+    }
+  }
+  if (foundTypes.includes("kurta") && foundTypes.includes("kurti")) {
+    warnings.push("Amazon title contains both 'kurta' and 'kurti'. Use a single consistent product-type term.");
+  }
+  if (new Set(foundTypes).size >= 3) {
+    warnings.push(`Amazon title contains multiple product-type descriptors (${foundTypes.join(', ')}). Avoid excessive keyword stacking.`);
+  }
+
+  // 5. Excessive delimiter use (Warnings)
+  const pipeCount = (title.match(/\|/g) || []).length;
+  const dashCount = (title.match(/ - /g) || []).length;
+  if (pipeCount > 2 || (pipeCount >= 1 && dashCount >= 2)) {
+    warnings.push("Amazon title contains multiple separators/delimiters ('|' or ' - '). Keep title structure natural and customer-readable.");
+  }
+
+  // 6. Check for standard product type
+  if (foundTypes.length === 0 && !["kurta", "kurti", "tunic", "top", "dress", "anarkali", "clothing", "wear"].some(w => titleLower.includes(w))) {
+    warnings.push("Amazon title may be missing a standard product-type keyword (e.g., Kurti, Anarkali Kurta, Tunic).");
+  }
+
+  return { errors, warnings };
+}
 
 function validateAmazonBackendSearchTerms(title, bst, brand) {
   const errors = [];
@@ -1043,7 +1207,12 @@ function validateJsonClientSide() {
         skuErrors.push('Amazon description is missing');
       }
 
-      // Section 2: Amazon backend search-term hygiene check
+      // Amazon Title Quality & Deduplication Check
+      const atqRes = validateAmazonTitleQuality(amzTitle, brand);
+      if (atqRes.errors.length > 0) skuErrors.push(...atqRes.errors);
+      if (atqRes.warnings.length > 0) skuWarnings.push(...atqRes.warnings);
+
+      // Amazon backend search-term hygiene check
       const bstRes = validateAmazonBackendSearchTerms(amzTitle, bst, brand);
       if (bstRes.errors.length > 0) skuErrors.push(...bstRes.errors);
       if (bstRes.warnings.length > 0) skuWarnings.push(...bstRes.warnings);
@@ -1076,12 +1245,41 @@ function validateJsonClientSide() {
         skuErrors.push(`Meesho highlights must contain exactly 4 items (got ${highlights.length})`);
       }
 
+      // Truthfulness & Claim Safety across primary fields
+      const primaryClaimFields = [
+        ["amazon.title", amzTitle],
+        ["amazon.description", amz.description || ''],
+        ["flipkart.title", fk.title || ''],
+        ["flipkart.search_keywords", fk.search_keywords || ''],
+        ["flipkart.description", fk.description || ''],
+        ["meesho.title", meTitle],
+        ["meesho.hinglish_hook_description", me.hinglish_hook_description || ''],
+        ["meesho.english_hook_description", me.english_hook_description || '']
+      ];
+      bullets.forEach((b, bi) => primaryClaimFields.push([`amazon.bullet_points[${bi+1}]`, b]));
+      highlights.forEach((h, hi) => primaryClaimFields.push([`meesho.highlights[${hi+1}]`, h]));
+
+      for (const [fpath, ftext] of primaryClaimFields) {
+        const cRes = validateTruthfulnessAndClaims(fpath, ftext);
+        if (cRes.errors.length > 0) skuErrors.push(...cRes.errors);
+        if (cRes.warnings.length > 0) skuWarnings.push(...cRes.warnings);
+      }
+
+      // Alternates validation
       const alts = item.alternates || [];
       if (alts.length > 0 && alts.length !== 5) {
         skuErrors.push(`When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
       } else if (alts.length === 5) {
         alts.forEach(alt => {
           const altAmz = alt.amazon || {};
+          const altAtqRes = validateAmazonTitleQuality(altAmz.title || '', brand);
+          if (altAtqRes.errors.length > 0) {
+            skuErrors.push(...altAtqRes.errors.map(e => `Alternate ${alt.variant_id}: ${e}`));
+          }
+          if (altAtqRes.warnings.length > 0) {
+            skuWarnings.push(...altAtqRes.warnings.map(w => `Alternate ${alt.variant_id}: ${w}`));
+          }
+
           const altBstRes = validateAmazonBackendSearchTerms(altAmz.title || '', altAmz.backend_search_terms || '', brand);
           if (altBstRes.errors.length > 0) {
             skuErrors.push(...altBstRes.errors.map(e => `Alternate ${alt.variant_id}: ${e}`));
@@ -1094,6 +1292,25 @@ function validateJsonClientSide() {
             if (altB3Res.errors.length > 0) {
               skuErrors.push(...altB3Res.errors.map(e => `Alternate ${alt.variant_id}: ${e}`));
             }
+          }
+
+          const altClaimFields = [
+            [`alternates.${alt.variant_id}.amazon.title`, altAmz.title || ''],
+            [`alternates.${alt.variant_id}.amazon.description`, altAmz.description || ''],
+            [`alternates.${alt.variant_id}.flipkart.title`, (alt.flipkart || {}).title || ''],
+            [`alternates.${alt.variant_id}.flipkart.search_keywords`, (alt.flipkart || {}).search_keywords || ''],
+            [`alternates.${alt.variant_id}.flipkart.description`, (alt.flipkart || {}).description || ''],
+            [`alternates.${alt.variant_id}.meesho.title`, (alt.meesho || {}).title || ''],
+            [`alternates.${alt.variant_id}.meesho.hinglish_hook_description`, (alt.meesho || {}).hinglish_hook_description || ''],
+            [`alternates.${alt.variant_id}.meesho.english_hook_description`, (alt.meesho || {}).english_hook_description || '']
+          ];
+          (altAmz.bullet_points || []).forEach((b, bi) => altClaimFields.push([`alternates.${alt.variant_id}.amazon.bullet_points[${bi+1}]`, b]));
+          ((alt.meesho || {}).highlights || []).forEach((h, hi) => altClaimFields.push([`alternates.${alt.variant_id}.meesho.highlights[${hi+1}]`, h]));
+
+          for (const [fpath, ftext] of altClaimFields) {
+            const altCRes = validateTruthfulnessAndClaims(fpath, ftext);
+            if (altCRes.errors.length > 0) skuErrors.push(...altCRes.errors.map(e => `${alt.variant_id}: ${e}`));
+            if (altCRes.warnings.length > 0) skuWarnings.push(...altCRes.warnings.map(w => `${alt.variant_id}: ${w}`));
           }
         });
       }
@@ -1175,33 +1392,29 @@ function validateJsonClientSide() {
 
     if (jsonValid) {
       setJsonBadge(true, `${skus.length} SKU${skus.length > 1 ? 's' : ''} valid`);
-      if (jsonMode === 'paste') { jsonTextarea.classList.remove('invalid'); jsonTextarea.classList.add('valid'); }
+      showValidationBreakdown(results, totalErrors, totalWarns);
+      showSkuStats(skus);
     } else {
-      setJsonBadge(false, `${totalErrors} Error${totalErrors > 1 ? 's' : ''}`, true);
-      if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
+      setJsonBadge(false, `${totalErrors} error${totalErrors > 1 ? 's' : ''}`);
+      showValidationBreakdown(results, totalErrors, totalWarns);
+      hideSkuStats();
     }
 
-    showSkuStats(skus);
-    showValidationBreakdown(results, totalErrors, totalWarns);
-    showGlobalAdvisories(globalWarns);
-    routeImages();
-    refreshMatrix();
+    if (globalWarns.length > 0) showGlobalAdvisories(globalWarns);
+    else hideGlobalAdvisories();
 
-  } catch(err) {
+  } catch(e) {
+    setJsonBadge(false, 'Syntax Error');
     jsonValid = false;
     parsedSkus = [];
     skuValidationResults = [];
-    globalValidationErrors = [`JSON Syntax Error: ${err.message}`];
-    setJsonBadge(false, 'Invalid JSON Syntax', true);
-    setSchemaBadge(null);
-    if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
+    showValidationBreakdown([], 1, 0, `JSON Parse Error: ${e.message}`);
     hideSkuStats();
-    showValidationBreakdown([], 1, 0, err.message);
     hideGlobalAdvisories();
-    refreshMatrix();
   }
 
   updatePreflightChecks();
+  refreshMatrix();
 }
 
 function setSchemaBadge(isCompatible, ver) {
@@ -1649,7 +1862,8 @@ async function createMasterWorkbook(clientName, category) {
   ws1.addRow([
     "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
     "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
-    "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness"
+    "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness",
+    "Status Scope / Meaning"
   ]);
   styleRow(ws1);
 
@@ -1686,7 +1900,8 @@ async function createMasterWorkbook(clientName, category) {
       coveragePct,
       valStatus,
       reviewFlags,
-      readiness
+      readiness,
+      STRUCTURAL_READINESS_DISCLAIMER
     ]);
   });
   autoFit(ws1);
@@ -1920,7 +2135,7 @@ async function createAlternatesWorkbook(clientName) {
   return await wb.xlsx.writeBuffer();
 }
 
-// ── Handover Instructions Generator (Quaternary: Disclaimer, Checklist, Scope, SLA) ──
+// ── Handover Instructions Generator ──
 function generateReadme(client, batch, category = "Women Ethnic Wear") {
   const categoryKeyword = CATEGORY_MAP[category] || 'kurtas-and-ethnic-tops';
   return `================================================================================
@@ -1934,12 +2149,10 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   Target Category     : ${category}
 
 ================================================================================
-  IMPORTANT NOTICE & DISCLAIMER
+  IMPORTANT NOTICE & STRUCTURAL READINESS DISCLAIMER
 ================================================================================
 
-  This package is structurally complete but must be reviewed by the seller for
-  marketplace policy compliance, category template alignment, and final attribute
-  verification before upload.
+  ${STRUCTURAL_READINESS_DISCLAIMER}
 
   The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
   organize, validate, and prepare listing data. They are not direct official portal
@@ -2029,6 +2242,8 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   IMAGE NAMING & ASSET STRUCTURE
 ================================================================================
 
+  ${IMAGE_ROLE_DISCLAIMER}
+
   Canonical Image Naming Scheme (Declared Filename Slots):
     • Primary Image (Hero)        : SKU_XX_MAIN.jpg (Declared Hero cutout)
     • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg (Declared Size Guide)
@@ -2037,20 +2252,15 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
     • Other Image 4 (Back View)   : SKU_XX_PT04.jpg (Declared Angle / Back View)
     • Other Image 5               : SKU_XX_PT05.jpg (Declared Other Image 5)
 
-  Note on Image Verification:
-    All image roles are assigned based on filename suffixes. Filename assignment
-    does NOT verify visual image content, white background quality, or resolution.
-    Catalog managers must manually visually verify image assets before upload.
-
   Folder Hierarchy in this ZIP:
     Organized_SKU_Images/
       ├── [SKU_ID]/              ← One subfolder per SKU
-      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero
-      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide
-      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight
-      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations
-      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view
-      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5
+      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero (manual visual check required)
+      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide (manual visual check required)
+      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight (manual visual check required)
+      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations (manual visual check required)
+      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view (manual visual check required)
+      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5 (manual visual check required)
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================

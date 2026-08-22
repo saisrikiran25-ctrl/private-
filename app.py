@@ -50,6 +50,17 @@ JSON_PROMPT_VERSION = "JSON Prompt v1.0 – 2026-08-22"
 EXPECTED_SCHEMA_VERSION = "v2.0"
 TO_BE_CONFIRMED = "To be confirmed"
 
+STRUCTURAL_READINESS_DISCLAIMER = (
+    "Structural completeness confirms schema and package checks only. It does not verify product facts, "
+    "image content, tax classification, marketplace-policy compliance, or marketplace acceptance. "
+    "Seller review is required before upload."
+)
+
+IMAGE_ROLE_DISCLAIMER = (
+    "Image roles are assigned from filenames only. Listing Factory does not visually verify image content. "
+    "The seller must confirm that each declared slot contains the intended image before marketplace upload."
+)
+
 MAX_SKUS_SOFT_LIMIT = 50
 MAX_TOTAL_IMAGE_SIZE_MB = 200
 
@@ -238,7 +249,7 @@ class SKUItem(BaseModel):
 
 
 # ──────────────────────────────────────────────
-# Category mapping & Image Roles
+# Category mapping & Declared Image Roles
 # ──────────────────────────────────────────────
 
 CATEGORY_MAP = {
@@ -249,17 +260,171 @@ CATEGORY_MAP = {
     "Home & Kitchen": "home-furnishing",
 }
 
-# Declared Image Roles (Assigned by filename suffix; does not verify visual content)
+# Declared Image Roles (Assigned by filename suffix; does not visually verify image content)
 IMAGE_ROLES = {
-    "_MAIN": "Primary Image (Hero)",
-    "_PT01": "Other Image 1 (Size Chart)",
-    "_PT02": "Other Image 2 (Fabric Spec)",
-    "_PT03": "Other Image 3 (Care Guide)",
-    "_PT04": "Other Image 4 (Back View)",
-    "_PT05": "Other Image 5",
+    "_MAIN": "Declared Hero Image",
+    "_PT01": "Declared Size Chart Slot",
+    "_PT02": "Declared Fabric Specification Slot",
+    "_PT03": "Declared Care Guide Slot",
+    "_PT04": "Declared Back View Slot",
+    "_PT05": "Declared Other Image 5 Slot",
 }
 
 CORE_SUFFIXES = ["_MAIN", "_PT01", "_PT02", "_PT03"]
+
+
+# ──────────────────────────────────────────────
+# Amazon Title Quality & Deduplication Validator
+# ──────────────────────────────────────────────
+
+COMMON_PRODUCT_TYPES = ["kurta", "kurti", "tunic", "top", "dress", "anarkali", "suit", "gown", "set", "shirt", "saree"]
+
+def validate_amazon_title_quality(title: str, brand: str) -> tuple[list[str], list[str]]:
+    """
+    Validates Amazon Title quality, ordering, and duplication:
+    - Hard errors:
+        * Title length > 180 characters.
+        * Brand used more than once.
+        * Obvious duplicate adjacent word sequences (e.g. 'cotton cotton', 'blue blue', 'floral print printed').
+    - Warnings:
+        * Repeated close-form product-type terms (e.g. 'kurti' and 'kurta', 'tunic' and 'tunics').
+        * Repeated color or fabric terms.
+        * Excessive punctuation/delimiters (e.g. multiple '|', repeated dashes, commas).
+        * No recognizable product type found.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not title.strip() or title == TO_BE_CONFIRMED:
+        return errors, warnings
+
+    # 1. Brand repetition check
+    if brand and brand != TO_BE_CONFIRMED:
+        brand_clean = re.escape(brand.strip())
+        brand_matches = list(re.finditer(r"\b" + brand_clean + r"\b", title, re.IGNORECASE))
+        if len(brand_matches) > 1:
+            errors.append(f"Amazon title contains the brand name '{brand}' {len(brand_matches)} times. Brand must only appear once at the beginning.")
+
+    # 2. Obvious adjacent word repetition (e.g., 'Cotton Cotton', 'Blue Blue', 'A-Line A-Line')
+    tokens = re.findall(r"[A-Za-z0-9\-]+", title)
+    for i in range(len(tokens) - 1):
+        w1 = tokens[i].lower()
+        w2 = tokens[i + 1].lower()
+        if w1 == w2 and len(w1) > 1:
+            errors.append(f"Amazon title contains malformed adjacent word repetition: '{tokens[i]} {tokens[i+1]}'.")
+            break
+
+    # 3. Redundant phrase stack patterns
+    redundant_phrase_patterns = [
+        (r"\bfloral\s+print\s+printed\b", "Floral Print Printed"),
+        (r"\bpure\s+cotton\s+cotton\b", "Pure Cotton Cotton"),
+        (r"\bindigo\s+blue\s+blue\b", "Indigo Blue Blue"),
+        (r"\ba-line\s+a\s+line\b", "A-Line A line"),
+        (r"\ba\s+line\s+a-line\b", "A line A-Line"),
+    ]
+    for pat, label in redundant_phrase_patterns:
+        if re.search(pat, title, re.IGNORECASE):
+            errors.append(f"Amazon title contains redundant phrase stack: '{label}'.")
+
+    # 4. Repeated product-type terms (Warnings)
+    title_lower = title.lower()
+    found_types = []
+    for pt in COMMON_PRODUCT_TYPES:
+        if re.search(r"\b" + re.escape(pt) + r"(s)?\b", title_lower):
+            found_types.append(pt)
+    
+    if ("kurta" in found_types and "kurti" in found_types):
+        warnings.append("Amazon title contains both 'kurta' and 'kurti'. Use a single consistent product-type term.")
+    if len(set(found_types)) >= 3:
+        warnings.append(f"Amazon title contains multiple product-type descriptors ({', '.join(found_types)}). Avoid excessive keyword stacking.")
+
+    # 5. Excessive delimiter use (Warnings)
+    pipe_count = title.count("|")
+    dash_count = title.count(" - ")
+    if pipe_count > 2 or (pipe_count >= 1 and dash_count >= 2):
+        warnings.append("Amazon title contains multiple separators/delimiters ('|' or ' - '). Keep title structure natural and customer-readable.")
+
+    # 6. Check if recognizable product type is present
+    if not found_types and not any(w in title_lower for w in ["kurta", "kurti", "tunic", "top", "dress", "anarkali", "clothing", "wear"]):
+        warnings.append("Amazon title may be missing a standard product-type keyword (e.g., Kurti, Anarkali Kurta, Tunic).")
+
+    return errors, warnings
+
+
+# ──────────────────────────────────────────────
+# Truthfulness & Claim-Safety Validator
+# ──────────────────────────────────────────────
+
+UNVERIFIED_HARD_CLAIM_PATTERNS = [
+    (r"\b(ultra-?)?breathable\b", "breathable", "fabric breathability"),
+    (r"\bairy\s+(weave|fabric|cotton)\b", "airy fabric", "fabric ventilation"),
+    (r"\bcooling(\s+comfort)?\b", "cooling", "cooling performance"),
+    (r"\bsweat-?absorb(ent|ing)?\b", "sweat-absorbent", "sweat absorption"),
+    (r"\bquick-?dry\b", "quick-dry", "quick-drying claim"),
+    (r"\bnon-?sticky\b", "non-sticky", "tactile performance"),
+    (r"\blightweight\b", "lightweight", "fabric weight claim"),
+    (r"\bskin-?friendly\b", "skin-friendly", "hypoallergenic/dermatological claim"),
+    (r"\bwrinkle-?free\b", "wrinkle-free", "crease resistance claim"),
+    (r"\bwrinkle-?resistant\b", "wrinkle-resistant", "crease resistance claim"),
+    (r"\bzero\s+fad(e|ing)\b", "zero fading", "unsupported color guarantee"),
+    (r"\bzero\s+bleeding\b", "zero bleeding", "unsupported color guarantee"),
+    (r"\bno\s+(fading|bleeding)\b", "no fading/bleeding", "unsupported color guarantee"),
+    (r"\bpre-?shrunk\b", "pre-shrunk", "unsupported textile processing claim"),
+    (r"\banti-?pilling\b", "anti-pilling", "unsupported textile durability claim"),
+    (r"\bsuperior(\s+quality)?\b", "superior quality", "unverifiable superiority claim"),
+    (r"\bbest\s+quality\b", "best quality", "unverifiable absolute claim"),
+    (r"\b(100%\s+)?guaranteed\b", "guaranteed", "unsupported guarantee claim"),
+    (r"\bluxury\b", "luxury", "unverifiable luxury claim"),
+]
+
+UNVERIFIED_WARNING_CLAIM_PATTERNS = [
+    (r"\bcomfortable\s+fit\b", "comfortable fit", "use verified sizing measurements instead"),
+    (r"\bcomfort\s+fit\b", "comfort fit", "use verified silhouette or cut instead"),
+    (r"\bperfect\s+fit\b", "perfect fit", "fit is subjective; specify size dimensions"),
+    (r"\brelaxed\s+fit\b", "relaxed fit", "use verified standard fit or silhouette"),
+    (r"\beasy-?to-?wear(\s+fit)?\b", "easy-to-wear", "use styling suggestion instead"),
+    (r"\bflattering\s+fit\b", "flattering fit", "subjective fit claim; state silhouette"),
+    (r"\btailored\s+fit\b", "tailored fit", "use verified silhouette (e.g. Straight/A-line)"),
+    (r"\bsmart\s+fit\b", "smart fit", "use standard size specifications"),
+    (r"\bideal\s+fit\b", "ideal fit", "use verified size dimensions"),
+    (r"\b(ultra-?)?soft\s+(feel|cotton|fabric|touch)\b", "soft feel", "tactile feel is subjective"),
+    (r"\bpremium\s+(fabric|cotton|quality)\b", "premium fabric", "describe thread count/weave factually"),
+    (r"\brich\s+(fabric|look)\b", "rich look", "describe visual color/print factually"),
+]
+
+def validate_truthfulness_and_claims(
+    field_path: str,
+    text: str,
+    verified_data: Optional[dict] = None
+) -> tuple[list[str], list[str]]:
+    """
+    Validates copy against unverified comfort, fit, technical performance, and superiority claims.
+    Returns (errors, warnings).
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not text or not text.strip() or text == TO_BE_CONFIRMED:
+        return errors, warnings
+
+    text_lower = text.lower()
+
+    # Hard technical/performance/guarantee claims
+    for pattern, term, desc in UNVERIFIED_HARD_CLAIM_PATTERNS:
+        if re.search(pattern, text_lower):
+            errors.append(
+                f"Field '{field_path}' contains unverified performance/guarantee claim ('{term}'). "
+                f"Remove unverified {desc} unless explicitly documented in verified product records."
+            )
+
+    # Subjective comfort / fit / praise warnings
+    for pattern, term, suggestion in UNVERIFIED_WARNING_CLAIM_PATTERNS:
+        if re.search(pattern, text_lower):
+            warnings.append(
+                f"Field '{field_path}' contains unverified claim/descriptor ('{term}'). Suggestion: {suggestion}."
+            )
+
+    return errors, warnings
 
 
 # ──────────────────────────────────────────────
@@ -454,7 +619,7 @@ def _sku_has_unconfirmed_fields(sku: SKUItem) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Excel Workbook Builders (Complete PT05 Support)
+# Excel Workbook Builders
 # ──────────────────────────────────────────────
 
 def _style_header_row(ws, num_cols: int, header_color: str = "10B981"):
@@ -501,7 +666,8 @@ def _build_master_summary(
     headers = [
         "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
         "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
-        "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness"
+        "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness",
+        "Status Scope / Meaning"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
@@ -541,6 +707,7 @@ def _build_master_summary(
             validation_status,
             review_flags,
             readiness,
+            STRUCTURAL_READINESS_DISCLAIMER
         ])
     _auto_width(ws)
 
@@ -795,12 +962,10 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   Target Category     : {category}
 
 ================================================================================
-  IMPORTANT NOTICE & DISCLAIMER
+  IMPORTANT NOTICE & STRUCTURAL READINESS DISCLAIMER
 ================================================================================
 
-  This package is structurally complete but must be reviewed by the seller for
-  marketplace policy compliance, category template alignment, and final attribute
-  verification before upload.
+  {STRUCTURAL_READINESS_DISCLAIMER}
 
   The Excel files in this package are MARKETPLACE MAPPING WORKBOOKS designed to
   organize, validate, and prepare listing data. They are not direct official portal
@@ -890,6 +1055,8 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   IMAGE NAMING & ASSET STRUCTURE
 ================================================================================
 
+  {IMAGE_ROLE_DISCLAIMER}
+
   Canonical Image Naming Scheme (Declared Filename Slots):
     • Primary Image (Hero)        : SKU_XX_MAIN.jpg (Declared Hero cutout)
     • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg (Declared Size Guide)
@@ -898,20 +1065,15 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
     • Other Image 4 (Back View)   : SKU_XX_PT04.jpg (Declared Angle / Back View)
     • Other Image 5               : SKU_XX_PT05.jpg (Declared Other Image 5)
 
-  Note on Image Verification:
-    All image roles are assigned based on filename suffixes. Filename assignment
-    does NOT verify visual image content, white background quality, or resolution.
-    Catalog managers must manually visually verify image assets before upload.
-
   Folder Hierarchy in this ZIP:
     Organized_SKU_Images/
       ├── [SKU_ID]/              ← One subfolder per SKU
-      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero
-      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide
-      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight
-      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations
-      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view
-      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5
+      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero (manual visual check required)
+      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide (manual visual check required)
+      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight (manual visual check required)
+      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations (manual visual check required)
+      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view (manual visual check required)
+      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5 (manual visual check required)
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================
@@ -1050,7 +1212,7 @@ def build_zip(
         if alt_xlsx_bytes:
             alt_xlsx_name = f"{client}_Alternate_Listing_Copies.xlsx"
             zf.writestr(f"{prefix}/{alt_xlsx_name}", alt_xlsx_bytes)
-        # Package audit metadata (Feature #1)
+        # Package audit metadata
         zf.writestr(f"{prefix}/package_metadata.json", metadata_bytes)
         # Handover README
         zf.writestr(f"{prefix}/README_Upload_Instructions.txt", readme_text)
@@ -1067,18 +1229,18 @@ def build_zip(
 
 
 # ──────────────────────────────────────────────
-# Sample Data Generator for Dry-Run (Section 3 - #3)
+# Sample Data Generator for Dry-Run
 # ──────────────────────────────────────────────
 
 def get_sample_skus() -> list[dict]:
     return [
         {
-            "sku_id": "SKU_SAMPLE_01",
-            "brand": "SampleBrand",
-            "product_type": "Pure Cotton Kurti",
-            "color": "Indigo Blue",
+            "sku_id": "SKU_01",
+            "brand": "Anvi Fabrics",
+            "product_type": "Pure Cotton Anarkali Kurti",
+            "color": "Navy Blue",
             "category": "Women Ethnic Wear",
-            "sizes": "S, M, L, XL, XXL",
+            "sizes": "S, M, L, XL, XXL, 3XL",
             "mrp": 1299.0,
             "meesho_price": 349.0,
             "seller_config": {
@@ -1087,75 +1249,201 @@ def get_sample_skus() -> list[dict]:
                 "hsn_code": "62114200"
             },
             "amazon": {
-                "title": "SampleBrand Women's Pure Cotton Straight Kurti with Pocket | Daily Office Wear",
+                "title": "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Navy Blue Daily Wear",
                 "bullet_points": [
-                    "100% PURE COTTON: Soft, breathable 60s count fabric for all-day comfort.",
-                    "POCKET UTILITY: Includes convenient deep side pocket for phone and essentials.",
+                    "100% PURE COTTON: Woven from 60s count pure cotton yarn for everyday wear.",
+                    "ANARKALI SILHOUETTE WITH POCKETS: Flared construction with functional side pockets.",
                     "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and color.",
-                    "VERSATILE STYLING: Pairs easily with denim, palazzo pants, or ethnic trousers.",
-                    "PRECISE SIZING: Standard regular Indian fit from S(36) to XXL(44)."
+                    "VERSATILE STYLING: Pairs with leggings, palazzos, or denim trousers.",
+                    "ACCURATE SIZING: Available from size S (36 in chest) to 3XL (46 in chest)."
                 ],
-                "backend_search_terms": "cotton kurti straight kurta daily wear office ethnic top",
-                "description": "Experience daily comfort and elegance with SampleBrand Pure Cotton Straight Kurti."
+                "backend_search_terms": "tunic dress office ethnic top formal printed attire festive apparel clothing",
+                "description": "Pure Cotton Anarkali Kurti by Anvi Fabrics tailored with 60s count cotton yarn and dual side pockets."
             },
             "flipkart": {
-                "title": "SampleBrand Women Solid Pure Cotton Straight Kurta (Blue)",
+                "title": "Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
                 "fabric": "Pure Cotton",
-                "kurta_type": "Straight",
-                "neck": "Round Neck",
+                "kurta_type": "Anarkali",
+                "neck": "Mandarin Neck",
                 "sleeve": "3/4 Sleeve",
                 "length_type": "Calf Length",
-                "pattern": "Solid",
-                "occasion": "Casual",
-                "search_keywords": "cotton kurti, straight kurta women, summer kurti",
-                "description": "Crafted from breathable pure cotton, this straight kurta combines understated elegance with everyday practicality."
+                "pattern": "Floral Print",
+                "occasion": "Casual & Festive",
+                "search_keywords": "anarkali kurti, cotton kurta women, casual kurti",
+                "description": "Anvi Fabrics printed pure cotton anarkali kurta with mandarin neck and 3/4 sleeves designed for daily ethnic styling."
             },
             "meesho": {
-                "title": "Pure Cotton Straight Kurti with Pocket",
-                "hinglish_hook_description": "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily wear aur office ke liye best choice.",
-                "english_hook_description": "Premium pure cotton straight kurti tailored with a functional pocket for smart everyday wear.",
+                "title": "Pure Cotton Flared Anarkali Kurti with Pockets",
+                "hinglish_hook_description": "100% Pure Cotton fabric kurta daily office aur festive wear ke liye. Side pockets aur flared anarkali ghera ke saath.",
+                "english_hook_description": "Pure cotton anarkali kurti crafted with functional side pockets and flared silhouette for everyday ethnic wear.",
                 "highlights": [
                     "Fabric: 100% Pure Cotton",
-                    "Pocket: 1 Side Pocket Included",
-                    "Fit: Regular Straight Fit",
-                    "Care: Hand or Machine Wash"
+                    "Style: Flared Anarkali with Pockets",
+                    "Sizes: S to 3XL",
+                    "Care: Hand or Machine Wash as per Label"
                 ]
             },
             "alternates": [
                 {
-                    "variant_id": f"V{i+1}",
-                    "angle_theme": theme,
+                    "variant_id": "V1",
+                    "angle_theme": "Daily Office & Workwear",
                     "amazon": {
-                        "title": f"SampleBrand Women's Cotton Kurti - {theme} Edition",
+                        "title": "Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
                         "bullet_points": [
-                            f"COMFORT {i+1}: Ultra-breathable weave for active daily ventilation.",
-                            "DESIGN: Tailored silhouette designed for versatile ethnic styling.",
-                            "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance.",
-                            "VERSATILITY: Complements office trousers and ethnic skirts seamlessly.",
-                            "CARE: Easy machine wash with mild detergent."
+                            "60S COTTON YARN: Tightly woven cotton yarn suitable for daily office hours.",
+                            "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone and essentials.",
+                            "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's appearance.",
+                            "VERSATILE STYLING: Pairs with formal trousers, palazzos, or churidars.",
+                            "SIZING & CARE: True-to-size standard S(36) to 3XL(46) measurements."
                         ],
-                        "backend_search_terms": f"cotton kurti {theme.lower().replace('&', '').replace('  ', ' ')} women ethnic kurta",
-                        "description": f"Designed specifically for {theme.lower()}. A premium wardrobe essential."
+                        "backend_search_terms": "formal printed attire festive apparel tunic tunic dress",
+                        "description": "Designed for office wear. This pure cotton anarkali features a flared hem and utility side pockets."
                     },
                     "flipkart": {
-                        "title": f"SampleBrand Women Cotton Kurta - {theme}",
-                        "search_keywords": f"kurti {theme.lower()}, cotton kurta",
-                        "description": f"Elegant pure cotton kurta tailored for {theme.lower()}."
+                        "title": "Anvi Fabrics Women Cotton Office Wear Anarkali Kurta",
+                        "search_keywords": "office kurti, formal kurta women, cotton workwear",
+                        "description": "Cotton anarkali designed for office wear with deep side pockets and mandarin collar."
                     },
                     "meesho": {
-                        "title": f"Cotton Kurti - {theme}",
-                        "hinglish_hook_description": f"Har din ke liye badhiya cotton kurti! {theme} ke liye ekdum perfect.",
-                        "english_hook_description": f"Premium daily cotton kurti crafted for {theme.lower()}.",
-                        "highlights": ["Fabric: Cotton", f"Theme: {theme}", "Fit: Regular", "Wash: Normal"]
+                        "title": "Office Wear Pure Cotton Anarkali Kurti",
+                        "hinglish_hook_description": "Office ke liye cotton kurti. Side pockets mein phone aur keys rakhne ki suvidha, daily wear ke liye upyogi.",
+                        "english_hook_description": "Pure cotton anarkali kurti with functional pockets for office wear and ethnic styling.",
+                        "highlights": [
+                            "Fabric: 100% Cotton",
+                            "Style: Office-Ready Anarkali",
+                            "Pockets: Deep Side Pockets",
+                            "Care: Machine Washable"
+                        ]
+                    }
+                },
+                {
+                    "variant_id": "V2",
+                    "angle_theme": "Festive & Wedding Celebrations",
+                    "amazon": {
+                        "title": "Anvi Fabrics Festive Cotton Anarkali Kurti | Party Wear Ethnic Dress for Women",
+                        "bullet_points": [
+                            "FESTIVE PRINTED COTTON: Traditional printed motifs crafted for ethnic celebrations.",
+                            "DESIGN & UTILITY: Statement anarkali flare suited for mehendi, sangeet, and puja gatherings.",
+                            "COLORFAST & DURABLE: Follow the provided care label to maintain the appearance of the festive print.",
+                            "VERSATILE STYLING: Accessorize with jhumkas, bangles, and ethnic dupattas.",
+                            "SIZING & CARE: Standard S to 3XL sizing. Follow wash care label instructions."
+                        ],
+                        "backend_search_terms": "celebration traditional apparel wedding guest outfit puja tunic",
+                        "description": "Printed cotton anarkali suited for festivals, wedding functions, and traditional ceremonies."
+                    },
+                    "flipkart": {
+                        "title": "Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta",
+                        "search_keywords": "festive kurti, party wear kurta, wedding kurti women",
+                        "description": "Printed cotton anarkali tailored for festivals, weddings, and celebration gatherings."
+                    },
+                    "meesho": {
+                        "title": "Festive Party Wear Cotton Anarkali Kurti",
+                        "hinglish_hook_description": "Shaadi, puja ya festive party ke liye traditional printed anarkali kurti. Pure cotton fabric aur sundar ghera.",
+                        "english_hook_description": "Pure cotton anarkali crafted for weddings, festivals, and traditional family occasions.",
+                        "highlights": [
+                            "Fabric: Printed Cotton",
+                            "Style: Traditional Anarkali Flare",
+                            "Occasion: Wedding & Festive",
+                            "Care: Wash as per Label"
+                        ]
+                    }
+                },
+                {
+                    "variant_id": "V3",
+                    "angle_theme": "Summer Daily Wear",
+                    "amazon": {
+                        "title": "Summer Cotton Anarkali Kurti for Women | Casual Ethnic Dress with Side Pockets",
+                        "bullet_points": [
+                            "SUMMER COTTON WEAVE: Single-ply 60s cotton weave suited for warm weather wear.",
+                            "DESIGN & UTILITY: Flared construction allows airflow with functional side pockets.",
+                            "COLORFAST & DURABLE: Follow the provided care label to help maintain the appearance of the fabric.",
+                            "VERSATILE STYLING: Match with cotton pants or breezy palazzo trousers.",
+                            "SIZING & CARE: Standard Indian sizing with regular fit."
+                        ],
+                        "backend_search_terms": "warm weather tunic apparel printed top casual clothing",
+                        "description": "Pure cotton anarkali kurti crafted for warm-weather daily wear with side pockets."
+                    },
+                    "flipkart": {
+                        "title": "Anvi Fabrics Women Summer Cotton Anarkali Kurta",
+                        "search_keywords": "summer cotton kurti, anarkali kurta, casual wear",
+                        "description": "Pure cotton kurti designed with anarkali silhouette for summer ethnic styling."
+                    },
+                    "meesho": {
+                        "title": "Summer Daily Cotton Anarkali Kurti",
+                        "hinglish_hook_description": "Garmiyon ke liye pure cotton anarkali kurti. Daily wear aur casual outings ke liye badhiya.",
+                        "english_hook_description": "Pure cotton anarkali kurti tailored for daily summer wear and casual outings.",
+                        "highlights": [
+                            "Fabric: 100% Pure Cotton",
+                            "Season: Daily Summer Wear",
+                            "Fit: Regular Flared Fit",
+                            "Care: Machine Wash Normal"
+                        ]
+                    }
+                },
+                {
+                    "variant_id": "V4",
+                    "angle_theme": "Everyday Essential",
+                    "amazon": {
+                        "title": "Daily Wear Cotton Anarkali Kurti | Everyday Ethnic Kurta with Dual Pockets",
+                        "bullet_points": [
+                            "COTTON CONSTRUCTION: 60s pure cotton yarn built for repeated daily wear.",
+                            "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
+                            "COLORFAST & DURABLE: Follow the provided care label to keep the everyday fabric looking fresh.",
+                            "VERSATILE STYLING: Everyday piece suitable for home, market, and casual visits.",
+                            "SIZING & CARE: Standard size range with easy wash routine."
+                        ],
+                        "backend_search_terms": "utility apparel reinforced home outfit casual attire",
+                        "description": "Everyday cotton anarkali with reinforced seams and dual utility pockets."
+                    },
+                    "flipkart": {
+                        "title": "Anvi Fabrics Women Everyday Cotton Kurta",
+                        "search_keywords": "daily wear kurti, cotton kurta, pocket anarkali",
+                        "description": "Built for daily utility with reinforced seams, functional pockets, and pure cotton fabric."
+                    },
+                    "meesho": {
+                        "title": "Everyday Cotton Anarkali Kurti",
+                        "hinglish_hook_description": "Rozana daily use ke liye pure cotton anarkali kurti. 2 side pockets ke saath.",
+                        "english_hook_description": "Everyday ethnic kurti with dual side pockets crafted from pure cotton.",
+                        "highlights": [
+                            "Fabric: Pure Cotton",
+                            "Fit: Regular Anarkali",
+                            "Pockets: 2 Side Pockets",
+                            "Care: Normal Wash"
+                        ]
+                    }
+                },
+                {
+                    "variant_id": "V5",
+                    "angle_theme": "Gifting & Modern Fusion",
+                    "amazon": {
+                        "title": "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Contemporary Ethnic Dress",
+                        "bullet_points": [
+                            "CONTEMPORARY DRAPE: Pure cotton drape tailored for modern Indian ethnic styling.",
+                            "DESIGN & UTILITY: Blends flared silhouette with functional deep side pockets.",
+                            "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's finish and color.",
+                            "VERSATILE STYLING: Pairs with denim jeans, ankle palazzos, or cigarette trousers.",
+                            "SIZING & CARE: Complete size range S (36 in) to 3XL (46 in)."
+                        ],
+                        "backend_search_terms": "gifting idea contemporary tunic top party clothing present",
+                        "description": "Contemporary fusion anarkali kurti crafted from pure cotton with side pockets."
+                    },
+                    "flipkart": {
+                        "title": "Anvi Fabrics Women Modern Fusion Cotton Anarkali",
+                        "search_keywords": "fusion anarkali kurta, modern ethnic wear, kurti",
+                        "description": "Contemporary fusion styling crafted for gifting and modern ethnic wear."
+                    },
+                    "meesho": {
+                        "title": "Modern Fusion Style Cotton Anarkali Kurti",
+                        "hinglish_hook_description": "Jeans ya palazzo ke saath fusion look ke liye cotton anarkali kurti. Gifting aur parties ke liye ready.",
+                        "english_hook_description": "Contemporary fusion kurti crafted from pure cotton for gifting and modern styling.",
+                        "highlights": [
+                            "Style: Modern Fusion Flare",
+                            "Occasion: Gifting & Casual",
+                            "Pairing: Jeans & Palazzo",
+                            "Care: Hand or Machine Wash"
+                        ]
                     }
                 }
-                for i, theme in enumerate([
-                    "Daily Office Workwear",
-                    "Festive Celebrations",
-                    "Summer Cooling Comfort",
-                    "Everyday Essential",
-                    "Modern Fusion Styling"
-                ])
             ]
         }
     ]
@@ -1174,8 +1462,9 @@ app = FastAPI(title="Listing Factory", version="2.0.0")
 async def validate_json(request: Request):
     """
     Strictly validate AI-generated JSON listing data against the schema.
-    Enforces schema_version contract, structured per-SKU errors, backend search terms hygiene,
-    Bullet 3 truth-boundary safety, and advisory warnings.
+    Enforces schema_version contract, Amazon title quality & deduplication,
+    Amazon backend search-term hygiene, Bullet 3 safety, truth-boundary claim checks,
+    and structured per-SKU diagnostic reporting.
     """
     try:
         body = await request.json()
@@ -1194,7 +1483,7 @@ async def validate_json(request: Request):
         global_warnings = []
         global_errors = []
 
-        # Quaternary Section 2 (#2): Schema Version Contract
+        # Schema Version Contract
         if schema_ver is not None and schema_ver != EXPECTED_SCHEMA_VERSION:
             global_errors.append(
                 f"Expected schema_version '{EXPECTED_SCHEMA_VERSION}', got '{schema_ver}'. "
@@ -1251,6 +1540,13 @@ async def validate_json(request: Request):
                 if sku_obj.meesho.title != TO_BE_CONFIRMED and m_len > 55:
                     sku_warnings.append(f"Meesho title length is near limit ({m_len}/60 chars)")
 
+                # Section 1: Amazon Title Quality & Deduplication
+                atq_errs, atq_warns = validate_amazon_title_quality(sku_obj.amazon.title, sku_obj.brand)
+                if atq_errs:
+                    sku_errors.extend(atq_errs)
+                if atq_warns:
+                    sku_warnings.extend(atq_warns)
+
                 # Section 2: Amazon Backend Search-Term Hygiene Check
                 bst_errs, bst_warns = validate_amazon_backend_search_terms(
                     sku_obj.amazon.title, sku_obj.amazon.backend_search_terms, sku_obj.brand
@@ -1268,8 +1564,37 @@ async def validate_json(request: Request):
                     if b3_warns:
                         sku_warnings.extend(b3_warns)
 
-                # Validate alternates backend search terms & Bullet 3 as well
+                # Section 2 Refinement: Truthfulness & Claim Safety across primary fields
+                fields_to_check = [
+                    ("amazon.title", sku_obj.amazon.title),
+                    ("amazon.description", sku_obj.amazon.description),
+                    ("flipkart.title", sku_obj.flipkart.title),
+                    ("flipkart.search_keywords", sku_obj.flipkart.search_keywords),
+                    ("flipkart.description", sku_obj.flipkart.description),
+                    ("meesho.title", sku_obj.meesho.title),
+                    ("meesho.hinglish_hook_description", sku_obj.meesho.hinglish_hook_description),
+                    ("meesho.english_hook_description", sku_obj.meesho.english_hook_description),
+                ]
+                for bi, bp in enumerate(sku_obj.amazon.bullet_points):
+                    fields_to_check.append((f"amazon.bullet_points[{bi+1}]", bp))
+                for hi, hl in enumerate(sku_obj.meesho.highlights):
+                    fields_to_check.append((f"meesho.highlights[{hi+1}]", hl))
+
+                for fpath, ftext in fields_to_check:
+                    c_errs, c_warns = validate_truthfulness_and_claims(fpath, ftext)
+                    if c_errs:
+                        sku_errors.extend(c_errs)
+                    if c_warns:
+                        sku_warnings.extend(c_warns)
+
+                # Validate alternates
                 for alt in sku_obj.alternates:
+                    alt_atq_errs, alt_atq_warns = validate_amazon_title_quality(alt.amazon.title, sku_obj.brand)
+                    if alt_atq_errs:
+                        sku_errors.extend([f"Alternate {alt.variant_id}: {e}" for e in alt_atq_errs])
+                    if alt_atq_warns:
+                        sku_warnings.extend([f"Alternate {alt.variant_id}: {w}" for w in alt_atq_warns])
+
                     alt_bst_errs, alt_bst_warns = validate_amazon_backend_search_terms(
                         alt.amazon.title, alt.amazon.backend_search_terms, sku_obj.brand
                     )
@@ -1282,6 +1607,28 @@ async def validate_json(request: Request):
                         alt_b3_errs, alt_b3_warns = validate_bullet_3_safety(alt.amazon.bullet_points[2])
                         if alt_b3_errs:
                             sku_errors.extend([f"Alternate {alt.variant_id}: {e}" for e in alt_b3_errs])
+
+                    alt_fields = [
+                        (f"alternates.{alt.variant_id}.amazon.title", alt.amazon.title),
+                        (f"alternates.{alt.variant_id}.amazon.description", alt.amazon.description),
+                        (f"alternates.{alt.variant_id}.flipkart.title", alt.flipkart.title),
+                        (f"alternates.{alt.variant_id}.flipkart.search_keywords", alt.flipkart.search_keywords),
+                        (f"alternates.{alt.variant_id}.flipkart.description", alt.flipkart.description),
+                        (f"alternates.{alt.variant_id}.meesho.title", alt.meesho.title),
+                        (f"alternates.{alt.variant_id}.meesho.hinglish_hook_description", alt.meesho.hinglish_hook_description),
+                        (f"alternates.{alt.variant_id}.meesho.english_hook_description", alt.meesho.english_hook_description),
+                    ]
+                    for bi, bp in enumerate(alt.amazon.bullet_points):
+                        alt_fields.append((f"alternates.{alt.variant_id}.amazon.bullet_points[{bi+1}]", bp))
+                    for hi, hl in enumerate(alt.meesho.highlights):
+                        alt_fields.append((f"alternates.{alt.variant_id}.meesho.highlights[{hi+1}]", hl))
+
+                    for fpath, ftext in alt_fields:
+                        alt_c_errs, alt_c_warns = validate_truthfulness_and_claims(fpath, ftext)
+                        if alt_c_errs:
+                            sku_errors.extend(alt_c_errs)
+                        if alt_c_warns:
+                            sku_warnings.extend(alt_c_warns)
 
             except Exception as pe:
                 sku_errors.append(str(pe))

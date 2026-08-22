@@ -52,21 +52,31 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 
 When generating JSON listing payloads with LLMs, the master generation prompt must enforce these foundational contracts:
 
-1. **Truth Boundary / No Hallucination**:
+1. **Truth Boundary & Claim Safety**:
    - The LLM is strictly forbidden from inventing fabric composition, wash care rules, stitching styles, or technical claims not present in the verified product record (`verified.*`).
+   - **Hard Prohibited Claims**: Technical performance claims (`breathable`, `airy`, `cooling`, `sweat-absorbent`, `quick-dry`, `non-sticky`, `lightweight`, `skin-friendly`, `wrinkle-free`), absolute color/durability guarantees (`zero fading`, `no bleeding`, `pre-shrunk`, `anti-pilling`), and ungrounded superiority claims (`superior quality`, `best quality`, `guaranteed`, `luxury`).
+   - **Advisory Warnings**: Subjective fit/feel terms (`comfortable fit`, `perfect fit`, `relaxed fit`, `easy-to-wear`, `soft feel`, `flattering fit`, `premium fabric`, `rich look`) trigger advisory warnings to ensure sellers supply specific dimensions or cut descriptions.
+   - **Permitted Styling Suggestions**: Subjective styling language is permitted when framed as styling ideas (e.g., *"style with jeans or palazzos"*, *"an option for festive gatherings"*, *"a thoughtful gifting choice"*).
    - If an attribute is unknown or unverified, the LLM must mark it as `"To be confirmed"` or use neutral generic phrasing (e.g., *"as per product label"*).
-2. **Separation of Facts vs. Copy**:
-   - **Stage A (Factual Basis)**: Verified physical product records (`sku_id`, `brand`, `product_type`, `color`, `sizes`, `mrp`, `meesho_price`, `seller_config`).
-   - **Stage B (Creative Copywriting)**: Marketplace-specific copy, bullet points, Hinglish hooks, and 5x marketing variations derived strictly from verified facts.
+
+2. **Amazon Title Quality & Order Pattern**:
+   - **Guideline Structure**: `[Brand] [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])`.
+   - **Brand Duplication**: Hard error if brand name appears more than once.
+   - **Adjacent Repetitions & Phrase Stacks**: Hard error if consecutive duplicate words (e.g. `cotton cotton`, `blue blue`) or redundant phrase stacks (e.g. `Floral Print Printed`, `Pure Cotton Cotton`, `Indigo Blue Blue`, `A-Line A line`) appear.
+   - **Delimiters & Separators**: Advisory warning if multiple delimiters (`|` or ` - `) fragment the title unnaturally.
+   - **Product Type Consistency**: Advisory warning if redundant close-form terms are stacked (e.g. both `kurta` and `kurti`).
+
 3. **Amazon Backend Search-Term Hygiene**:
    - Must be **lowercase ASCII** only (no uppercase, no special Unicode).
    - Must **not** contain punctuation, commas, or repeated whitespace (use single spaces between terms).
    - Must **not** contain the brand name or competitor brands.
    - Must **not** duplicate words already present in the Amazon title (or simple singular/plural variants).
+
 4. **Neutralized Bullet 3 ("COLORFAST & DURABLE:")**:
    - Heading sequence is retained: Bullet 3 must start with `COLORFAST & DURABLE:`.
-   - The body must use safe, care-led language (e.g. `COLORFAST & DURABLE: Follow the provided care label to help maintain the appearance of the print.`) unless durability claims are independently verified in the source data.
+   - The body must use safe, care-led language (e.g. `COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and color.`) unless durability claims are independently verified in the source data.
    - Forbids unverified guarantee claims (`zero fading`, `no bleeding`, `pre-shrunk`, `anti-pilling`, `reactive dye`, `vat dye`).
+
 5. **Formal JSON Schema Contract**:
    - Every payload must declare top-level `"schema_version": "v2.0"`.
    - Exact array lengths: Amazon bullet points ($= 5$), Meesho highlights ($= 4$), Alternates ($= 5$).
@@ -94,14 +104,17 @@ Every generated package contains a top-level `package_metadata.json` documenting
 - Fields marked with `"To be confirmed"` or `"TBC"` are accepted without failing hard schema validation.
 - Surfaced as advisory review warnings in the UI and flagged in the `Master_Summary` Excel tab under **`Review Flags: ⚠️ Has unconfirmed fields`**.
 
-### 4. 🏷️ Clear "Ready" Phrasing & Seller Checklist
-To prevent misunderstanding "Ready" as automatic "marketplace acceptance", status labels are explicitly worded:
+### 4. 🏷️ Clear Readiness Phrasing & Structural Disclaimer
+To prevent misunderstanding structural checks as automatic "marketplace acceptance", status labels are explicitly worded and accompanied by the `STRUCTURAL_READINESS_DISCLAIMER`:
 - `✅ Structurally Complete – Seller Review Required`
 - `⚠️ Warnings – Seller Review Required`
 - `❌ Not Ready – Fix Errors First`
 
+**Structural Readiness Disclaimer**:
+> *"Structural completeness confirms schema and package checks only. It does not verify product facts, image content, tax classification, marketplace-policy compliance, or marketplace acceptance. Seller review is required before upload."*
+
 ### 5. 🔍 Structured Per-SKU Validation Breakdown
-- Replaces generic error lists with structured per-SKU diagnostic cards separating hard schema errors from non-blocking advisory warnings.
+- Replaces generic error lists with structured per-SKU diagnostic cards separating hard schema errors, title quality errors, and claim safety errors from non-blocking advisory warnings.
 
 ### 6. ⚙️ Batch-Level Configuration (`batch_config`)
 Allows specifying shared brand, category, and seller configuration at the batch level while allowing individual SKU overrides:
@@ -109,7 +122,7 @@ Allows specifying shared brand, category, and seller configuration at the batch 
 {
   "schema_version": "v2.0",
   "batch_config": {
-    "brand": "Janasya",
+    "brand": "Anvi Fabrics",
     "category": "Women Ethnic Wear",
     "seller_config": {
       "amazon_quantity": 50,
@@ -138,7 +151,8 @@ Allows specifying shared brand, category, and seller configuration at the batch 
 - **Listing Copy & Mapping Preparation:** Prepares structured listing copy and multi-tab Excel mapping workbooks based on seller-provided catalog data.
 - **No Acceptance Guarantee:** Does not guarantee automatic marketplace approval, indexation, or exemption from category ungating requirements.
 - **Approximate Processing Timelines:** Processing and approval times are illustrative only and vary by portal queue, category, seller standing, and current platform workload. Listing Factory does not guarantee review or approval duration.
-- **Asset Slotting vs. Visual Verification:** Assigns image slots based on declared filename patterns (`_MAIN` through `_PT05`). Visual content, white background quality, and typography must be manually verified by catalog managers prior to submission.
+- **Declared Image Roles vs. Visual Verification:** Assigns image slots based on declared filename patterns (`_MAIN` through `_PT05`).
+  > **Image Role Disclaimer**: *"Image roles are assigned from filenames only. Listing Factory does not visually verify image content. The seller must confirm that each declared slot contains the intended image before marketplace upload."*
 - **Tax & Classification Disclaimer:** GST percentages and HSN codes are seller-provided configurations and do not constitute official tax advice.
 - **Mandatory Final Review:** All data must be reviewed, verified, and confirmed by the brand prior to live portal submission.
 
@@ -150,7 +164,7 @@ Listing Factory generates two structured mapping workbooks inside the client ZIP
 
 ### 1. `[Client]_Master_Marketplace_Upload.xlsx`
 Structured data sheets designed for transferring copy into official marketplace upload templates:
-- **`Master_Summary`**: Catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), `Validation Status` (`✅ Pass`), `Review Flags` (`⚠️ Has unconfirmed fields` / `—`), and `Package Readiness` (`✅ Structurally Complete – Seller Review Required`).
+- **`Master_Summary`**: Catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), `Validation Status` (`✅ Pass`), `Review Flags` (`⚠️ Has unconfirmed fields` / `—`), `Package Readiness` (`✅ Structurally Complete – Seller Review Required`), and **`Status Scope / Meaning`** containing the full structural readiness disclaimer.
 - **`01_Amazon_Bulk_Import`**: Amazon.in 24-column mapping schema with dynamic `quantity`, generic keywords ($\le 240$ bytes), 5 bullet points, `size`, `color` (`sku.color`), and canonical image filenames (`main_image_url`, `other_image_url1` through `other_image_url5`).
 - **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 25-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), `Color` (`sku.color`), seller GST/HSN, search keywords, 6 image slot references (`Main Image Name`, `Angle 1 Image` through `Angle 5 Image`), and Flipkart-specific description.
 - **`03_Meesho_Bulk_Import`**: Meesho 18-column schema with dual Hinglish + English hook descriptions, `Color` (`sku.color`), 4 highlight badges, seller GST/HSN, dynamic Meesho price, and 6-slot image mappings (`Primary Image (Hero)`, `Other Image 1` through `Other Image 5`).
@@ -159,8 +173,8 @@ Structured data sheets designed for transferring copy into official marketplace 
 Contains 5 distinct marketing angle variations per SKU for A/B testing and seasonal refreshes:
 - **V1**: Daily Office & Workwear
 - **V2**: Festive & Wedding Celebrations
-- **V3**: Summer Heat & Breathable Comfort
-- **V4**: High-Value Everyday Essential
+- **V3**: Summer Daily Wear
+- **V4**: Everyday Essential
 - **V5**: Gifting & Modern Fusion
 
 ---
@@ -169,12 +183,12 @@ Contains 5 distinct marketing angle variations per SKU for A/B testing and seaso
 
 | Role | Canonical Filename Pattern | Declared Slot / Purpose | Verification Note |
 |---|---|---|---|
-| **Primary Hero** | `SKU_XX_MAIN.jpg` | Pure white background (`#FFFFFF`), primary product cutout | Declared Hero cutout — manual visual check required |
-| **Other Image 1** | `SKU_XX_PT01.jpg` | Size chart, measurement specifications, & fit guide | Declared Size Guide — manual visual check required |
-| **Other Image 2** | `SKU_XX_PT02.jpg` | Fabric texture, weave detail, & material spec | Declared Fabric Highlight — manual visual check required |
-| **Other Image 3** | `SKU_XX_PT03.jpg` | Wash care instructions & styling recommendations | Declared Care Guide — manual visual check required |
-| **Other Image 4** | `SKU_XX_PT04.jpg` | Back view / alternate product angle | Declared Back View / Angle — manual visual check required |
-| **Other Image 5** | `SKU_XX_PT05.jpg` | Detail close-up / alternate lifestyle shot | Declared Other Image 5 — manual visual check required |
+| **Primary Hero** | `SKU_XX_MAIN.jpg` | Pure white background (`#FFFFFF`), primary product cutout | Declared Hero Image — manual visual check required |
+| **Other Image 1** | `SKU_XX_PT01.jpg` | Size chart, measurement specifications, & fit guide | Declared Size Chart Slot — manual visual check required |
+| **Other Image 2** | `SKU_XX_PT02.jpg` | Fabric texture, weave detail, & material spec | Declared Fabric Specification Slot — manual visual check required |
+| **Other Image 3** | `SKU_XX_PT03.jpg` | Wash care instructions & styling recommendations | Declared Care Guide Slot — manual visual check required |
+| **Other Image 4** | `SKU_XX_PT04.jpg` | Back view / alternate product angle | Declared Back View Slot — manual visual check required |
+| **Other Image 5** | `SKU_XX_PT05.jpg` | Detail close-up / alternate lifestyle shot | Declared Other Image 5 Slot — manual visual check required |
 
 ---
 
