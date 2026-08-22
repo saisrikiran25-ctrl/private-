@@ -21,10 +21,12 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ STAGE 1: AI Listing Generation (Claude / Gemini / GPT-4)    │
-│ Generates strictly formatted JSON copy with 5x A/B angles   │
-│ Enforces schema_version: "v2.0" & batch_config defaults     │
+│  • Truth Boundary: Forbids hallucination of fabric/specs    │
+│  • Separation of Facts vs Copy (verified.* product input)   │
+│  • Enforces schema_version: "v2.0" & batch_config defaults  │
+│  • Generates strictly formatted JSON with 5x A/B angles     │
 └──────────────────────────────┬──────────────────────────────┘
-                               │ JSON Payload
+                               │ JSON Payload (schema_version: "v2.0")
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ STAGE 2: Listing Factory Studio (GitHub Pages Web App)      │
@@ -41,6 +43,23 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 │  • Client Handover Delivery Archive (.zip)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🤖 Stage 1: AI Prompt Layer & Truth Boundary Contracts
+
+When generating JSON listing payloads with LLMs, the master generation prompt must enforce these foundational contracts:
+
+1. **Truth Boundary / No Hallucination**:
+   - The LLM is strictly forbidden from inventing fabric composition, wash care rules, stitching styles, or technical claims not present in the verified product record (`verified.*`).
+   - If an attribute is unknown or unverified, the LLM must mark it as `"To be confirmed"` or use neutral generic phrasing (e.g., *"as per product label"*).
+2. **Separation of Facts vs. Copy**:
+   - **Stage A (Factual Basis)**: Verified physical product records (`sku_id`, `brand`, `product_type`, `color`, `sizes`, `mrp`, `meesho_price`, `seller_config`).
+   - **Stage B (Creative Copywriting)**: Marketplace-specific copy, bullet points, Hinglish hooks, and 5x marketing variations derived strictly from verified facts.
+3. **Formal JSON Schema Contract**:
+   - Every payload must declare top-level `"schema_version": "v2.0"`.
+   - Exact array lengths: Amazon bullet points ($= 5$), Meesho highlights ($= 4$), Alternates ($= 5$).
+   - Strict length/byte ceilings: Amazon Title $\le 180$ chars, Amazon BST $\le 240$ UTF-8 bytes, Meesho Title $\le 60$ chars.
 
 ---
 
