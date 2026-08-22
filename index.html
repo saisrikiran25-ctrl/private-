@@ -86,6 +86,7 @@
     .badge-present { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
     .badge-missing { background: rgba(100,116,139,0.15); color: #94a3b8; border: 1px solid rgba(100,116,139,0.3); }
     .badge-error { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+    .badge-warn { background: rgba(234,179,8,0.15); color: #fbbf24; border: 1px solid rgba(234,179,8,0.3); }
 
     /* Generate button */
     .btn-generate { position: relative; background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%); color: white; font-weight: 700; font-size: 16px; padding: 16px 40px; border-radius: 14px; border: none; cursor: pointer; overflow: hidden; transition: all 0.3s ease; }
@@ -174,7 +175,7 @@
       <div class="flex items-center gap-3">
         <div class="hidden sm:flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-lg border border-emerald-500/20">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          Strict Validation Engine
+          Strict Audit Trail &amp; Validation Engine
         </div>
         <a href="https://github.com/saisrikiran25-ctrl/private-" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
@@ -186,13 +187,22 @@
 
   <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
 
+    <!-- Global Advisory Alerts (Feature #7) -->
+    <div id="globalAdvisoryPanel" class="hidden glass-panel-lighter p-4 border border-amber-500/30 bg-amber-500/5 rounded-xl space-y-1.5">
+      <div class="flex items-center gap-2 text-xs font-bold text-amber-400">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+        Advisory Performance &amp; Scalability Notices
+      </div>
+      <div id="globalAdvisoryList" class="text-xs text-amber-300 space-y-1"></div>
+    </div>
+
     <!-- ══ SECTION 1: Configuration ══ -->
     <section class="glass-panel p-6 animate-slide-up">
       <div class="flex items-center gap-3 mb-6">
         <div class="section-number">1</div>
         <div>
           <h2 class="text-base font-bold text-white">Client &amp; Batch Configuration</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Set up the delivery metadata for this packaging run</p>
+          <p class="text-xs text-slate-400 mt-0.5">Metadata and batch defaults for this packaging run (supports batch_config overrides)</p>
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -205,14 +215,14 @@
           <input type="text" id="batchId" class="input-field" placeholder="e.g., Batch_01_50SKU">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">Product Category</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-2 uppercase tracking-wider">Product Category (Scope)</label>
           <select id="category" class="input-field">
             <option value="">Select category…</option>
-            <option value="Women Ethnic Wear">Women Ethnic Wear</option>
-            <option value="Men Western Wear">Men Western Wear</option>
+            <option value="Women Ethnic Wear">Women Ethnic Wear (Kurtas &amp; Tops)</option>
+            <option value="Men Western Wear">Men Western Wear (Casual Shirts)</option>
             <option value="Sarees">Sarees</option>
-            <option value="Footwear">Footwear</option>
-            <option value="Home & Kitchen">Home &amp; Kitchen</option>
+            <option value="Footwear">Footwear (Casual Shoes)</option>
+            <option value="Home & Kitchen">Home &amp; Kitchen (Furnishing)</option>
           </select>
         </div>
       </div>
@@ -224,8 +234,8 @@
         <div class="flex items-center gap-3">
           <div class="section-number">2</div>
           <div>
-            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion &amp; Strict Validation</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Paste or upload listing JSON — strictly validated against marketplace rules (no silent truncation)</p>
+            <h2 class="text-base font-bold text-white">AI-Generated JSON Ingestion &amp; Structured Validation</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Paste or upload listing JSON — validated per SKU (<code class="text-emerald-400 font-mono text-[11px]">"To be confirmed"</code> allowed as review flag)</p>
           </div>
         </div>
         <div class="flex items-center gap-2">
@@ -241,7 +251,7 @@
         <button onclick="setJsonMode('file')" id="tabFile" class="px-4 py-2 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-slate-300">📁 Upload File</button>
       </div>
       <div id="pasteMode">
-        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='Paste JSON array conforming to strict schema…&#10;[{ "sku_id": "SKU_01", "brand": "…", "color": "…", "seller_config": { "amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200" }, … }]'></textarea>
+        <textarea id="jsonTextarea" class="json-editor w-full h-64 p-4" spellcheck="false" placeholder='Paste JSON array or batch object with strict schema…&#10;{ "batch_config": { "brand": "…", "category": "Women Ethnic Wear", "seller_config": { "amazon_quantity": 50, "gst_percent": 5, "hsn_code": "62114200" } }, "skus": [ … ] }'></textarea>
       </div>
       <div id="fileMode" class="hidden">
         <div class="border-2 border-dashed border-slate-700/50 rounded-xl p-8 text-center cursor-pointer hover:border-emerald-500/40 transition-all" onclick="document.getElementById('jsonFileInput').click()">
@@ -255,22 +265,13 @@
         </div>
       </div>
 
-      <!-- Errors Panel -->
-      <div id="errorsPanel" class="hidden mt-4 space-y-2">
-        <div class="flex items-center gap-2 text-xs font-semibold text-red-400 mb-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9.303 3.376H2.697L13.949 3.378c.866-1.5 3.032-1.5 3.898 0l9.252 16.248Z"/></svg>
-          Schema &amp; Constraint Errors (Fix Required)
+      <!-- Feature #4: Per-SKU Structured Validation Results -->
+      <div id="validationResultsPanel" class="hidden mt-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div class="text-xs font-bold text-slate-300">Structured Validation Breakdown by SKU</div>
+          <div id="valSummaryBadge" class="text-xs font-mono"></div>
         </div>
-        <div id="errorsList" class="space-y-1.5"></div>
-      </div>
-
-      <!-- Warnings Panel -->
-      <div id="warningsPanel" class="hidden mt-4 space-y-2">
-        <div class="flex items-center gap-2 text-xs font-semibold text-amber-400 mb-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
-          Advisory Warnings
-        </div>
-        <div id="warningsList" class="space-y-1.5"></div>
+        <div id="skuValidationContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
       </div>
 
       <div id="skuStats" class="hidden mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
@@ -348,7 +349,7 @@
         <div class="section-number">4</div>
         <div>
           <h2 class="text-base font-bold text-white">Pre-Flight Review &amp; Package Generation</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Generates client handover ZIP containing marketplace mapping workbooks and organized images</p>
+          <p class="text-xs text-slate-400 mt-0.5">Generates client handover ZIP containing marketplace mapping workbooks, package_metadata.json audit trail, and organized images</p>
         </div>
       </div>
 
@@ -392,7 +393,7 @@
           </span>
           <span id="btnLoading" class="hidden"><span class="spinner"></span>Packaging…</span>
         </button>
-        <p class="text-xs text-slate-500">Includes Master Mapping Workbook + 5x Alternates Workbook + SKU Images + Upload Guide</p>
+        <p class="text-xs text-slate-500">Includes Master Workbook + 5x Alternates Workbook + Audit Metadata (SHA-256) + SKU Images + Upload Guide</p>
       </div>
     </section>
 
@@ -406,14 +407,21 @@
 
 <!-- ══════════════ JavaScript Engine ══════════════ -->
 <script>
-// ── Controlled Marketplace Taxonomies (Strict Flipkart Attributes) ──
-const ALLOWED_FABRICS = ["Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton"];
-const ALLOWED_KURTA_TYPES = ["Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani"];
-const ALLOWED_NECKS = ["Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck"];
-const ALLOWED_SLEEVES = ["3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve"];
-const ALLOWED_LENGTHS = ["Calf Length", "Ankle Length", "Knee Length", "Above Knee"];
-const ALLOWED_PATTERNS = ["Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani"];
-const ALLOWED_OCCASIONS = ["Casual", "Festive", "Casual & Festive", "Party", "Formal"];
+// ── Global Constants & Versioning ──
+const TOOL_VERSION = "Listing Factory v2.0";
+const JSON_PROMPT_VERSION = "JSON Prompt v1.0 – 2026-08-22";
+const TO_BE_CONFIRMED = "To be confirmed";
+const MAX_SKUS_SOFT_LIMIT = 50;
+const MAX_TOTAL_IMAGE_SIZE_MB = 200;
+
+// Controlled Marketplace Taxonomies
+const ALLOWED_FABRICS = ["Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton", "To be confirmed"];
+const ALLOWED_KURTA_TYPES = ["Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani", "To be confirmed"];
+const ALLOWED_NECKS = ["Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck", "To be confirmed"];
+const ALLOWED_SLEEVES = ["3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve", "To be confirmed"];
+const ALLOWED_LENGTHS = ["Calf Length", "Ankle Length", "Knee Length", "Above Knee", "To be confirmed"];
+const ALLOWED_PATTERNS = ["Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani", "To be confirmed"];
+const ALLOWED_OCCASIONS = ["Casual", "Festive", "Casual & Festive", "Party", "Formal", "To be confirmed"];
 
 const CATEGORY_MAP = {
   "Women Ethnic Wear": "kurtas-and-ethnic-tops",
@@ -441,8 +449,9 @@ const SLOT_LABELS  = {
 // ── State ──
 let currentJsonText = '';
 let parsedSkus = [];
-let validationErrors = [];
-let validationWarnings = [];
+let skuValidationResults = []; // [{ sku_id, valid, errors: [], warnings: [] }]
+let globalValidationWarnings = [];
+let globalValidationErrors = [];
 let imageFiles = [];          // File[]
 let imageMap = {};            // { sku_id: File[] }
 let unassignedImages = [];    // File[]
@@ -451,218 +460,225 @@ let jsonValid = false;
 let jsonMode = 'paste';
 let filterMode = 'all';
 
-// ── Strict Sample Data Conforming to v2.0 Schema ──
-const SAMPLE = [{
-  sku_id: "SKU_01",
-  brand: "Anvi Fabrics",
-  product_type: "Anarkali Kurti",
-  color: "Navy Blue",
-  sizes: "S, M, L, XL, XXL, 3XL",
-  mrp: 1299,
-  meesho_price: 349,
-  seller_config: {
-    amazon_quantity: 50,
-    gst_percent: 5,
-    hsn_code: "62114200"
+// ── Strict Sample Data (with batch_config support) ──
+const SAMPLE = {
+  batch_config: {
+    brand: "Anvi Fabrics",
+    category: "Women Ethnic Wear",
+    seller_config: {
+      amazon_quantity: 50,
+      gst_percent: 5,
+      hsn_code: "62114200"
+    }
   },
-  amazon: {
-    title: "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Breathable Summer Ethnic Wear",
-    bullet_points: [
-      "100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
-      "ANARKALI FIT WITH POCKETS: Flattering flared design with functional side pockets.",
-      "COLORFAST & WASHABLE: Pre-shrunk fabric ensures no bleeding or shrinkage.",
-      "VERSATILE STYLING: Pairs with leggings, palazzos, or jeans.",
-      "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."
-    ],
-    backend_search_terms: "cotton kurti women anarkali kurta daily wear office festive summer ethnic top",
-    description: "Upgrade your ethnic wardrobe with Anvi Fabrics Pure Cotton Kurti. Crafted from lightweight 60s count cotton."
-  },
-  flipkart: {
-    title: "Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
-    fabric: "Pure Cotton",
-    kurta_type: "Anarkali",
-    neck: "Mandarin Neck",
-    sleeve: "3/4 Sleeve",
-    length_type: "Calf Length",
-    pattern: "Floral Print",
-    occasion: "Casual & Festive",
-    search_keywords: "anarkali kurti, cotton kurta women, summer kurti",
-    description: "Anvi Fabrics presents this elegant printed pure cotton anarkali kurta designed for all-day comfort and effortless styling."
-  },
-  meesho: {
-    title: "Pure Cotton Flared Anarkali Kurti with Pockets",
-    hinglish_hook_description: "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
-    english_hook_description: "Premium pure cotton anarkali kurti crafted with functional side pockets and flattering flared silhouette for everyday elegance.",
-    highlights: [
-      "Fabric: Pure Cotton (Soft & Breathable)",
-      "Style: Flared Anarkali with Side Pockets",
-      "Sizes: S to 3XL",
-      "Care: Normal Hand or Machine Wash"
-    ]
-  },
-  alternates: [
+  skus: [
     {
-      variant_id: "V1",
-      angle_theme: "Daily Office & Workwear",
+      sku_id: "SKU_01",
+      product_type: "Anarkali Kurti",
+      color: "Navy Blue",
+      sizes: "S, M, L, XL, XXL, 3XL",
+      mrp: 1299,
+      meesho_price: 349,
       amazon: {
-        title: "Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
+        title: "Anvi Fabrics Women's Pure Cotton Anarkali Kurti with Pockets | Breathable Summer Ethnic Wear",
         bullet_points: [
-          "FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.",
-          "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.",
-          "COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.",
-          "VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.",
-          "SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."
+          "100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
+          "ANARKALI FIT WITH POCKETS: Flattering flared design with functional side pockets.",
+          "COLORFAST & WASHABLE: Pre-shrunk fabric ensures no bleeding or shrinkage.",
+          "VERSATILE STYLING: Pairs with leggings, palazzos, or jeans.",
+          "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."
         ],
-        backend_search_terms: "office kurti women cotton formal ethnic workwear daily professional kurta",
-        description: "Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings."
+        backend_search_terms: "cotton kurti women anarkali kurta daily wear office festive summer ethnic top",
+        description: "Upgrade your ethnic wardrobe with Anvi Fabrics Pure Cotton Kurti. Crafted from lightweight 60s count cotton."
       },
       flipkart: {
-        title: "Anvi Fabrics Women Cotton Office Wear Anarkali Kurta",
-        search_keywords: "office kurti, formal kurta women, cotton workwear",
-        description: "Professional cotton anarkali for the modern working woman with deep pockets and tailored fit."
+        title: "Anvi Fabrics Women Printed Pure Cotton Anarkali Kurta (Blue)",
+        fabric: "Pure Cotton",
+        kurta_type: "Anarkali",
+        neck: "Mandarin Neck",
+        sleeve: "3/4 Sleeve",
+        length_type: "Calf Length",
+        pattern: "Floral Print",
+        occasion: "Casual & Festive",
+        search_keywords: "anarkali kurti, cotton kurta women, summer kurti",
+        description: "Anvi Fabrics presents this elegant printed pure cotton anarkali kurta designed for all-day comfort and effortless styling."
       },
       meesho: {
-        title: "Office Wear Pure Cotton Anarkali Kurti",
-        hinglish_hook_description: "Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.",
-        english_hook_description: "Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.",
+        title: "Pure Cotton Flared Anarkali Kurti with Pockets",
+        hinglish_hook_description: "100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
+        english_hook_description: "Premium pure cotton anarkali kurti crafted with functional side pockets and flattering flared silhouette for everyday elegance.",
         highlights: [
-          "Fabric: Premium Cotton",
-          "Style: Office-Ready Anarkali",
-          "Pockets: Deep Side Pockets",
-          "Care: Machine Washable"
+          "Fabric: Pure Cotton (Soft & Breathable)",
+          "Style: Flared Anarkali with Side Pockets",
+          "Sizes: S to 3XL",
+          "Care: Normal Hand or Machine Wash"
         ]
-      }
-    },
-    {
-      variant_id: "V2",
-      angle_theme: "Festive & Wedding Celebrations",
-      amazon: {
-        title: "Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
-        bullet_points: [
-          "FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.",
-          "DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.",
-          "COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.",
-          "VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.",
-          "SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."
-        ],
-        backend_search_terms: "festive kurti women party wear wedding cotton anarkali celebration ethnic",
-        description: "Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour."
       },
-      flipkart: {
-        title: "Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta",
-        search_keywords: "festive kurti, party wear kurta, wedding kurti women",
-        description: "Elegant cotton anarkali tailored for festivals, weddings, and celebration gatherings."
-      },
-      meesho: {
-        title: "Festive Party Wear Cotton Anarkali Kurti",
-        hinglish_hook_description: "Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.",
-        english_hook_description: "Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.",
-        highlights: [
-          "Fabric: Festive Cotton",
-          "Style: Elegant Anarkali Flare",
-          "Occasion: Wedding & Puja",
-          "Care: Gentle Wash"
-        ]
-      }
-    },
-    {
-      variant_id: "V3",
-      angle_theme: "Summer Heat & Breathable Comfort",
-      amazon: {
-        title: "Breathable Summer Cotton Anarkali Kurti for Women | Lightweight Daily Wear",
-        bullet_points: [
-          "FABRIC & COMFORT: Ultra-breathable weave provides active ventilation in peak summer.",
-          "DESIGN & UTILITY: Relaxed airy flare prevents cling and keeps you fresh all day long.",
-          "COLORFAST & DURABLE: Sun-resistant eco dyes keep the navy print crisp and bright.",
-          "VERSATILE STYLING: Match with cotton pants or breezy palazzo skirts.",
-          "SIZING & CARE: Standard Indian sizing with generous ease."
-        ],
-        backend_search_terms: "summer kurti breathable cotton airy lightweight comfortable kurta",
-        description: "Beat the heat in effortless style with this ultra-lightweight summer cotton anarkali."
-      },
-      flipkart: {
-        title: "Anvi Fabrics Women Summer Breathable Cotton Kurta",
-        search_keywords: "summer cotton kurti, breezy anarkali kurta, breathable wear",
-        description: "Lightweight summer cotton kurti designed for maximum airflow and cooling comfort."
-      },
-      meesho: {
-        title: "Summer Special Breathable Cotton Kurti",
-        hinglish_hook_description: "Garmiyon ke liye sabse thanda aur aaramdayak cotton! Paseene se rahat aur stylish look.",
-        english_hook_description: "Stay cool and confident all summer with breathable 100% pure cotton.",
-        highlights: [
-          "Fabric: 100% Breathable Cotton",
-          "Season: Summer Essential",
-          "Feel: Ultra Soft & Airy",
-          "Care: Hand/Machine Wash"
-        ]
-      }
-    },
-    {
-      variant_id: "V4",
-      angle_theme: "High-Value Everyday Essential",
-      amazon: {
-        title: "Durable Daily Wear Cotton Anarkali Kurti | Value Pack Ethnic Kurta with Pockets",
-        bullet_points: [
-          "FABRIC & COMFORT: Heavy-duty 60s cotton built for 50+ washes without fading.",
-          "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
-          "COLORFAST & DURABLE: Tested colorfast dyes ensure zero shrinkage or pilling.",
-          "VERSATILE STYLING: Everyday workhorse piece suitable for home, market, and travel.",
-          "SIZING & CARE: Easy wash-and-wear care routine."
-        ],
-        backend_search_terms: "durable kurti daily wear long lasting cotton kurta value pocket",
-        description: "An unbeatable combination of durability, utility pockets, and premium cotton feel."
-      },
-      flipkart: {
-        title: "Anvi Fabrics Women Durable Everyday Cotton Kurta",
-        search_keywords: "daily wear kurti, durable cotton kurta, pocket anarkali",
-        description: "Built for everyday endurance with reinforced seams, functional pockets, and colorfast cotton."
-      },
-      meesho: {
-        title: "Durable Everyday Cotton Anarkali Kurti",
-        hinglish_hook_description: "Rozana pehanne ke liye sabse majboot cotton kurti! Bar bar dhone par bhi rang nahi chhootega.",
-        english_hook_description: "High-durability everyday ethnic kurti with dual side pockets.",
-        highlights: [
-          "Fabric: Tough Daily Cotton",
-          "Durability: 50+ Wash Tested",
-          "Pockets: 2 Side Pockets",
-          "Value: Top Rating Quality"
-        ]
-      }
-    },
-    {
-      variant_id: "V5",
-      angle_theme: "Gifting & Modern Fusion",
-      amazon: {
-        title: "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Perfect Gift for Her",
-        bullet_points: [
-          "FABRIC & COMFORT: Premium drape that looks stunning on every body type.",
-          "DESIGN & UTILITY: Contemporary silhouette blending Indian ethnic flare with modern utility.",
-          "COLORFAST & DURABLE: Comes pre-inspected with pristine finish and elegant tagging.",
-          "VERSATILE STYLING: Pairs effortlessly with denim jeans, palazzos, or jeggings.",
-          "SIZING & CARE: Gift-ready sizing range S to 3XL."
-        ],
-        backend_search_terms: "gift kurti for women fusion anarkali modern ethnic denim pairing",
-        description: "The ideal gift for birthdays, anniversaries, and festive gifting. A versatile modern classic."
-      },
-      flipkart: {
-        title: "Anvi Fabrics Women Modern Fusion Cotton Anarkali",
-        search_keywords: "gifting kurti, fusion anarkali kurta, trendy ethnic wear",
-        description: "Contemporary fusion styling crafted for festive gifting and trendy everyday outings."
-      },
-      meesho: {
-        title: "Trendy Fusion Style Cotton Anarkali Kurti",
-        hinglish_hook_description: "Gifting ke liye best item! Jeans ya palazzo ke saath super trendy look deta hai.",
-        english_hook_description: "Chic modern fusion kurti. Perfect for gifting and contemporary styling.",
-        highlights: [
-          "Style: Modern Fusion Flare",
-          "Occasion: Perfect for Gifting",
-          "Pairing: Jeans & Palazzo",
-          "Quality: Premium Finish"
-        ]
-      }
+      alternates: [
+        {
+          variant_id: "V1",
+          angle_theme: "Daily Office & Workwear",
+          amazon: {
+            title: "Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
+            bullet_points: [
+              "FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.",
+              "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.",
+              "COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.",
+              "VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.",
+              "SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."
+            ],
+            backend_search_terms: "office kurti women cotton formal ethnic workwear daily professional kurta",
+            description: "Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings."
+          },
+          flipkart: {
+            title: "Anvi Fabrics Women Cotton Office Wear Anarkali Kurta",
+            search_keywords: "office kurti, formal kurta women, cotton workwear",
+            description: "Professional cotton anarkali for the modern working woman with deep pockets and tailored fit."
+          },
+          meesho: {
+            title: "Office Wear Pure Cotton Anarkali Kurti",
+            hinglish_hook_description: "Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.",
+            english_hook_description: "Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.",
+            highlights: [
+              "Fabric: Premium Cotton",
+              "Style: Office-Ready Anarkali",
+              "Pockets: Deep Side Pockets",
+              "Care: Machine Washable"
+            ]
+          }
+        },
+        {
+          variant_id: "V2",
+          angle_theme: "Festive & Wedding Celebrations",
+          amazon: {
+            title: "Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
+            bullet_points: [
+              "FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.",
+              "DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.",
+              "COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.",
+              "VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.",
+              "SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."
+            ],
+            backend_search_terms: "festive kurti women party wear wedding cotton anarkali celebration ethnic",
+            description: "Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour."
+          },
+          flipkart: {
+            title: "Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta",
+            search_keywords: "festive kurti, party wear kurta, wedding kurti women",
+            description: "Elegant cotton anarkali tailored for festivals, weddings, and celebration gatherings."
+          },
+          meesho: {
+            title: "Festive Party Wear Cotton Anarkali Kurti",
+            hinglish_hook_description: "Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.",
+            english_hook_description: "Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.",
+            highlights: [
+              "Fabric: Festive Cotton",
+              "Style: Elegant Anarkali Flare",
+              "Occasion: Wedding & Puja",
+              "Care: Gentle Wash"
+            ]
+          }
+        },
+        {
+          variant_id: "V3",
+          angle_theme: "Summer Heat & Breathable Comfort",
+          amazon: {
+            title: "Breathable Summer Cotton Anarkali Kurti for Women | Lightweight Daily Wear",
+            bullet_points: [
+              "FABRIC & COMFORT: Ultra-breathable weave provides active ventilation in peak summer.",
+              "DESIGN & UTILITY: Relaxed airy flare prevents cling and keeps you fresh all day long.",
+              "COLORFAST & DURABLE: Sun-resistant eco dyes keep the navy print crisp and bright.",
+              "VERSATILE STYLING: Match with cotton pants or breezy palazzo skirts.",
+              "SIZING & CARE: Standard Indian sizing with generous ease."
+            ],
+            backend_search_terms: "summer kurti breathable cotton airy lightweight comfortable kurta",
+            description: "Beat the heat in effortless style with this ultra-lightweight summer cotton anarkali."
+          },
+          flipkart: {
+            title: "Anvi Fabrics Women Summer Breathable Cotton Kurta",
+            search_keywords: "summer cotton kurti, breezy anarkali kurta, breathable wear",
+            description: "Lightweight summer cotton kurti designed for maximum airflow and cooling comfort."
+          },
+          meesho: {
+            title: "Summer Special Breathable Cotton Kurti",
+            hinglish_hook_description: "Garmiyon ke liye sabse thanda aur aaramdayak cotton! Paseene se rahat aur stylish look.",
+            english_hook_description: "Stay cool and confident all summer with breathable 100% pure cotton.",
+            highlights: [
+              "Fabric: 100% Breathable Cotton",
+              "Season: Summer Essential",
+              "Feel: Ultra Soft & Airy",
+              "Care: Hand/Machine Wash"
+            ]
+          }
+        },
+        {
+          variant_id: "V4",
+          angle_theme: "High-Value Everyday Essential",
+          amazon: {
+            title: "Durable Daily Wear Cotton Anarkali Kurti | Value Pack Ethnic Kurta with Pockets",
+            bullet_points: [
+              "FABRIC & COMFORT: Heavy-duty 60s cotton built for 50+ washes without fading.",
+              "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
+              "COLORFAST & DURABLE: Tested colorfast dyes ensure zero shrinkage or pilling.",
+              "VERSATILE STYLING: Everyday workhorse piece suitable for home, market, and travel.",
+              "SIZING & CARE: Easy wash-and-wear care routine."
+            ],
+            backend_search_terms: "durable kurti daily wear long lasting cotton kurta value pocket",
+            description: "An unbeatable combination of durability, utility pockets, and premium cotton feel."
+          },
+          flipkart: {
+            title: "Anvi Fabrics Women Durable Everyday Cotton Kurta",
+            search_keywords: "daily wear kurti, durable cotton kurta, pocket anarkali",
+            description: "Built for everyday endurance with reinforced seams, functional pockets, and colorfast cotton."
+          },
+          meesho: {
+            title: "Durable Everyday Cotton Anarkali Kurti",
+            hinglish_hook_description: "Rozana pehanne ke liye sabse majboot cotton kurti! Bar bar dhone par bhi rang nahi chhootega.",
+            english_hook_description: "High-durability everyday ethnic kurti with dual side pockets.",
+            highlights: [
+              "Fabric: Tough Daily Cotton",
+              "Durability: 50+ Wash Tested",
+              "Pockets: 2 Side Pockets",
+              "Value: Top Rating Quality"
+            ]
+          }
+        },
+        {
+          variant_id: "V5",
+          angle_theme: "Gifting & Modern Fusion",
+          amazon: {
+            title: "Anvi Fabrics Modern Fusion Cotton Anarkali Kurti | Perfect Gift for Her",
+            bullet_points: [
+              "FABRIC & COMFORT: Premium drape that looks stunning on every body type.",
+              "DESIGN & UTILITY: Contemporary silhouette blending Indian ethnic flare with modern utility.",
+              "COLORFAST & DURABLE: Comes pre-inspected with pristine finish and elegant tagging.",
+              "VERSATILE STYLING: Pairs effortlessly with denim jeans, palazzos, or jeggings.",
+              "SIZING & CARE: Gift-ready sizing range S to 3XL."
+            ],
+            backend_search_terms: "gift kurti for women fusion anarkali modern ethnic denim pairing",
+            description: "The ideal gift for birthdays, anniversaries, and festive gifting. A versatile modern classic."
+          },
+          flipkart: {
+            title: "Anvi Fabrics Women Modern Fusion Cotton Anarkali",
+            search_keywords: "gifting kurti, fusion anarkali kurta, trendy ethnic wear",
+            description: "Contemporary fusion styling crafted for festive gifting and trendy everyday outings."
+          },
+          meesho: {
+            title: "Trendy Fusion Style Cotton Anarkali Kurti",
+            hinglish_hook_description: "Gifting ke liye best item! Jeans ya palazzo ke saath super trendy look deta hai.",
+            english_hook_description: "Chic modern fusion kurti. Perfect for gifting and contemporary styling.",
+            highlights: [
+              "Style: Modern Fusion Flare",
+              "Occasion: Perfect for Gifting",
+              "Pairing: Jeans & Palazzo",
+              "Quality: Premium Finish"
+            ]
+          }
+        }
+      ]
     }
   ]
-}];
+};
 
 function loadSampleJson() {
   document.getElementById('clientName').value = 'Anvi_Fabrics';
@@ -709,116 +725,227 @@ jsonTextarea.addEventListener('input', () => {
   debounceTimer = setTimeout(() => { currentJsonText = jsonTextarea.value; validateJsonClientSide(); }, 300);
 });
 
-// ── Strict Client-Side JSON Validation Engine (No Silent Truncation) ──
-function validateJsonClientSide() {
-  if (!currentJsonText.trim()) {
-    setJsonBadge(false, 'No JSON'); jsonValid = false; parsedSkus = []; validationWarnings = []; validationErrors = [];
-    hideSkuStats(); hideWarnings(); hideErrors(); updatePreflightChecks(); refreshMatrix(); return;
+// ── Helper to calculate SHA-256 in browser (Feature #1) ──
+async function sha256Hex(str) {
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── Feature #1: Package Metadata / Audit Trail Builder ──
+async function buildPackageMetadataClient(client, batch, category, skus) {
+  const skuEntries = [];
+  for (const sku of skus) {
+    const inputRec = {
+      sku_id: sku.sku_id,
+      brand: sku.brand,
+      product_type: sku.product_type,
+      color: sku.color,
+      category: sku.category || category,
+      sizes: sku.sizes,
+      mrp: sku.mrp,
+      meesho_price: sku.meesho_price,
+      seller_config: sku.seller_config
+    };
+    const inputHash = await sha256Hex(JSON.stringify(inputRec));
+    const outputHash = await sha256Hex(JSON.stringify(sku));
+    skuEntries.push({
+      sku_id: sku.sku_id,
+      input_hash: inputHash,
+      output_hash: outputHash
+    });
   }
 
-  const errors = [];
-  const warnings = [];
-  const skus = [];
+  const now = new Date();
+  const tzOffset = -now.getTimezoneOffset();
+  const diffHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0');
+  const diffMins = String(Math.abs(tzOffset) % 60).padStart(2, '0');
+  const tzSign = tzOffset >= 0 ? '+' : '-';
+  const isoLocal = now.getFullYear() + '-' +
+    String(now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(now.getDate()).padStart(2, '0') + 'T' +
+    String(now.getHours()).padStart(2, '0') + ':' +
+    String(now.getMinutes()).padStart(2, '0') + ':' +
+    String(now.getSeconds()).padStart(2, '0') +
+    tzSign + diffHours + ':' + diffMins;
+
+  return {
+    tool_version: TOOL_VERSION,
+    json_prompt_version: JSON_PROMPT_VERSION,
+    generated_at: isoLocal,
+    client: client,
+    batch: batch,
+    category: category,
+    skus: skuEntries
+  };
+}
+
+// ── Feature #4 & #5: Strict Client-Side JSON Validation & Batch Config Merging ──
+function validateJsonClientSide() {
+  if (!currentJsonText.trim()) {
+    setJsonBadge(false, 'No JSON'); jsonValid = false; parsedSkus = []; skuValidationResults = [];
+    hideSkuStats(); hideValidationBreakdown(); hideGlobalAdvisories(); updatePreflightChecks(); refreshMatrix(); return;
+  }
+
   const encoder = new TextEncoder();
+  const globalWarns = [];
+  const globalErrs = [];
+  const skus = [];
+  const results = [];
 
   try {
     let raw = JSON.parse(currentJsonText);
-    if (!Array.isArray(raw)) raw = [raw];
+    let batchConfig = null;
+    let skuList = [];
 
-    raw.forEach((item, idx) => {
+    // Feature #5: Normalize raw object or batch_config wrapper
+    if (typeof raw === 'object' && raw !== null && !Array.isArray(raw)) {
+      if ('batch_config' in raw || 'skus' in raw) {
+        batchConfig = raw.batch_config || {};
+        skuList = Array.isArray(raw.skus) ? raw.skus : [raw.skus];
+      } else {
+        skuList = [raw];
+      }
+    } else if (Array.isArray(raw)) {
+      skuList = raw;
+    } else {
+      throw new Error('Expected a JSON array or batch object.');
+    }
+
+    // Auto-fill configuration fields if batch_config is present and inputs are empty
+    if (batchConfig) {
+      if (batchConfig.brand && !document.getElementById('clientName').value) {
+        document.getElementById('clientName').value = batchConfig.brand;
+      }
+      if (batchConfig.category && !document.getElementById('category').value) {
+        document.getElementById('category').value = batchConfig.category;
+      }
+    }
+
+    // Feature #7: Performance Safeguards (Soft Limit on SKU count)
+    if (skuList.length > MAX_SKUS_SOFT_LIMIT) {
+      globalWarns.push(`Batch contains ${skuList.length} SKUs (recommended soft limit: ${MAX_SKUS_SOFT_LIMIT}). Consider splitting into smaller batches for optimal browser packaging.`);
+    }
+
+    skuList.forEach((item, idx) => {
       const sk = item.sku_id || `SKU_${String(idx+1).padStart(2,'0')}`;
-      
-      // 1. Base required fields
-      if (!item.sku_id) errors.push(`${sk}: Missing required field "sku_id"`);
-      if (!item.brand) errors.push(`${sk}: Missing required field "brand"`);
-      if (!item.product_type) errors.push(`${sk}: Missing required field "product_type"`);
-      if (!item.color) errors.push(`${sk}: Missing required field "color"`);
-      if (!item.sizes) errors.push(`${sk}: Missing required field "sizes"`);
-      if (item.mrp === undefined || item.mrp === null || isNaN(Number(item.mrp))) errors.push(`${sk}: Missing or invalid "mrp"`);
-      if (item.meesho_price === undefined || item.meesho_price === null || isNaN(Number(item.meesho_price))) errors.push(`${sk}: Missing or invalid "meesho_price"`);
+      const skuErrors = [];
+      const skuWarnings = [];
 
-      // 2. Seller Config
-      const sc = item.seller_config || {};
-      if (sc.amazon_quantity === undefined || isNaN(Number(sc.amazon_quantity))) errors.push(`${sk}: Missing "seller_config.amazon_quantity"`);
-      if (sc.gst_percent === undefined || isNaN(Number(sc.gst_percent))) errors.push(`${sk}: Missing "seller_config.gst_percent"`);
-      if (!sc.hsn_code) errors.push(`${sk}: Missing "seller_config.hsn_code"`);
+      // Merge batch_config defaults
+      const brand = item.brand || (batchConfig && batchConfig.brand) || '';
+      const category = item.category || (batchConfig && batchConfig.category) || document.getElementById('category').value || 'Women Ethnic Wear';
+      const color = item.color || '';
+      const productType = item.product_type || '';
+      const sizes = item.sizes || '';
+      const mrp = Number(item.mrp);
+      const meeshoPrice = Number(item.meesho_price);
 
-      // 3. Amazon constraints
+      // Seller Config merge
+      const defaultSc = (batchConfig && batchConfig.seller_config) || {};
+      const itemSc = item.seller_config || {};
+      const sc = {
+        amazon_quantity: itemSc.amazon_quantity !== undefined ? Number(itemSc.amazon_quantity) : (defaultSc.amazon_quantity !== undefined ? Number(defaultSc.amazon_quantity) : 50),
+        gst_percent: itemSc.gst_percent !== undefined ? Number(itemSc.gst_percent) : (defaultSc.gst_percent !== undefined ? Number(defaultSc.gst_percent) : 5),
+        hsn_code: String(itemSc.hsn_code || defaultSc.hsn_code || '62114200')
+      };
+
+      // Base field validations
+      if (!item.sku_id) skuErrors.push('Missing required field "sku_id"');
+      if (!brand) skuErrors.push('Missing required field "brand"');
+      if (!productType) skuErrors.push('Missing required field "product_type"');
+      if (!color) skuErrors.push('Missing required field "color"');
+      if (!sizes) skuErrors.push('Missing required field "sizes"');
+      if (isNaN(mrp)) skuErrors.push('Missing or invalid "mrp"');
+      if (isNaN(meeshoPrice)) skuErrors.push('Missing or invalid "meesho_price"');
+
+      // Feature #2: Check for "To be confirmed"
+      for (const [k, v] of Object.entries(item)) {
+        if (typeof v === 'string' && v.trim().toLowerCase() === TO_BE_CONFIRMED.toLowerCase()) {
+          skuWarnings.push(`Field '${k}' is marked '${TO_BE_CONFIRMED}'`);
+        }
+      }
+
+      // Amazon validations
       const amz = item.amazon || {};
       const amzTitle = amz.title || '';
       if (!amzTitle.trim()) {
-        errors.push(`${sk}: Amazon title is missing`);
-      } else if (amzTitle.length > 180) {
-        errors.push(`${sk}: Amazon title strictly exceeds 180 chars (${amzTitle.length} chars)`);
+        skuErrors.push('Amazon title is missing');
+      } else if (amzTitle !== TO_BE_CONFIRMED && amzTitle.length > 180) {
+        skuErrors.push(`Amazon title strictly exceeds 180 chars (${amzTitle.length} chars)`);
       } else if (amzTitle.length > 165) {
-        warnings.push(`${sk}: Amazon title length is near limit (${amzTitle.length}/180 chars)`);
+        skuWarnings.push(`Amazon title length is near limit (${amzTitle.length}/180 chars)`);
       }
 
       const bst = amz.backend_search_terms || '';
       const bstBytes = encoder.encode(bst).length;
       if (!bst.trim()) {
-        errors.push(`${sk}: Amazon backend_search_terms is missing`);
-      } else if (bstBytes > 240) {
-        errors.push(`${sk}: Amazon search terms strictly exceed 240 bytes (${bstBytes} bytes)`);
+        skuErrors.push('Amazon backend_search_terms is missing');
+      } else if (bst !== TO_BE_CONFIRMED && bstBytes > 240) {
+        skuErrors.push(`Amazon search terms strictly exceed 240 bytes (${bstBytes} bytes)`);
       } else if (bstBytes > 225) {
-        warnings.push(`${sk}: Amazon search terms bytes near limit (${bstBytes}/240 bytes)`);
+        skuWarnings.push(`Amazon search terms bytes near limit (${bstBytes}/240 bytes)`);
       }
 
       const bullets = amz.bullet_points || [];
       if (!Array.isArray(bullets) || bullets.length !== 5) {
-        errors.push(`${sk}: Amazon bullet_points must contain exactly 5 points (got ${bullets.length})`);
+        skuErrors.push(`Amazon bullet_points must contain exactly 5 points (got ${bullets.length})`);
       }
       if (!amz.description || !amz.description.trim()) {
-        errors.push(`${sk}: Amazon description is missing`);
+        skuErrors.push('Amazon description is missing');
       }
 
-      // 4. Flipkart constraints (controlled attributes)
+      // Flipkart validations (Controlled Attributes + "To be confirmed" allowed)
       const fk = item.flipkart || {};
-      if (!fk.title || !fk.title.trim()) errors.push(`${sk}: Flipkart title is missing`);
-      if (!ALLOWED_FABRICS.includes(fk.fabric)) errors.push(`${sk}: Flipkart fabric "${fk.fabric}" not in allowed values: [${ALLOWED_FABRICS.join(', ')}]`);
-      if (!ALLOWED_KURTA_TYPES.includes(fk.kurta_type)) errors.push(`${sk}: Flipkart kurta_type "${fk.kurta_type}" not in allowed values: [${ALLOWED_KURTA_TYPES.join(', ')}]`);
-      if (!ALLOWED_NECKS.includes(fk.neck)) errors.push(`${sk}: Flipkart neck "${fk.neck}" not in allowed values: [${ALLOWED_NECKS.join(', ')}]`);
-      if (!ALLOWED_SLEEVES.includes(fk.sleeve)) errors.push(`${sk}: Flipkart sleeve "${fk.sleeve}" not in allowed values: [${ALLOWED_SLEEVES.join(', ')}]`);
-      if (!ALLOWED_LENGTHS.includes(fk.length_type)) errors.push(`${sk}: Flipkart length_type "${fk.length_type}" not in allowed values: [${ALLOWED_LENGTHS.join(', ')}]`);
-      if (!ALLOWED_PATTERNS.includes(fk.pattern)) errors.push(`${sk}: Flipkart pattern "${fk.pattern}" not in allowed values: [${ALLOWED_PATTERNS.join(', ')}]`);
-      if (!ALLOWED_OCCASIONS.includes(fk.occasion)) errors.push(`${sk}: Flipkart occasion "${fk.occasion}" not in allowed values: [${ALLOWED_OCCASIONS.join(', ')}]`);
-      if (!fk.search_keywords || !fk.search_keywords.trim()) errors.push(`${sk}: Flipkart search_keywords missing`);
-      if (!fk.description || !fk.description.trim()) errors.push(`${sk}: Flipkart description missing`);
+      if (!fk.title || !fk.title.trim()) skuErrors.push('Flipkart title is missing');
+      if (fk.fabric && !ALLOWED_FABRICS.includes(fk.fabric)) skuErrors.push(`Flipkart fabric "${fk.fabric}" not in allowed values: [${ALLOWED_FABRICS.join(', ')}]`);
+      if (fk.kurta_type && !ALLOWED_KURTA_TYPES.includes(fk.kurta_type)) skuErrors.push(`Flipkart kurta_type "${fk.kurta_type}" not in allowed values`);
+      if (fk.neck && !ALLOWED_NECKS.includes(fk.neck)) skuErrors.push(`Flipkart neck "${fk.neck}" not in allowed values`);
+      if (fk.sleeve && !ALLOWED_SLEEVES.includes(fk.sleeve)) skuErrors.push(`Flipkart sleeve "${fk.sleeve}" not in allowed values`);
+      if (fk.length_type && !ALLOWED_LENGTHS.includes(fk.length_type)) skuErrors.push(`Flipkart length_type "${fk.length_type}" not in allowed values`);
+      if (fk.pattern && !ALLOWED_PATTERNS.includes(fk.pattern)) skuErrors.push(`Flipkart pattern "${fk.pattern}" not in allowed values`);
+      if (fk.occasion && !ALLOWED_OCCASIONS.includes(fk.occasion)) skuErrors.push(`Flipkart occasion "${fk.occasion}" not in allowed values`);
+      if (!fk.search_keywords || !fk.search_keywords.trim()) skuErrors.push('Flipkart search_keywords missing');
+      if (!fk.description || !fk.description.trim()) skuErrors.push('Flipkart description missing');
 
-      // 5. Meesho constraints
+      // Meesho validations
       const me = item.meesho || {};
       const meTitle = me.title || '';
       if (!meTitle.trim()) {
-        errors.push(`${sk}: Meesho title is missing`);
-      } else if (meTitle.length > 60) {
-        errors.push(`${sk}: Meesho title strictly exceeds 60 chars (${meTitle.length} chars)`);
+        skuErrors.push('Meesho title is missing');
+      } else if (meTitle !== TO_BE_CONFIRMED && meTitle.length > 60) {
+        skuErrors.push(`Meesho title strictly exceeds 60 chars (${meTitle.length} chars)`);
       }
-      if (!me.hinglish_hook_description || !me.hinglish_hook_description.trim()) errors.push(`${sk}: Meesho hinglish_hook_description is missing`);
-      if (!me.english_hook_description || !me.english_hook_description.trim()) errors.push(`${sk}: Meesho english_hook_description is missing`);
+      if (!me.hinglish_hook_description || !me.hinglish_hook_description.trim()) skuErrors.push('Meesho hinglish_hook_description is missing');
+      if (!me.english_hook_description || !me.english_hook_description.trim()) skuErrors.push('Meesho english_hook_description is missing');
       const highlights = me.highlights || [];
       if (!Array.isArray(highlights) || highlights.length !== 4) {
-        errors.push(`${sk}: Meesho highlights must contain exactly 4 items (got ${highlights.length})`);
+        skuErrors.push(`Meesho highlights must contain exactly 4 items (got ${highlights.length})`);
       }
 
-      // 6. Alternates (optional, but if provided must be exactly 5 variants)
+      // Alternates validation (if present, must have exactly 5 variants)
       const alts = item.alternates || [];
       if (alts.length > 0 && alts.length !== 5) {
-        errors.push(`${sk}: When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
+        skuErrors.push(`When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
       }
+
+      results.push({
+        sku_id: sk,
+        valid: skuErrors.length === 0,
+        errors: skuErrors,
+        warnings: skuWarnings
+      });
 
       skus.push({
         sku_id: sk,
-        brand: item.brand || '',
-        product_type: item.product_type || '',
-        color: item.color || '',
-        sizes: item.sizes || '',
-        mrp: Number(item.mrp) || 0,
-        meesho_price: Number(item.meesho_price) || 0,
-        seller_config: {
-          amazon_quantity: Number(sc.amazon_quantity) || 50,
-          gst_percent: Number(sc.gst_percent) || 5,
-          hsn_code: String(sc.hsn_code || '62114200')
-        },
+        brand: brand,
+        product_type: productType,
+        color: color,
+        category: category,
+        sizes: sizes,
+        mrp: isNaN(mrp) ? 0 : mrp,
+        meesho_price: isNaN(meeshoPrice) ? 0 : meeshoPrice,
+        seller_config: sc,
         amazon: {
           title: amzTitle,
           bullet_points: bullets,
@@ -868,35 +995,39 @@ function validateJsonClientSide() {
       });
     });
 
-    validationErrors = errors;
-    validationWarnings = warnings;
+    skuValidationResults = results;
+    globalValidationWarnings = globalWarns;
+    globalValidationErrors = globalErrs;
     parsedSkus = skus;
-    jsonValid = (errors.length === 0 && skus.length > 0);
+
+    const totalErrors = results.reduce((acc, r) => acc + r.errors.length, 0);
+    const totalWarns  = results.reduce((acc, r) => acc + r.warnings.length, 0) + globalWarns.length;
+    jsonValid = (totalErrors === 0 && skus.length > 0);
 
     if (jsonValid) {
       setJsonBadge(true, `${skus.length} SKU${skus.length > 1 ? 's' : ''} valid`);
       if (jsonMode === 'paste') { jsonTextarea.classList.remove('invalid'); jsonTextarea.classList.add('valid'); }
     } else {
-      setJsonBadge(false, `${errors.length} Error${errors.length > 1 ? 's' : ''}`, true);
+      setJsonBadge(false, `${totalErrors} Error${totalErrors > 1 ? 's' : ''}`, true);
       if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
     }
 
     showSkuStats(skus);
-    showErrors(errors);
-    showWarnings(warnings);
+    showValidationBreakdown(results, totalErrors, totalWarns);
+    showGlobalAdvisories(globalWarns);
     routeImages();
     refreshMatrix();
 
   } catch(err) {
     jsonValid = false;
     parsedSkus = [];
-    validationErrors = [`JSON Syntax Error: ${err.message}`];
-    validationWarnings = [];
+    skuValidationResults = [];
+    globalValidationErrors = [`JSON Syntax Error: ${err.message}`];
     setJsonBadge(false, 'Invalid JSON Syntax', true);
     if (jsonMode === 'paste') { jsonTextarea.classList.remove('valid'); jsonTextarea.classList.add('invalid'); }
     hideSkuStats();
-    showErrors(validationErrors);
-    hideWarnings();
+    showValidationBreakdown([], 1, 0, err.message);
+    hideGlobalAdvisories();
     refreshMatrix();
   }
 
@@ -923,31 +1054,67 @@ function showSkuStats(skus) {
   el.classList.remove('hidden');
   const brands = new Set(skus.map(s => s.brand)).size;
   const avgBullets = skus.length ? (skus.reduce((a,s) => a + s.bullet_count, 0) / skus.length).toFixed(1) : 0;
+  const totalErrors = skuValidationResults.reduce((a,r) => a + r.errors.length, 0);
+  const totalWarnings = skuValidationResults.reduce((a,r) => a + r.warnings.length, 0) + globalValidationWarnings.length;
+
   const stats = [
     { l: 'Total SKUs', v: skus.length, i: '📦' },
     { l: 'Brands', v: brands, i: '🏷️' },
     { l: 'Avg Bullets', v: avgBullets, i: '📝' },
-    { l: 'Errors / Warns', v: `${validationErrors.length} / ${validationWarnings.length}`, i: validationErrors.length > 0 ? '❌' : (validationWarnings.length > 0 ? '⚠️' : '✅') }
+    { l: 'Errors / Warns', v: `${totalErrors} / ${totalWarnings}`, i: totalErrors > 0 ? '❌' : (totalWarnings > 0 ? '⚠️' : '✅') }
   ];
   el.innerHTML = stats.map(s => `<div class="glass-panel-lighter p-3 text-center animate-fade-in"><div class="text-lg mb-0.5">${s.i}</div><div class="stat-value text-xl">${s.v}</div><div class="text-xs text-slate-400 mt-0.5">${s.l}</div></div>`).join('');
 }
 function hideSkuStats() { document.getElementById('skuStats').classList.add('hidden'); }
 
-function showErrors(errs) {
-  const p = document.getElementById('errorsPanel'), l = document.getElementById('errorsList');
-  if (!errs.length) { p.classList.add('hidden'); return; }
-  p.classList.remove('hidden');
-  l.innerHTML = errs.map(m => `<div class="error-item animate-fade-in">• ${m}</div>`).join('');
-}
-function hideErrors() { document.getElementById('errorsPanel').classList.add('hidden'); }
+// ── Feature #4: UI Validation Results Breakdown (Per SKU) ──
+function showValidationBreakdown(results, totalErrors, totalWarns, syntaxErr = null) {
+  const panel = document.getElementById('validationResultsPanel');
+  const container = document.getElementById('skuValidationContainer');
+  const summaryBadge = document.getElementById('valSummaryBadge');
 
-function showWarnings(w) {
-  const p = document.getElementById('warningsPanel'), l = document.getElementById('warningsList');
-  if (!w.length) { p.classList.add('hidden'); return; }
-  p.classList.remove('hidden');
-  l.innerHTML = w.map(m => `<div class="warning-item animate-fade-in">• ${m}</div>`).join('');
+  if (!results.length && !syntaxErr) {
+    panel.classList.add('hidden');
+    return;
+  }
+  panel.classList.remove('hidden');
+
+  if (syntaxErr) {
+    summaryBadge.innerHTML = `<span class="text-red-400 font-bold">1 Syntax Error</span>`;
+    container.innerHTML = `<div class="error-item">⚠️ ${syntaxErr}</div>`;
+    return;
+  }
+
+  summaryBadge.innerHTML = `
+    <span class="${totalErrors > 0 ? 'text-red-400 font-bold' : 'text-slate-400'}">${totalErrors} Errors</span> · 
+    <span class="${totalWarns > 0 ? 'text-amber-400 font-bold' : 'text-slate-400'}">${totalWarns} Warnings</span>
+  `;
+
+  container.innerHTML = results.map(r => {
+    if (r.errors.length === 0 && r.warnings.length === 0) return '';
+    return `
+      <div class="glass-panel-lighter p-3 rounded-lg border ${r.errors.length > 0 ? 'border-red-500/30 bg-red-500/5' : 'border-amber-500/20 bg-amber-500/5'}">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="font-mono font-bold text-xs ${r.errors.length > 0 ? 'text-red-400' : 'text-amber-400'}">${r.sku_id}</span>
+          <span class="text-[11px] ${r.errors.length > 0 ? 'text-red-400' : 'text-emerald-400'}">${r.errors.length > 0 ? `${r.errors.length} Error${r.errors.length>1?'s':''}` : '✓ Schema Valid'}</span>
+        </div>
+        ${r.errors.map(e => `<div class="text-xs text-red-300 font-medium py-0.5">• ${e}</div>`).join('')}
+        ${r.warnings.map(w => `<div class="text-xs text-amber-300 py-0.5">• ${w}</div>`).join('')}
+      </div>
+    `;
+  }).join('');
 }
-function hideWarnings() { document.getElementById('warningsPanel').classList.add('hidden'); }
+function hideValidationBreakdown() { document.getElementById('validationResultsPanel').classList.add('hidden'); }
+
+// ── Feature #7: Global Advisories Panel ──
+function showGlobalAdvisories(warns) {
+  const panel = document.getElementById('globalAdvisoryPanel');
+  const list = document.getElementById('globalAdvisoryList');
+  if (!warns.length) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  list.innerHTML = warns.map(w => `<div>• ${w}</div>`).join('');
+}
+function hideGlobalAdvisories() { document.getElementById('globalAdvisoryPanel').classList.add('hidden'); }
 
 // ── Image Compliance Checker ──
 function checkImageCompliance(file) {
@@ -984,6 +1151,16 @@ async function runComplianceChecks(files) {
   if (total > 0) { cc.classList.remove('hidden'); ct.textContent = `${total} issue${total > 1 ? 's' : ''}`; }
   else { cc.classList.add('hidden'); }
   if (total > 0) document.getElementById('complianceLegend').classList.remove('hidden');
+
+  // Feature #7: Image total size check
+  const totalImageSizeMb = files.reduce((acc, f) => acc + f.size, 0) / (1024 * 1024);
+  if (totalImageSizeMb > MAX_TOTAL_IMAGE_SIZE_MB) {
+    const sizeWarn = `Total image size is ${totalImageSizeMb.toFixed(1)} MB (recommended soft limit: ${MAX_TOTAL_IMAGE_SIZE_MB} MB). Consider compressing high-res assets for faster delivery.`;
+    if (!globalValidationWarnings.includes(sizeWarn)) {
+      globalValidationWarnings.push(sizeWarn);
+      showGlobalAdvisories(globalValidationWarnings);
+    }
+  }
 }
 
 // ── Image Routing & Asset Matrix ──
@@ -1097,7 +1274,6 @@ function refreshMatrix() {
   parsedSkus.forEach(sku => {
     const files = (imageMap[sku.sku_id] || []);
 
-    // Exact canonical slots check: _MAIN, _PT01, _PT02, _PT03
     const coreStatus = CORE_SLOTS.map(slot => {
       const f = files.find(f => f.name.toUpperCase().includes(slot));
       return { slot, label: SLOT_LABELS[slot], file: f || null };
@@ -1155,7 +1331,6 @@ function refreshMatrix() {
   document.getElementById('cnt-incomplete').textContent = cntIncomplete;
   document.getElementById('cnt-orphaned').textContent = unassignedImages.length;
 
-  // Orphan drawer
   const orphanPanel = document.getElementById('orphanPanel');
   const orphanList  = document.getElementById('orphanList');
   if (unassignedImages.length > 0) {
@@ -1188,8 +1363,11 @@ function updatePreflightChecks() {
   const cat    = document.getElementById('category').value;
   const cfgOk  = !!(client && batch && cat);
 
+  const totalErrors = skuValidationResults.reduce((a,r) => a + r.errors.length, 0);
+  const totalWarnings = skuValidationResults.reduce((a,r) => a + r.warnings.length, 0) + globalValidationWarnings.length;
+
   setCheck('checkConfig', 'checkConfigText', cfgOk, cfgOk ? 'All set' : 'Not set');
-  setCheck('checkJson', 'checkJsonText', jsonValid, jsonValid ? `${parsedSkus.length} SKU${parsedSkus.length > 1 ? 's' : ''} valid` : (validationErrors.length > 0 ? `${validationErrors.length} error${validationErrors.length > 1 ? 's' : ''}` : 'No data'));
+  setCheck('checkJson', 'checkJsonText', jsonValid, jsonValid ? `${parsedSkus.length} SKU${parsedSkus.length > 1 ? 's' : ''} valid` : (totalErrors > 0 ? `${totalErrors} error${totalErrors > 1 ? 's' : ''}` : 'No data'));
   setCheck('checkImages', 'checkImagesText', imageFiles.length > 0, imageFiles.length > 0 ? `${imageFiles.length} file${imageFiles.length !== 1 ? 's' : ''}` : 'None uploaded');
 
   let readinessText = '—';
@@ -1202,7 +1380,9 @@ function updatePreflightChecks() {
       const files = imageMap[sku.sku_id] || [];
       return CORE_SLOTS.every(slot => files.some(f => f.name.toUpperCase().includes(slot)));
     });
-    if (allCorePresent && validationWarnings.length === 0) {
+    const hasTbc = skuValidationResults.some(r => r.warnings.some(w => w.includes(TO_BE_CONFIRMED)));
+
+    if (allCorePresent && totalWarnings === 0 && !hasTbc) {
       readinessText = '✅ Ready for Review';
       readinessType = 'ok';
     } else {
@@ -1252,10 +1432,10 @@ function showComplianceModal() {
   document.getElementById('complianceModal').classList.remove('hidden');
 }
 
-// ── Master Excel Workbook Builder (Mapping File) ──
+// ── Master Excel Workbook Builder (Feature #2: Review Flags column) ──
 async function createMasterWorkbook(clientName, category) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Listing Factory Studio v2.0';
+  wb.creator = `${TOOL_VERSION}`;
   wb.created = new Date();
 
   const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
@@ -1287,7 +1467,7 @@ async function createMasterWorkbook(clientName, category) {
   ws1.addRow([
     "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
     "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
-    "Core Images Found", "Core Coverage", "Validation Status", "Package Readiness"
+    "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness"
   ]);
   styleRow(ws1);
 
@@ -1296,14 +1476,19 @@ async function createMasterWorkbook(clientName, category) {
     const coreFoundCount = CORE_SLOTS.filter(slot => files.some(fn => fn.toUpperCase().includes(slot))).length;
     const coveragePct = `${Math.round((coreFoundCount / 4) * 100)}% (${coreFoundCount}/4 Core)`;
 
+    // Check if this SKU has unconfirmed fields (Feature #2)
+    const skuRes = skuValidationResults.find(r => r.sku_id === sku.sku_id);
+    const hasTbc = skuRes && skuRes.warnings.some(w => w.includes(TO_BE_CONFIRMED));
+    const reviewFlags = hasTbc ? '⚠️ Has unconfirmed fields' : '—';
+
     let readiness = "❌ Not Ready";
-    if (jsonValid && coreFoundCount === 4 && validationWarnings.length === 0) {
+    if (jsonValid && coreFoundCount === 4 && !hasTbc && (!skuRes || skuRes.warnings.length === 0)) {
       readiness = "✅ Ready for Review";
     } else if (jsonValid) {
       readiness = "⚠️ Review Recommended";
     }
 
-    const valStatus = jsonValid ? (validationWarnings.length > 0 ? "⚠️ Warnings" : "✅ Pass") : "❌ Errors";
+    const valStatus = jsonValid ? ((skuRes && skuRes.warnings.length > 0) ? "⚠️ Warnings" : "✅ Pass") : "❌ Errors";
 
     ws1.addRow([
       sku.sku_id,
@@ -1318,6 +1503,7 @@ async function createMasterWorkbook(clientName, category) {
       `${coreFoundCount}/4 Slots`,
       coveragePct,
       valStatus,
+      reviewFlags,
       readiness
     ]);
   });
@@ -1447,7 +1633,7 @@ async function createMasterWorkbook(clientName, category) {
 // ── 5x Alternate Listing Copies Workbook Builder ──
 async function createAlternatesWorkbook(clientName) {
   const wb = new ExcelJS.Workbook();
-  wb.creator = 'Listing Factory Studio v2.0';
+  wb.creator = `${TOOL_VERSION}`;
   wb.created = new Date();
 
   const headerFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
@@ -1550,14 +1736,17 @@ async function createAlternatesWorkbook(clientName) {
   return await wb.xlsx.writeBuffer();
 }
 
-// ── Handover Instructions Generator ──
-function generateReadme(client, batch) {
+// ── Handover Instructions Generator (Feature #1, #2, #3) ──
+function generateReadme(client, batch, category = "Women Ethnic Wear") {
+  const categoryKeyword = CATEGORY_MAP[category] || 'kurtas-and-ethnic-tops';
   return `================================================================================
   LISTING FACTORY HANDOVER PACKAGE: ${client} -- ${batch}
 ================================================================================
 
-  Generated : ${new Date().toLocaleString()}
-  Tool      : Listing Factory v2.0 -- Multi-Marketplace Packaging Studio
+  Generated           : ${new Date().toLocaleString()}
+  Tool Version        : ${TOOL_VERSION}
+  JSON Prompt Version : ${JSON_PROMPT_VERSION}
+  Target Category     : ${category}
 
 ================================================================================
   IMPORTANT NOTICE & DISCLAIMER
@@ -1572,6 +1761,26 @@ function generateReadme(client, batch) {
   Processing and QC review times mentioned below are industry averages and can
   vary based on portal queue, account health, and category policy. Ensure all
   tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
+
+================================================================================
+  TEMPLATE REFERENCE NOTES
+================================================================================
+
+  This package mapping is tailored for:
+    • Amazon.in  : '${category}' (Keyword: ${categoryKeyword})
+    • Flipkart   : ${category} Vertical
+    • Meesho     : ${category} / Kurtis Vertical
+
+  Always download the latest official flat file or category template from each
+  respective marketplace before uploading.
+
+================================================================================
+  FIELDS MARKED 'TO BE CONFIRMED'
+================================================================================
+
+  Some fields in this package may be marked as '${TO_BE_CONFIRMED}'.
+  These indicate placeholder or unverified data points that must be finalized
+  and confirmed by the brand/seller prior to live marketplace submission.
 
 ================================================================================
   HOW TO UPLOAD -- 3-STEP GUIDE
@@ -1650,7 +1859,7 @@ function setProgress(pct, label) {
 function showProgress() { document.getElementById('progressArea').classList.remove('hidden'); setProgress(0,'Initialising…'); }
 function hideProgress() { document.getElementById('progressArea').classList.add('hidden'); }
 
-// ── Package Generation Engine ──
+// ── Package Generation Engine (Feature #1: Includes package_metadata.json) ──
 async function generatePackage(skipComplianceCheck) {
   if (!jsonValid) {
     alert('Cannot generate package: Please resolve schema and validation errors first.');
@@ -1690,7 +1899,13 @@ async function generatePackage(skipComplianceCheck) {
       setProgress(28, 'Building 5x Alternate Copies workbook…');
       altXlsxBuffer = await createAlternatesWorkbook(safeClient);
     }
-    setProgress(35, 'Assembling ZIP archive…');
+
+    // Step 1c: Package Metadata Audit Trail (Feature #1)
+    setProgress(32, 'Building package audit metadata (SHA-256)…');
+    const metadataObj = await buildPackageMetadataClient(safeClient, safeBatch, category, parsedSkus);
+    const metadataStr = JSON.stringify(metadataObj, null, 2);
+
+    setProgress(38, 'Assembling ZIP archive…');
 
     // Step 2: Build ZIP (STORE mode for images)
     const zip = new JSZip();
@@ -1701,7 +1916,9 @@ async function generatePackage(skipComplianceCheck) {
       const altXlsxName = `${safeClient}_Alternate_Listing_Copies.xlsx`;
       root.file(altXlsxName, altXlsxBuffer, { compression: 'DEFLATE', compressionOptions: { level: 6 } });
     }
-    root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch), { compression: 'DEFLATE' });
+    // Add package_metadata.json (Feature #1)
+    root.file('package_metadata.json', metadataStr, { compression: 'DEFLATE' });
+    root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch, category), { compression: 'DEFLATE' });
 
     setProgress(45, 'Routing SKU images into folders…');
     const imgRoot = root.folder('Organized_SKU_Images');

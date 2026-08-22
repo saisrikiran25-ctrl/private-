@@ -5,7 +5,7 @@ A FastAPI-powered local web application for e-commerce cataloging agencies.
 Takes AI-generated JSON copy + loose image files, validates against
 Amazon.in / Flipkart / Meesho constraints, organizes images into SKU
 subfolders, populates marketplace mapping Excel workbooks, and outputs
-a ready-to-deliver client ZIP archive.
+a ready-to-deliver client ZIP archive with full package audit metadata.
 
 Version: Listing Factory v2.0
 Run:     python app.py
@@ -14,6 +14,7 @@ Open:    http://127.0.0.1:8000
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -21,7 +22,7 @@ import re
 import zipfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Literal, Optional
+from typing import Any, List, Literal, Optional, Union
 
 import pandas as pd
 from fastapi import FastAPI, File, Form, UploadFile, Request
@@ -40,29 +41,48 @@ import uvicorn
 
 
 # ──────────────────────────────────────────────
+# Global Constants & Versioning
+# ──────────────────────────────────────────────
+
+TOOL_VERSION = "Listing Factory v2.0"
+JSON_PROMPT_VERSION = "JSON Prompt v1.0 – 2026-08-22"
+TO_BE_CONFIRMED = "To be confirmed"
+
+MAX_SKUS_SOFT_LIMIT = 50
+MAX_TOTAL_IMAGE_SIZE_MB = 200
+
+
+# ──────────────────────────────────────────────
 # Flipkart Controlled Attributes Literal Types
 # ──────────────────────────────────────────────
 
 FabricLiteral = Literal[
-    "Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton"
+    "Pure Cotton", "Rayon", "Georgette", "Silk Blend", "Crepe", "Chanderi Cotton", "Poly Cotton",
+    "To be confirmed"
 ]
 KurtaTypeLiteral = Literal[
-    "Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani"
+    "Anarkali", "Straight", "A-line", "Flared", "Kaftan", "Frontslit", "Pathani",
+    "To be confirmed"
 ]
 NeckLiteral = Literal[
-    "Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck"
+    "Mandarin Neck", "Round Neck", "V-Neck", "Boat Neck", "Sweetheart Neck", "Collar Neck",
+    "To be confirmed"
 ]
 SleeveLiteral = Literal[
-    "3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve"
+    "3/4 Sleeve", "Full Sleeve", "Half Sleeve", "Sleeveless", "Short Sleeve",
+    "To be confirmed"
 ]
 LengthTypeLiteral = Literal[
-    "Calf Length", "Ankle Length", "Knee Length", "Above Knee"
+    "Calf Length", "Ankle Length", "Knee Length", "Above Knee",
+    "To be confirmed"
 ]
 PatternLiteral = Literal[
-    "Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani"
+    "Floral Print", "Solid", "Printed", "Embroidered", "Geometric Print", "Self Design", "Bandhani",
+    "To be confirmed"
 ]
 OccasionLiteral = Literal[
-    "Casual", "Festive", "Casual & Festive", "Party", "Formal"
+    "Casual", "Festive", "Casual & Festive", "Party", "Formal",
+    "To be confirmed"
 ]
 
 
@@ -71,9 +91,15 @@ OccasionLiteral = Literal[
 # ──────────────────────────────────────────────
 
 class SellerConfig(BaseModel):
-    amazon_quantity: int
-    gst_percent: int
-    hsn_code: str
+    amazon_quantity: int = 50
+    gst_percent: int = 5
+    hsn_code: str = "62114200"
+
+
+class BatchConfig(BaseModel):
+    brand: Optional[str] = None
+    category: Optional[str] = None
+    seller_config: Optional[SellerConfig] = None
 
 
 class AmazonData(BaseModel):
@@ -85,7 +111,7 @@ class AmazonData(BaseModel):
     @field_validator("title")
     @classmethod
     def validate_title(cls, v: str) -> str:
-        if len(v) > 180:
+        if v != TO_BE_CONFIRMED and len(v) > 180:
             raise ValueError(f"Amazon title must be ≤ 180 characters (got {len(v)} chars)")
         if not v.strip():
             raise ValueError("Amazon title cannot be empty")
@@ -94,9 +120,10 @@ class AmazonData(BaseModel):
     @field_validator("backend_search_terms")
     @classmethod
     def validate_bst(cls, v: str) -> str:
-        b = len(v.encode("utf-8"))
-        if b > 240:
-            raise ValueError(f"Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
+        if v != TO_BE_CONFIRMED:
+            b = len(v.encode("utf-8"))
+            if b > 240:
+                raise ValueError(f"Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
         if not v.strip():
             raise ValueError("Amazon backend search terms cannot be empty")
         return v
@@ -124,7 +151,7 @@ class MeeshoData(BaseModel):
     @field_validator("title")
     @classmethod
     def validate_title(cls, v: str) -> str:
-        if len(v) > 60:
+        if v != TO_BE_CONFIRMED and len(v) > 60:
             raise ValueError(f"Meesho title must be ≤ 60 characters (got {len(v)} chars)")
         if not v.strip():
             raise ValueError("Meesho title cannot be empty")
@@ -140,16 +167,17 @@ class AlternateAmazonData(BaseModel):
     @field_validator("title")
     @classmethod
     def validate_title(cls, v: str) -> str:
-        if len(v) > 180:
+        if v != TO_BE_CONFIRMED and len(v) > 180:
             raise ValueError(f"Alternate Amazon title must be ≤ 180 characters (got {len(v)} chars)")
         return v
 
     @field_validator("backend_search_terms")
     @classmethod
     def validate_bst(cls, v: str) -> str:
-        b = len(v.encode("utf-8"))
-        if b > 240:
-            raise ValueError(f"Alternate Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
+        if v != TO_BE_CONFIRMED:
+            b = len(v.encode("utf-8"))
+            if b > 240:
+                raise ValueError(f"Alternate Amazon backend search terms must be ≤ 240 bytes (got {b} bytes)")
         return v
 
 
@@ -168,7 +196,7 @@ class AlternateMeeshoData(BaseModel):
     @field_validator("title")
     @classmethod
     def validate_title(cls, v: str) -> str:
-        if len(v) > 60:
+        if v != TO_BE_CONFIRMED and len(v) > 60:
             raise ValueError(f"Alternate Meesho title must be ≤ 60 characters (got {len(v)} chars)")
         return v
 
@@ -186,6 +214,7 @@ class SKUItem(BaseModel):
     brand: str
     product_type: str
     color: str
+    category: str = "Women Ethnic Wear"
     sizes: str
     mrp: float
     meesho_price: float
@@ -225,6 +254,79 @@ IMAGE_ROLES = {
 }
 
 CORE_SUFFIXES = ["_MAIN", "_PT01", "_PT02", "_PT03"]
+
+
+# ──────────────────────────────────────────────
+# Audit Trail & Package Metadata Builder
+# ──────────────────────────────────────────────
+
+def build_package_metadata(
+    client: str,
+    batch: str,
+    category: str,
+    skus: list[SKUItem],
+    tool_version: str = TOOL_VERSION,
+    json_prompt_version: str = JSON_PROMPT_VERSION,
+) -> dict:
+    """
+    Build package audit metadata including SHA-256 input and output hashes per SKU.
+    """
+    sku_entries = []
+    for sku in skus:
+        # Input hash over the verified product record subset
+        input_record = {
+            "sku_id": sku.sku_id,
+            "brand": sku.brand,
+            "product_type": sku.product_type,
+            "color": sku.color,
+            "category": sku.category or category,
+            "sizes": sku.sizes,
+            "mrp": sku.mrp,
+            "meesho_price": sku.meesho_price,
+            "seller_config": sku.seller_config.model_dump(),
+        }
+        input_json = json.dumps(input_record, sort_keys=True)
+        input_hash = hashlib.sha256(input_json.encode("utf-8")).hexdigest()
+
+        # Output hash over the complete internal SKU object
+        output_json = json.dumps(sku.model_dump(), sort_keys=True)
+        output_hash = hashlib.sha256(output_json.encode("utf-8")).hexdigest()
+
+        sku_entries.append({
+            "sku_id": sku.sku_id,
+            "input_hash": input_hash,
+            "output_hash": output_hash,
+        })
+
+    now_iso = datetime.now().astimezone().isoformat()
+
+    return {
+        "tool_version": tool_version,
+        "json_prompt_version": json_prompt_version,
+        "generated_at": now_iso,
+        "client": client,
+        "batch": batch,
+        "category": category,
+        "skus": sku_entries,
+    }
+
+
+# ──────────────────────────────────────────────
+# Helper to Detect "To be confirmed" Fields
+# ──────────────────────────────────────────────
+
+def _sku_has_unconfirmed_fields(sku: SKUItem) -> bool:
+    """Check if any attribute in the SKU is set to TO_BE_CONFIRMED."""
+    def check_val(v: Any) -> bool:
+        if isinstance(v, str) and (v.strip().lower() == TO_BE_CONFIRMED.lower() or v.strip().upper() == "TBC"):
+            return True
+        if isinstance(v, list):
+            return any(check_val(item) for item in v)
+        if isinstance(v, dict):
+            return any(check_val(val) for val in v.values())
+        return False
+
+    return check_val(sku.model_dump())
 
 
 # ──────────────────────────────────────────────
@@ -275,24 +377,26 @@ def _build_master_summary(
     headers = [
         "SKU ID", "Brand", "Product Type", "Color", "Fabric", "Sizes Available",
         "Amazon Title Preview", "Flipkart Title Preview", "Meesho Hinglish Hook Preview",
-        "Core Images Found", "Core Coverage", "Validation Status", "Package Readiness"
+        "Core Images Found", "Core Coverage", "Validation Status", "Review Flags", "Package Readiness"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
 
     for sku in skus:
         files = image_map.get(sku.sku_id, [])
-        # Core coverage based strictly on presence of _MAIN, _PT01, _PT02, _PT03
         core_found = sum(
             1 for suffix in CORE_SUFFIXES
             if any(suffix.lower() in fn.lower() for fn in files)
         )
         coverage_pct = f"{int((core_found / 4) * 100)}% ({core_found}/4 Core)"
+
+        has_tbc = _sku_has_unconfirmed_fields(sku)
+        review_flags = "⚠️ Has unconfirmed fields" if has_tbc else "—"
         
-        # Package readiness logic: reflects validation state and image completeness
-        if validation_status == "✅ Pass" and core_found == 4:
+        # Package readiness logic
+        if validation_status == "✅ Pass" and core_found == 4 and not has_tbc:
             readiness = "✅ Ready for Review"
-        elif validation_status == "✅ Pass" and core_found < 4:
+        elif validation_status == "✅ Pass":
             readiness = "⚠️ Review Recommended"
         elif "Warning" in validation_status:
             readiness = "⚠️ Review Recommended"
@@ -312,6 +416,7 @@ def _build_master_summary(
             f"{core_found}/4 Slots",
             coverage_pct,
             validation_status,
+            review_flags,
             readiness,
         ])
     _auto_width(ws)
@@ -549,13 +654,16 @@ def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
 # README generator (Handover Documentation)
 # ──────────────────────────────────────────────
 
-def generate_readme(client: str, batch: str) -> str:
+def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear") -> str:
+    category_keyword = CATEGORY_MAP.get(category, "kurtas-and-ethnic-tops")
     return f"""================================================================================
   LISTING FACTORY HANDOVER PACKAGE: {client} -- {batch}
 ================================================================================
 
-  Generated : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-  Tool      : Listing Factory v2.0 -- Multi-Marketplace Packaging Studio
+  Generated           : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+  Tool Version        : {TOOL_VERSION}
+  JSON Prompt Version : {JSON_PROMPT_VERSION}
+  Target Category     : {category}
 
 ================================================================================
   IMPORTANT NOTICE & DISCLAIMER
@@ -570,6 +678,26 @@ def generate_readme(client: str, batch: str) -> str:
   Processing and QC review times mentioned below are industry averages and can
   vary based on portal queue, account health, and category policy. Ensure all
   tax rates (GST %), HSN codes, and category attributes are verified prior to upload.
+
+================================================================================
+  TEMPLATE REFERENCE NOTES
+================================================================================
+
+  This package mapping is tailored for:
+    • Amazon.in  : '{category}' (Keyword: {category_keyword})
+    • Flipkart   : {category} Vertical
+    • Meesho     : {category} / Kurtis Vertical
+
+  Always download the latest official flat file or category template from each
+  respective marketplace before uploading.
+
+================================================================================
+  FIELDS MARKED 'TO BE CONFIRMED'
+================================================================================
+
+  Some fields in this package may be marked as '{TO_BE_CONFIRMED}'.
+  These indicate placeholder or unverified data points that must be finalized
+  and confirmed by the brand/seller prior to live marketplace submission.
 
 ================================================================================
   HOW TO UPLOAD -- 3-STEP GUIDE
@@ -655,14 +783,12 @@ def route_images(
     matched: dict[str, list[tuple[str, bytes]]] = {sid: [] for sid in sku_ids}
     unassigned: list[tuple[str, bytes]] = []
 
-    # Sort SKU IDs longest-first so specific IDs match accurately
     sorted_ids = sorted(sku_ids, key=len, reverse=True)
 
     for fname, data in image_files:
         stem = Path(fname).stem.upper()
         found = False
         for sid in sorted_ids:
-            # Matches prefix like SKU_01_ or SKU_01
             if stem.startswith(sid.upper() + "_") or stem == sid.upper():
                 matched[sid].append((fname, data))
                 found = True
@@ -671,6 +797,55 @@ def route_images(
             unassigned.append((fname, data))
 
     return matched, unassigned
+
+
+# ──────────────────────────────────────────────
+# JSON Payload Normalization & Batch Config Merge
+# ──────────────────────────────────────────────
+
+def normalize_and_merge_json(raw_data: Any) -> tuple[Optional[BatchConfig], list[dict]]:
+    """
+    Normalizes JSON payload which can be:
+    1. A raw list of SKU dicts: [ {...}, {...} ]
+    2. An object with batch_config and skus: { "batch_config": {...}, "skus": [...] }
+    3. A single SKU dict: { "sku_id": "...", ... }
+    Applies batch_config inheritance to individual SKUs where fields are omitted.
+    """
+    batch_cfg: Optional[BatchConfig] = None
+    sku_raw_list: list[dict] = []
+
+    if isinstance(raw_data, dict):
+        if "batch_config" in raw_data or "skus" in raw_data:
+            if "batch_config" in raw_data and isinstance(raw_data["batch_config"], dict):
+                batch_cfg = BatchConfig(**raw_data["batch_config"])
+            skus_val = raw_data.get("skus", [])
+            sku_raw_list = skus_val if isinstance(skus_val, list) else [skus_val]
+        else:
+            sku_raw_list = [raw_data]
+    elif isinstance(raw_data, list):
+        sku_raw_list = raw_data
+    else:
+        raise ValueError("Invalid JSON structure: Expected a JSON object or array of SKUs.")
+
+    # Merge batch_config into each SKU dict if present
+    merged_skus = []
+    for item in sku_raw_list:
+        sku_dict = dict(item)
+        if batch_cfg:
+            if not sku_dict.get("brand") and batch_cfg.brand:
+                sku_dict["brand"] = batch_cfg.brand
+            if not sku_dict.get("category") and batch_cfg.category:
+                sku_dict["category"] = batch_cfg.category
+            if batch_cfg.seller_config:
+                existing_sc = sku_dict.get("seller_config", {})
+                if not isinstance(existing_sc, dict):
+                    existing_sc = {}
+                default_sc = batch_cfg.seller_config.model_dump()
+                default_sc.update(existing_sc)
+                sku_dict["seller_config"] = default_sc
+        merged_skus.append(sku_dict)
+
+    return batch_cfg, merged_skus
 
 
 # ──────────────────────────────────────────────
@@ -689,15 +864,15 @@ def build_zip(
     sku_ids = [s.sku_id for s in skus]
     matched_images, unassigned_images = route_images(sku_ids, image_files)
 
-    # Image map for workbook (filenames per SKU)
     image_map: dict[str, list[str]] = {}
     for sid, files in matched_images.items():
         image_map[sid] = [f[0] for f in files]
 
     xlsx_bytes = build_workbook(skus, category, image_map, validation_status)
-    readme_text = generate_readme(client, batch)
+    readme_text = generate_readme(client, batch, category)
+    metadata_dict = build_package_metadata(client, batch, category, skus, TOOL_VERSION, JSON_PROMPT_VERSION)
+    metadata_bytes = json.dumps(metadata_dict, indent=2, ensure_ascii=False).encode("utf-8")
 
-    # Build alternates workbook if alternates are present
     has_alternates = any(len(s.alternates) > 0 for s in skus)
     alt_xlsx_bytes = build_alternates_workbook(skus) if has_alternates else None
 
@@ -712,9 +887,11 @@ def build_zip(
         if alt_xlsx_bytes:
             alt_xlsx_name = f"{client}_Alternate_Listing_Copies.xlsx"
             zf.writestr(f"{prefix}/{alt_xlsx_name}", alt_xlsx_bytes)
+        # Package audit metadata (Feature #1)
+        zf.writestr(f"{prefix}/package_metadata.json", metadata_bytes)
         # Handover README
         zf.writestr(f"{prefix}/README_Upload_Instructions.txt", readme_text)
-        # Organized images (using STORE method for speed where possible)
+        # Organized images
         for sid, files in matched_images.items():
             for fname, data in files:
                 zf.writestr(f"{prefix}/Organized_SKU_Images/{sid}/{fname}", data)
@@ -733,76 +910,114 @@ def build_zip(
 app = FastAPI(title="Listing Factory", version="2.0.0")
 
 
-# ── Validation endpoint (Strict Pydantic Validation, No Silent Truncation) ──
+# ── Validation endpoint (Feature #4: Structured Validation Results by SKU) ──
 
 @app.post("/api/validate-json")
 async def validate_json(request: Request):
     """
-    Strictly validate AI-generated JSON listing data against the Pydantic schema.
-    Returns structured errors and non-critical warnings without silent mutation.
+    Strictly validate AI-generated JSON listing data against the schema.
+    Returns per-SKU structured errors and warnings, plus global safeguards.
     """
     try:
         body = await request.json()
         raw = body.get("json_text", "")
         if not raw or not raw.strip():
-            return JSONResponse({"valid": False, "error": "JSON payload is empty."}, status_code=400)
+            return JSONResponse({
+                "valid": False,
+                "global_errors": ["JSON payload is empty."],
+                "global_warnings": [],
+                "sku_results": []
+            }, status_code=400)
         
         data = json.loads(raw)
-        if not isinstance(data, list):
-            data = [data]
+        batch_cfg, merged_skus = normalize_and_merge_json(data)
 
-        # Pydantic strict parsing
-        skus = [SKUItem(**item) for item in data]
+        global_warnings = []
+        global_errors = []
 
-        # Warning checks (near-boundary advisory checks)
-        warnings = []
-        for sku in skus:
-            # Amazon warnings
-            t_len = len(sku.amazon.title)
-            if t_len > 165:
-                warnings.append(f"{sku.sku_id}: Amazon title length is near limit ({t_len}/180 chars)")
-            b_len = len(sku.amazon.backend_search_terms.encode("utf-8"))
-            if b_len > 225:
-                warnings.append(f"{sku.sku_id}: Amazon search terms bytes near limit ({b_len}/240 bytes)")
-            
-            # Meesho warning
-            m_len = len(sku.meesho.title)
-            if m_len > 55:
-                warnings.append(f"{sku.sku_id}: Meesho title length is near limit ({m_len}/60 chars)")
+        # Feature #7: Performance Safeguards (Soft Warnings)
+        if len(merged_skus) > MAX_SKUS_SOFT_LIMIT:
+            global_warnings.append(
+                f"Batch has {len(merged_skus)} SKUs (recommended soft limit: {MAX_SKUS_SOFT_LIMIT}). "
+                "Consider splitting into smaller batches for optimal performance."
+            )
 
-        sku_summaries = []
-        for sku in skus:
-            sku_summaries.append({
-                "sku_id": sku.sku_id,
-                "brand": sku.brand,
-                "product_type": sku.product_type,
-                "color": sku.color,
-                "amazon_title_len": len(sku.amazon.title),
-                "bst_bytes": len(sku.amazon.backend_search_terms.encode("utf-8")),
-                "bullet_count": len(sku.amazon.bullet_points),
-                "meesho_title_len": len(sku.meesho.title),
-                "alternates_count": len(sku.alternates),
+        sku_results = []
+        parsed_skus = []
+        overall_valid = True
+
+        for idx, item in enumerate(merged_skus):
+            sk_id = item.get("sku_id") or f"SKU_{String(idx+1).padStart(2,'0')}" if "String" in globals() else f"SKU_{idx+1:02d}"
+            sku_errors = []
+            sku_warnings = []
+
+            # Check for "To be confirmed" fields (Feature #2)
+            for key, val in item.items():
+                if isinstance(val, str) and val.strip().lower() == TO_BE_CONFIRMED.lower():
+                    sku_warnings.append(f"Field '{key}' is marked '{TO_BE_CONFIRMED}'")
+                elif isinstance(val, dict):
+                    for subk, subv in val.items():
+                        if isinstance(subv, str) and subv.strip().lower() == TO_BE_CONFIRMED.lower():
+                            sku_warnings.append(f"{key}.{subk} is marked '{TO_BE_CONFIRMED}'")
+
+            try:
+                sku_obj = SKUItem(**item)
+                parsed_skus.append(sku_obj)
+
+                # Near-limit advisory checks
+                t_len = len(sku_obj.amazon.title)
+                if sku_obj.amazon.title != TO_BE_CONFIRMED and t_len > 165:
+                    sku_warnings.append(f"Amazon title length is near limit ({t_len}/180 chars)")
+                
+                b_len = len(sku_obj.amazon.backend_search_terms.encode("utf-8"))
+                if sku_obj.amazon.backend_search_terms != TO_BE_CONFIRMED and b_len > 225:
+                    sku_warnings.append(f"Amazon search terms bytes near limit ({b_len}/240 bytes)")
+                
+                m_len = len(sku_obj.meesho.title)
+                if sku_obj.meesho.title != TO_BE_CONFIRMED and m_len > 55:
+                    sku_warnings.append(f"Meesho title length is near limit ({m_len}/60 chars)")
+
+            except Exception as pe:
+                overall_valid = False
+                sku_errors.append(str(pe))
+
+            sku_results.append({
+                "sku_id": sk_id,
+                "valid": len(sku_errors) == 0,
+                "errors": sku_errors,
+                "warnings": sku_warnings,
             })
+
+        if not overall_valid:
+            return JSONResponse({
+                "valid": False,
+                "sku_count": len(merged_skus),
+                "global_errors": global_errors,
+                "global_warnings": global_warnings,
+                "sku_results": sku_results,
+            }, status_code=400)
 
         return JSONResponse({
             "valid": True,
-            "sku_count": len(skus),
-            "skus": sku_summaries,
-            "warnings": warnings,
-            "errors": [],
+            "sku_count": len(parsed_skus),
+            "global_errors": [],
+            "global_warnings": global_warnings,
+            "sku_results": sku_results,
         })
 
     except json.JSONDecodeError as e:
         return JSONResponse({
             "valid": False,
-            "error": f"Invalid JSON syntax at line {e.lineno}, column {e.colno}: {e.msg}",
-            "errors": [f"JSON Syntax Error: {e.msg}"]
+            "global_errors": [f"Invalid JSON syntax at line {e.lineno}, column {e.colno}: {e.msg}"],
+            "global_warnings": [],
+            "sku_results": []
         }, status_code=400)
     except Exception as e:
         return JSONResponse({
             "valid": False,
-            "error": str(e),
-            "errors": [str(e)]
+            "global_errors": [str(e)],
+            "global_warnings": [],
+            "sku_results": []
         }, status_code=400)
 
 
@@ -819,23 +1034,23 @@ async def generate_package(
     """Generate the full delivery ZIP package with mapping workbooks and organized images."""
     try:
         raw = json.loads(json_data)
-        if not isinstance(raw, list):
-            raw = [raw]
-        skus = [SKUItem(**item) for item in raw]
+        batch_cfg, merged_skus = normalize_and_merge_json(raw)
+        skus = [SKUItem(**item) for item in merged_skus]
     except Exception as e:
         return JSONResponse({"error": f"Schema validation error: {e}"}, status_code=400)
 
-    # Read image binaries
     image_files: list[tuple[str, bytes]] = []
+    total_bytes = 0
     for img in images:
         data = await img.read()
+        total_bytes += len(data)
         image_files.append((img.filename, data))
 
-    # Sanitize names
     safe_client = re.sub(r"[^\w\-]", "_", client_name.strip() or "Client")
     safe_batch = re.sub(r"[^\w\-]", "_", batch_id.strip() or "Batch_01")
+    cat = category.strip() or "Women Ethnic Wear"
 
-    zip_bytes = build_zip(safe_client, safe_batch, category, skus, image_files, validation_status="✅ Pass")
+    zip_bytes = build_zip(safe_client, safe_batch, cat, skus, image_files, validation_status="✅ Pass")
     zip_name = f"{safe_client}_{safe_batch}_Handover_Package.zip"
 
     return StreamingResponse(
@@ -860,7 +1075,7 @@ async def index():
 # ──────────────────────────────────────────────
 
 if __name__ == "__main__":
-    print("\n  [*] Listing Factory v2.0 - Multi-Marketplace Packaging Studio")
+    print(f"\n  [*] {TOOL_VERSION} - Multi-Marketplace Packaging Studio")
     print("  " + "=" * 63)
     print("  > Server running at: http://127.0.0.1:8000")
     print("  > Press Ctrl+C to stop\n")

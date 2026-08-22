@@ -2,7 +2,7 @@
 
 **Listing Factory** is a fully client-side, zero-install web application for Indian e-commerce cataloging agencies managing multi-channel uploads across **Amazon.in**, **Flipkart**, and **Meesho**.
 
-It takes raw AI-generated listing copy and loose product images, validates them against strict marketplace rules without silent mutation, organizes assets into canonical SKU folders, generates structured multi-tab Excel mapping workbooks, and packages everything into a ready-to-deliver client handover ZIP.
+It takes raw AI-generated listing copy and loose product images, validates them against strict marketplace rules without silent mutation, organizes assets into canonical SKU folders, generates structured multi-tab Excel mapping workbooks, creates a cryptographic audit trail (`package_metadata.json`), and packages everything into a ready-to-deliver client handover ZIP.
 
 ---
 
@@ -20,14 +20,17 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 ┌─────────────────────────────────────────────────────────────┐
 │ STAGE 1: AI Listing Generation (Claude / Gemini / GPT-4)    │
 │ Generates strictly formatted JSON copy with 5x A/B angles   │
+│ Supports optional batch_config for shared attributes        │
 └──────────────────────────────┬──────────────────────────────┘
                                │ JSON Payload
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ STAGE 2: Listing Factory Studio (GitHub Pages Web App)      │
-│  • Client-Side Strict Validation (No Silent Truncation)     │
+│  • Structured Per-SKU Validation (No Silent Truncation)     │
+│  • "To be confirmed" Sentinel Handling & Review Flags       │
 │  • Dynamic Tax & Commercial Ingestion (GST, HSN, Quantity)  │
 │  • Color Field Ingestion across Amazon, Flipkart & Meesho   │
+│  • Cryptographic Package Audit Trail (SHA-256 Metadata)     │
 │  • Canonical Image Routing (SKU_XX_MAIN.jpg ... PT05)       │
 │  • Multi-Tab Marketplace Mapping Workbooks (.xlsx)          │
 │  • 5x Alternate Marketing Copies Workbook (.xlsx)           │
@@ -37,13 +40,59 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 
 ---
 
-## 📊 Marketplace Mapping Workbooks & Color Field Mapping
+## ✨ Features & Capabilities
+
+### 1. 🛡️ Cryptographic Package Audit Trail (`package_metadata.json`)
+Every generated package contains a top-level `package_metadata.json` documenting:
+- **`tool_version`**: Tool build (`Listing Factory v2.0`).
+- **`json_prompt_version`**: Master generation prompt release (`JSON Prompt v1.0 – 2026-08-22`).
+- **`generated_at`**: Exact ISO 8601 timestamp with local timezone offset.
+- **Per-SKU Cryptographic Hashes**:
+  - `input_hash`: SHA-256 digest of verified product input records.
+  - `output_hash`: SHA-256 digest of the complete generated listing record.
+
+### 2. ⚠️ Explicit "To be confirmed" Sentinel Handling
+- Fields marked with `"To be confirmed"` or `"TBC"` are accepted without failing hard schema validation.
+- Surfaced as advisory review warnings in the UI and flagged in the `Master_Summary` Excel tab under **`Review Flags: ⚠️ Has unconfirmed fields`**.
+
+### 3. 📑 Category & Template Reference Notes
+- Packages are category-scoped (e.g. `Women Ethnic Wear`).
+- Handover instructions automatically embed vertical mappings for Amazon.in, Flipkart, and Meesho with explicit reminders to download official marketplace templates.
+
+### 4. 🔍 Structured Per-SKU Validation Breakdown
+- Replaces generic error lists with structured per-SKU diagnostic cards separating hard schema errors from non-blocking advisory warnings.
+
+### 5. ⚙️ Batch-Level Configuration (`batch_config`)
+Allows specifying shared brand, category, and seller configuration at the batch level while allowing individual SKU overrides:
+```json
+{
+  "batch_config": {
+    "brand": "Janasya",
+    "category": "Women Ethnic Wear",
+    "seller_config": {
+      "amazon_quantity": 50,
+      "gst_percent": 5,
+      "hsn_code": "62114200"
+    }
+  },
+  "skus": [
+    { "sku_id": "SKU_01", "product_type": "Kurti", "color": "Navy Blue", ... }
+  ]
+}
+```
+
+### 6. 🚀 Scalability & Soft Performance Safeguards
+- Soft advisory banners for large batches (>50 SKUs) or large image sizes (>200 MB) without blocking generation.
+
+---
+
+## 📊 Marketplace Mapping Workbooks
 
 Listing Factory generates two structured mapping workbooks inside the client ZIP:
 
 ### 1. `[Client]_Master_Marketplace_Upload.xlsx`
 Structured data sheets designed for transferring copy into official marketplace upload templates:
-- **`Master_Summary`**: Executive catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), validation status (`✅ Pass`), and package readiness (`✅ Ready for Review`).
+- **`Master_Summary`**: Catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), `Validation Status` (`✅ Pass`), `Review Flags` (`⚠️ Has unconfirmed fields` / `—`), and `Package Readiness` (`✅ Ready for Review`).
 - **`01_Amazon_Bulk_Import`**: Amazon.in 23-column mapping schema with dynamic `quantity`, generic keywords ($\le 240$ bytes), 5 bullet points, `size`, `color` (`sku.color`), and canonical image filenames.
 - **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 23-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), `Color` (`sku.color`), seller GST/HSN, and Flipkart-specific description.
 - **`03_Meesho_Bulk_Import`**: Meesho 17-column schema with dual Hinglish + English hook descriptions, `Color` (`sku.color`), 4 highlight badges, seller GST/HSN, dynamic Meesho price, and 5-slot image mappings.
@@ -75,22 +124,13 @@ All image assets adhere to this standardized naming convention:
 
 ---
 
-## 🔒 Strict Validation & Schema Rules
-
-- **Zero Silent Mutation**: Over-length titles and search terms are rejected with clear, actionable validation errors rather than silently truncated.
-- **Amazon Constraints**: Title $\le 180$ chars; Backend search terms $\le 240$ UTF-8 bytes; exactly 5 bullet points.
-- **Flipkart Taxonomy**: Fabric, kurta type, neck, sleeve, length type, pattern, and occasion validated against allowed marketplace literals.
-- **Meesho Rules**: Title $\le 60$ chars; exactly 4 highlights; mandatory Hinglish and English hook descriptions.
-- **Dynamic Commercials**: GST (%), HSN code, Amazon stock quantity, and color are dynamically ingested from the JSON payload.
-
----
-
 ## 📦 Client ZIP Structure
 
 ```
 [Client]_[Batch]_Handover_Package/
 ├── [Client]_Master_Marketplace_Upload.xlsx
 ├── [Client]_Alternate_Listing_Copies.xlsx  (when alternates provided)
+├── package_metadata.json                   (cryptographic audit trail)
 ├── README_Upload_Instructions.txt
 └── Organized_SKU_Images/
     ├── SKU_01/
