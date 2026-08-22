@@ -1,181 +1,98 @@
-# Listing Factory — Multi-Marketplace Packaging Studio (v2.0)
+# Listing Factory — Category-Profile-Driven Packaging Studio (v2.1)
 
-**Listing Factory** is a fully client-side, zero-install web application for Indian e-commerce cataloging agencies managing multi-channel uploads across **Amazon.in**, **Flipkart**, and **Meesho**.
+**Listing Factory** is a robust, category-profile-driven web application for Indian e-commerce cataloging agencies managing multi-channel uploads across **Amazon.in**, **Flipkart**, and **Meesho** for 13 distinct product families.
 
-It takes raw AI-generated listing copy and loose product images, validates them against strict marketplace rules without silent mutation, organizes assets into canonical SKU folders, generates structured multi-tab Excel mapping workbooks, creates a cryptographic audit trail (`package_metadata.json`), and packages everything into a ready-to-deliver client handover ZIP.
+It takes AI-generated listing copy and loose product images, validates them against strict category profile contracts and marketplace rules without silent mutation, organizes assets into canonical SKU folders, generates structured multi-tab Excel mapping workbooks with profile-specific attribute columns, creates a cryptographic audit trail (`package_metadata.json`), and packages everything into a ready-to-deliver client handover ZIP.
 
-See [CHANGELOG.md](file:///c:/Users/Sai%20Kiran/Downloads/Listing_Factory/CHANGELOG.md) for detailed version history and known technical limitations.
+See [CHANGELOG.md](file:///c:/Users/Sai%20Kiran/Downloads/Listing_Factory/CHANGELOG.md) for detailed version history.
 
 ---
 
 ## 🌐 Canonical Web Application (GitHub Pages)
 
-The primary, canonical version of Listing Factory runs 100% in your browser with zero installation, zero data telemetry, and ultra-fast client-side packaging:
+The primary, canonical version of Listing Factory runs 100% in your browser with zero installation, zero data telemetry, and client-side packaging:
 
 👉 **[https://saisrikiran25-ctrl.github.io/private-/](https://saisrikiran25-ctrl.github.io/private-/)**
 
 ---
 
-## 🏗️ The Two-Stage Production Workflow
+## 🧬 Category Profile Architecture (13 Product Families)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│ STAGE 1: AI Listing Generation (Claude / Gemini / GPT-4)    │
-│  • Truth Boundary: Forbids hallucination of fabric/specs    │
-│  • Separation of Facts vs Copy (verified.* product input)   │
-│  • Backend Search-Term Hygiene (ASCII, no brand, no dupes)  │
-│  • Neutralized Bullet 3 (Care-led unless verified)          │
-│  • Enforces schema_version: "v2.0" & batch_config defaults  │
-│  • Generates strictly formatted JSON with 5x A/B angles     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ JSON Payload (schema_version: "v2.0")
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│ STAGE 2: Listing Factory Studio (GitHub Pages Web App)      │
-│  • Schema Version Contract Enforcement ("v2.0")             │
-│  • Structured Per-SKU Validation (No Silent Truncation)     │
-│  • Backend Keyword Hygiene & Bullet 3 Safety Checks         │
-│  • "To be confirmed" Sentinel Handling & Review Flags       │
-│  • Clear "Structurally Complete – Seller Review Required"   │
-│  • Dynamic Tax & Commercial Ingestion (GST, HSN, Quantity)  │
-│  • Complete 6-Slot Image Routing (SKU_XX_MAIN ... PT05)     │
-│  • Multi-Tab Marketplace Mapping Workbooks (.xlsx)          │
-│  • 5x Alternate Marketing Copies Workbook (.xlsx)           │
-│  • Cryptographic Package Audit Trail (SHA-256 Metadata)     │
-│  • Client Handover Delivery Archive (.zip)                  │
-└─────────────────────────────────────────────────────────────┘
-```
+Listing Factory v2.1 replaces single-garment hardcoding with a central **Category Profile Registry**. The validation engine, prompt guidance, and Excel output dynamically adapt based on the selected `category_profile`:
+
+| # | Profile ID | Product Family | Category Group | Amazon Item Keyword | Flipkart Vertical | Meesho Vertical |
+|---|---|---|---|---|---|---|
+| 1 | `women_ethnic_kurta` | Women Ethnic Wear | Women Ethnic Wear | `kurtas-and-ethnic-tops` | `Ethnic Wear / Kurta` | `Women Ethnic Wear / Kurtis` |
+| 2 | `saree` | Sarees (Daily / Festive) | Sarees | `sarees` | `Saree` | `Women Ethnic Wear / Sarees` |
+| 3 | `coord_set` | Co-ord Sets (2/3-Piece) | Women Western & Sets | `co-ord-sets` | `Co-ords` | `Women Western / Co-ord Sets` |
+| 4 | `women_dress` | Women's Dresses | Women Western Wear | `dresses` | `Dress` | `Women Western / Dresses` |
+| 5 | `women_top` | Women's Western Tops | Women Western Wear | `tunics-and-western-tops` | `Top` | `Women Western / Tops` |
+| 6 | `men_shirt` | Men's Shirts | Men Western Wear | `mens-casual-shirts` | `Shirt` | `Men Western / Shirts` |
+| 7 | `men_tshirt` | Men's T-Shirts & Polos | Men Western Wear | `mens-t-shirts` | `T-Shirt` | `Men Western / T-Shirts` |
+| 8 | `men_bottomwear` | Men's Bottomwear | Men Western Wear | `mens-trousers-and-jeans` | `Trouser / Jeans` | `Men Western / Bottomwear` |
+| 9 | `women_bottomwear` | Women's Bottomwear | Women Western & Ethnic | `womens-bottomwear` | `Women Bottomwear` | `Women Western / Bottomwear` |
+| 10 | `men_ethnic` | Men's Ethnic Wear | Men Ethnic Wear | `mens-ethnic-wear` | `Men Ethnic Wear` | `Men Ethnic / Kurtas` |
+| 11 | `kidswear` | Kidswear (Boys & Girls) | Kidswear | `kids-apparel` | `Kids Apparel` | `Kids / Clothing Sets` |
+| 12 | `footwear` | Footwear (Casual / Formal) | Footwear | `casual-shoes` | `Footwear` | `Footwear / Casual Shoes` |
+| 13 | `home_textiles` | Home Furnishing | Home & Furnishing | `home-furnishing` | `Home Furnishing` | `Home & Kitchen / Bedding` |
+
+### 🚫 Explicitly Excluded Profiles (Strict Rejection)
+The following category profiles are **intentionally not supported** in Listing Factory and will be rejected at the validation layer with an explicit notice:
+- `blouse`, `lingerie`, `innerwear`, `shapewear`, `bra`, `underwear`, or any sexualized / intimate apparel.
+- *Rejection Message*: `"This category profile is intentionally not supported in Listing Factory v2.0."`
 
 ---
 
-## 🤖 Stage 1: AI Prompt Layer & Truth Boundary Contracts
+## 🤖 AI Prompt Guidance for JSON Generation
 
-When generating JSON listing payloads with LLMs, the master generation prompt must enforce these foundational contracts:
+When prompting an LLM (Claude, Gemini, GPT-4) to generate listing records, provide the verified product facts and select the exact `category_profile`. The LLM must adhere to these category-specific contracts:
 
-1. **Truth Boundary & Claim Safety**:
-   - The LLM is strictly forbidden from inventing fabric composition, wash care rules, stitching styles, or technical claims not present in the verified product record (`verified.*`).
-   - **Hard Prohibited Claims**: Technical performance claims (`breathable`, `airy`, `cooling`, `sweat-absorbent`, `quick-dry`, `non-sticky`, `lightweight`, `skin-friendly`, `wrinkle-free`), absolute color/durability guarantees (`zero fading`, `no bleeding`, `pre-shrunk`, `anti-pilling`), and ungrounded superiority claims (`superior quality`, `best quality`, `guaranteed`, `luxury`).
-   - **Advisory Warnings**: Subjective fit/feel terms (`comfortable fit`, `perfect fit`, `relaxed fit`, `easy-to-wear`, `soft feel`, `flattering fit`, `premium fabric`, `rich look`) trigger advisory warnings to ensure sellers supply specific dimensions or cut descriptions.
-   - **Permitted Styling Suggestions**: Subjective styling language is permitted when framed as styling ideas (e.g., *"style with jeans or palazzos"*, *"an option for festive gatherings"*, *"a thoughtful gifting choice"*).
-   - If an attribute is unknown or unverified, the LLM must mark it as `"To be confirmed"` or use neutral generic phrasing (e.g., *"as per product label"*).
+### 1. Required Verified Facts by Profile
+- **`women_ethnic_kurta`**: `fabric`, `sleeve`, `neckline`, `length`, `pattern`, `care_label`, `product_type`, `color`, `sizes`.
+- **`saree`**: `fabric`, `pattern`, `saree_length`, `blouse_piece_included`, `care_label`, `color`, `occasion`.
+- **`coord_set`**: `fabric`, `pattern`, `top_type`, `bottom_type`, `sleeve`, `neckline`, `top_length`, `bottom_length`, `care_label`, `package_contents`, `sizes`, `color`.
+- **`women_dress`**: `fabric`, `dress_type`, `neckline`, `sleeve`, `length`, `pattern`, `care_label`, `sizes`, `color`.
+- **`women_top`**: `fabric`, `top_type`, `neckline`, `sleeve`, `length`, `pattern`, `care_label`, `sizes`, `color`.
+- **`men_shirt`**: `fabric`, `shirt_type`, `collar_type`, `sleeve`, `pattern`, `care_label`, `sizes`, `color`.
+- **`men_tshirt`**: `fabric`, `tshirt_type`, `neckline`, `sleeve`, `pattern`, `care_label`, `sizes`, `color`.
+- **`men_bottomwear`**: `bottom_type`, `fabric`, `pattern`, `waist_type`, `length_or_inseam`, `closure_type`, `care_label`, `sizes`, `color`.
+- **`women_bottomwear`**: `bottom_type`, `fabric`, `pattern`, `waist_type`, `length_or_inseam`, `closure_type`, `care_label`, `sizes`, `color`.
+- **`men_ethnic`**: `garment_type`, `fabric`, `neckline_or_collar`, `sleeve`, `length`, `pattern`, `care_label`, `sizes`, `color`.
+- **`kidswear`**: `target_gender`, `age_group`, `garment_type`, `fabric`, `pattern`, `care_label`, `sizes`, `color`.
+- **`footwear`**: `footwear_type`, `material`, `closure_type`, `sole_material`, `toe_shape`, `heel_type_or_flat`, `care_label`, `sizes`, `color`.
+- **`home_textiles`**: `product_type`, `material`, `pattern`, `dimensions`, `package_contents`, `care_label`, `color`.
 
-2. **Amazon Title Quality & Order Pattern**:
-   - **Guideline Structure**: `[Brand] [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])`.
-   - **Brand Duplication**: Hard error if brand name appears more than once.
-   - **Adjacent Repetitions & Phrase Stacks**: Hard error if consecutive duplicate words (e.g. `cotton cotton`, `blue blue`) or redundant phrase stacks (e.g. `Floral Print Printed`, `Pure Cotton Cotton`, `Indigo Blue Blue`, `A-Line A line`) appear.
-   - **Delimiters & Separators**: Advisory warning if multiple delimiters (`|` or ` - `) fragment the title unnaturally.
-   - **Product Type Consistency**: Advisory warning if redundant close-form terms are stacked (e.g. both `kurta` and `kurti`).
+### 2. Category-Specific Prohibited Claims
+- **Footwear**: Forbids unverified `anti-slip`, `cushioning`, `arch support`, `memory foam`, `waterproof` without lab certification.
+- **Sarees**: Forbids unverified `handloom`, `Banarasi`, `Kanjivaram`, `pure silk`, `artisanal` without Silk Mark / GI certification.
+- **Home Textiles**: Forbids unverified thread count (e.g. `400 TC`), `GSM`, `hypoallergenic`, `stain-resistant` without test documentation.
+- **Kidswear**: Forbids unverified `skin-safe`, `gentle on skin`, `100% organic` without dermatological / GOTS certification.
+- **Apparel (Shirts & Bottomwear)**: Flags unverified `slim fit`, `tailored fit`, `comfort fit` unless verified in source specifications.
 
-3. **Amazon Backend Search-Term Hygiene**:
-   - Must be **lowercase ASCII** only (no uppercase, no special Unicode).
-   - Must **not** contain punctuation, commas, or repeated whitespace (use single spaces between terms).
-   - Must **not** contain the brand name or competitor brands.
-   - Must **not** duplicate words already present in the Amazon title (or simple singular/plural variants).
-
-4. **Neutralized Bullet 3 ("COLORFAST & DURABLE:")**:
-   - Heading sequence is retained: Bullet 3 must start with `COLORFAST & DURABLE:`.
-   - The body must use safe, care-led language (e.g. `COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and color.`) unless durability claims are independently verified in the source data.
-   - Forbids unverified guarantee claims (`zero fading`, `no bleeding`, `pre-shrunk`, `anti-pilling`, `reactive dye`, `vat dye`).
-
-5. **Formal JSON Schema Contract**:
-   - Every payload must declare top-level `"schema_version": "v2.0"`.
-   - Exact array lengths: Amazon bullet points ($= 5$), Meesho highlights ($= 4$), Alternates ($= 5$).
-   - Strict length/byte ceilings: Amazon Title $\le 180$ chars, Amazon BST $\le 240$ UTF-8 bytes, Meesho Title $\le 60$ chars.
-
----
-
-## ✨ Features & Capabilities
-
-### 1. 🛡️ Cryptographic Package Audit Trail (`package_metadata.json`)
-Every generated package contains a top-level `package_metadata.json` documenting:
-- **`tool_version`**: Tool build (`Listing Factory v2.0`).
-- **`json_prompt_version`**: Master generation prompt release (`JSON Prompt v1.0 – 2026-08-22`).
-- **`schema_version`**: Schema compatibility contract (`v2.0`).
-- **`generated_at`**: Exact ISO 8601 timestamp with local timezone offset.
-- **Per-SKU Cryptographic Hashes**:
-  - `input_hash`: SHA-256 digest of verified product input records.
-  - `output_hash`: SHA-256 digest of the complete generated listing record.
-
-### 2. 📜 Schema Version Contract (`schema_version: "v2.0"`)
-- Requires `"schema_version": "v2.0"` in input JSON payloads.
-- Validates prompt output compatibility against the application engine to prevent silent schema drift.
-
-### 3. ⚠️ Explicit "To be confirmed" Sentinel Handling
-- Fields marked with `"To be confirmed"` or `"TBC"` are accepted without failing hard schema validation.
-- Surfaced as advisory review warnings in the UI and flagged in the `Master_Summary` Excel tab under **`Review Flags: ⚠️ Has unconfirmed fields`**.
-
-### 4. 🏷️ Clear Readiness Phrasing & Structural Disclaimer
-To prevent misunderstanding structural checks as automatic "marketplace acceptance", status labels are explicitly worded and accompanied by the `STRUCTURAL_READINESS_DISCLAIMER`:
-- `✅ Structurally Complete – Seller Review Required`
-- `⚠️ Warnings – Seller Review Required`
-- `❌ Not Ready – Fix Errors First`
-
-**Structural Readiness Disclaimer**:
-> *"Structural completeness confirms schema and package checks only. It does not verify product facts, image content, tax classification, marketplace-policy compliance, or marketplace acceptance. Seller review is required before upload."*
-
-### 5. 🔍 Structured Per-SKU Validation Breakdown
-- Replaces generic error lists with structured per-SKU diagnostic cards separating hard schema errors, title quality errors, and claim safety errors from non-blocking advisory warnings.
-
-### 6. ⚙️ Batch-Level Configuration (`batch_config`)
-Allows specifying shared brand, category, and seller configuration at the batch level while allowing individual SKU overrides:
-```json
-{
-  "schema_version": "v2.0",
-  "batch_config": {
-    "brand": "Anvi Fabrics",
-    "category": "Women Ethnic Wear",
-    "seller_config": {
-      "amazon_quantity": 50,
-      "gst_percent": 5,
-      "hsn_code": "62114200"
-    }
-  },
-  "skus": [
-    { "sku_id": "SKU_01", "product_type": "Kurti", "color": "Navy Blue", ... }
-  ]
-}
-```
-
-### 7. 🧪 Sample / Dry-Run Mode
-- **Client Studio:** One-click `✨ Load Sample (v2.0)` button in the top navigation loads a complete, valid sample payload for immediate testing.
-- **Backend API:** Dedicated `POST /api/generate-sample` endpoint generates a full mock client handover ZIP for testing pipelines.
-
-### 8. 🗄️ Versioned Output Archival & Rollback
-- The backend server automatically archives generated packages into `output/` as `<client>_<batch>_v1.zip`, `v2.zip`, etc., for audit and rollback.
-- Query historical archives via `GET /api/history`.
-
----
-
-## ⚖️ Scope & Limitations Boundary
-
-- **Listing Copy & Mapping Preparation:** Prepares structured listing copy and multi-tab Excel mapping workbooks based on seller-provided catalog data.
-- **No Acceptance Guarantee:** Does not guarantee automatic marketplace approval, indexation, or exemption from category ungating requirements.
-- **Approximate Processing Timelines:** Processing and approval times are illustrative only and vary by portal queue, category, seller standing, and current platform workload. Listing Factory does not guarantee review or approval duration.
-- **Declared Image Roles vs. Visual Verification:** Assigns image slots based on declared filename patterns (`_MAIN` through `_PT05`).
-  > **Image Role Disclaimer**: *"Image roles are assigned from filenames only. Listing Factory does not visually verify image content. The seller must confirm that each declared slot contains the intended image before marketplace upload."*
-- **Tax & Classification Disclaimer:** GST percentages and HSN codes are seller-provided configurations and do not constitute official tax advice.
-- **Mandatory Final Review:** All data must be reviewed, verified, and confirmed by the brand prior to live portal submission.
+### 3. Title Template Formulas by Profile
+- **Apparel**: `[Brand] [Gender]'s [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])`
+- **Sarees**: `[Brand] Women's [Fabric] [Pattern] [Saree Type] with [Blouse Piece Info] ([Color], [Saree Length])`
+- **Co-ord Sets**: `[Brand] Women's [Fabric] [Pattern] 2-Piece Co-ord Set with [Top Type] and [Bottom Type] ([Color])`
+- **Kidswear**: `[Brand] [Target Gender] [Age Group] [Fabric] [Pattern] [Garment Type] ([Color])`
+- **Footwear**: `[Brand] [Gender] [Material] [Footwear Type] with [Closure Type] and [Sole Material] ([Color])`
+- **Home Textiles**: `[Brand] [Material] [Pattern] [Product Type] with [Package Contents] ([Dimensions], [Color])`
 
 ---
 
 ## 📊 Marketplace Mapping Workbooks
 
-Listing Factory generates two structured mapping workbooks inside the client ZIP:
+Listing Factory v2.1 dynamically formats Excel workbooks per profile:
 
-### 1. `[Client]_Master_Marketplace_Upload.xlsx`
-Structured data sheets designed for transferring copy into official marketplace upload templates:
-- **`Master_Summary`**: Catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), `Validation Status` (`✅ Pass`), `Review Flags` (`⚠️ Has unconfirmed fields` / `—`), `Package Readiness` (`✅ Structurally Complete – Seller Review Required`), and **`Status Scope / Meaning`** containing the full structural readiness disclaimer.
-- **`01_Amazon_Bulk_Import`**: Amazon.in 24-column mapping schema with dynamic `quantity`, generic keywords ($\le 240$ bytes), 5 bullet points, `size`, `color` (`sku.color`), and canonical image filenames (`main_image_url`, `other_image_url1` through `other_image_url5`).
-- **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 25-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), `Color` (`sku.color`), seller GST/HSN, search keywords, 6 image slot references (`Main Image Name`, `Angle 1 Image` through `Angle 5 Image`), and Flipkart-specific description.
-- **`03_Meesho_Bulk_Import`**: Meesho 18-column schema with dual Hinglish + English hook descriptions, `Color` (`sku.color`), 4 highlight badges, seller GST/HSN, dynamic Meesho price, and 6-slot image mappings (`Primary Image (Hero)`, `Other Image 1` through `Other Image 5`).
-
-### 2. `[Client]_Alternate_Listing_Copies.xlsx`
-Contains 5 distinct marketing angle variations per SKU for A/B testing and seasonal refreshes:
-- **V1**: Daily Office & Workwear
-- **V2**: Festive & Wedding Celebrations
-- **V3**: Summer Daily Wear
-- **V4**: Everyday Essential
-- **V5**: Gifting & Modern Fusion
+1. **`Master_Summary` (17 Columns)**:
+   - `SKU ID`, `Brand`, `Category Profile`, `Category`, `Product Type`, `Color`, `Key Attributes / Fabric`, `Sizes / Dimensions`, `Amazon Title Preview`, `Flipkart Title Preview`, `Meesho Hinglish Hook Preview`, `Core Images Found`, `Core Coverage`, `Validation Status`, `Review Flags`, `Package Readiness`, **`Status Scope / Meaning`**.
+2. **`01_Amazon_Bulk_Import`**:
+   - Ingests profile-specific `item_type_keyword` and `feed_product_type`, `standard_price`, `quantity`, 5 bullet points, backend search terms ($\le 240$ bytes), and 6 canonical image URLs (`main_image_url`, `other_image_url1` through `other_image_url5`).
+3. **`02_Flipkart_Bulk_Import` (Dynamic Columns)**:
+   - Replaces hardcoded kurta columns with dynamic attribute columns derived from active profiles (e.g. Saree gets `Saree Length`, `Blouse Piece`, `Border Type`; Footwear gets `Footwear Type`, `Material`, `Sole Material`, `Closure Type`, `Toe Shape`, `Heel Type`).
+4. **`03_Meesho_Bulk_Import`**:
+   - Ingests Hinglish and English hook descriptions, primary material, dimensions, 4 highlight badges, dynamic seller pricing, and 6 image slots.
+5. **`[Client]_Alternate_Listing_Copies.xlsx`**:
+   - Contains 5 distinct marketing angle variations (V1 to V5) across Amazon, Flipkart, and Meesho.
 
 ---
 
@@ -192,40 +109,22 @@ Contains 5 distinct marketing angle variations per SKU for A/B testing and seaso
 
 ---
 
-## 📦 Client ZIP Structure
+## ⚖️ Scope & Operational Boundary
 
-```
-[Client]_[Batch]_Handover_Package/
-├── [Client]_Master_Marketplace_Upload.xlsx
-├── [Client]_Alternate_Listing_Copies.xlsx  (when alternates provided)
-├── package_metadata.json                   (cryptographic audit trail)
-├── README_Upload_Instructions.txt
-└── Organized_SKU_Images/
-    ├── SKU_01/
-    │   ├── SKU_01_MAIN.jpg
-    │   ├── SKU_01_PT01.jpg
-    │   ├── SKU_01_PT02.jpg
-    │   ├── SKU_01_PT03.jpg
-    │   ├── SKU_01_PT04.jpg
-    │   └── SKU_01_PT05.jpg
-    ├── SKU_02/
-    │   └── ...
-    └── Unassigned_Assets/
-```
+- **Listing Preparation Tool**: Prepares structured listing copy and multi-tab Excel mapping workbooks based on seller-provided catalog data.
+- **No Acceptance Guarantee**: Does not guarantee automatic marketplace approval or exemption from category ungating requirements.
+- **Declared Image Roles vs. Visual Verification**: Assigns image slots based on declared filename patterns (`_MAIN` through `_PT05`).
+  > **Image Role Disclaimer**: *"Image roles are assigned from filenames only. Listing Factory does not visually verify image content. The seller must confirm that each declared slot contains the intended image before marketplace upload."*
+- **Structural Readiness Disclaimer**:
+  > *"Structural completeness confirms schema and package checks only. It does not verify product facts, image content, tax classification, marketplace-policy compliance, or marketplace acceptance. Seller review is required before upload."*
 
 ---
 
-## 🛠️ Reference Backend Implementation (FastAPI)
-
-For headless automation, sample generation, or batch pipelines, a Python FastAPI reference backend is provided:
+## 🛠️ Local Development & Reference Backend
 
 ```bash
 pip install -r requirements.txt
 python app.py
 ```
 
----
-
-## 📞 Support & SLA Expectations
-
-Support is provided on a best-effort basis (Monday–Friday, 10:00–18:00 IST). Critical bugs (app crashes, broken ZIP archives) are prioritized. For technical inquiries, contact `support@listingfactory.internal`.
+Runs at `http://127.0.0.1:8000`.

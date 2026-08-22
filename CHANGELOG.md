@@ -4,26 +4,55 @@ All notable changes to the Listing Factory packaging studio will be documented i
 
 ---
 
+## [v2.1] – 2026-08-22
+
+### 🧬 Category-Profile-Driven Architecture
+- **13 Supported Product Families**: Refactored the core catalog pipeline from hardcoded Women Ethnic Wear attributes into a dynamic, extensible Category Profile Registry covering:
+  1. `women_ethnic_kurta` (Women Ethnic Wear — Kurta / Kurti / Tunic / Set)
+  2. `saree` (Sarees — Daily / Festive / Traditional)
+  3. `coord_set` (Co-ord Sets — 2-Piece / 3-Piece Sets)
+  4. `women_dress` (Women's Dresses — A-Line / Maxi / Midi)
+  5. `women_top` (Women's Western Tops & Tunics)
+  6. `men_shirt` (Men's Casual & Formal Shirts)
+  7. `men_tshirt` (Men's T-Shirts & Polos)
+  8. `men_bottomwear` (Men's Bottomwear — Jeans / Trousers / Chinos)
+  9. `women_bottomwear` (Women's Bottomwear — Jeans / Palazzo / Pants)
+  10. `men_ethnic` (Men's Ethnic Wear — Kurta / Pyjama / Set)
+  11. `kidswear` (Kidswear — Boys & Girls Garments / Sets)
+  12. `footwear` (Footwear — Casual / Formal / Sports)
+  13. `home_textiles` (Home Textiles & Furnishing — Bedsheets / Curtains)
+- **Profile-Driven Required Fact Enforcement**: Each category profile enforces mandatory verified product facts (e.g. Saree length, Co-ord set package contents, Footwear sole material, Home textile dimensions, Kidswear age group) before passing validation.
+- **Category-Specific Prohibited Claims**: Block unverified high-risk claims per vertical:
+  - *Footwear*: Blocks unverified `anti-slip`, `cushioning`, `arch support`, `memory foam`.
+  - *Sarees*: Blocks unverified `handloom`, `Banarasi`, `Kanjivaram`, `pure silk`.
+  - *Home Textiles*: Blocks unverified thread count (`400 TC`), `GSM`, `hypoallergenic`.
+  - *Kidswear*: Blocks unverified `skin-safe`, `gentle on skin`, `organic`.
+  - *Apparel*: Flags unverified `slim fit`, `tailored fit`, `comfort fit` with advisory warnings.
+- **Strict Exclusion of Non-Supported Profiles**: Explicitly rejects `blouse`, `lingerie`, `innerwear`, `shapewear`, `bra`, `underwear`, and intimate apparel at the validation layer with the message: `"This category profile is intentionally not supported in Listing Factory v2.0."`
+- **Dynamic Excel Mapping Workbooks**:
+  - `Master_Summary`: 17 columns including `Category Profile` and `Status Scope / Meaning`.
+  - `01_Amazon_Bulk_Import`: Ingests profile-specific `item_type_keyword` and `feed_product_type`.
+  - `02_Flipkart_Bulk_Import`: Dynamic column headers built from active profile controlled attributes (no kurta columns on sarees, footwear, or shirts).
+  - `03_Meesho_Bulk_Import`: Dynamic material and dimension ingestion.
+- **Profile-Driven UI Studio (index.html)**:
+  - Category Profile selector dropdown with optgroups.
+  - Interactive Profile Inspector card displaying required facts, controlled attributes, and marketplace hints.
+  - One-click sample JSON loader for all 13 supported profiles.
+  - Excluded categories policy notice banner.
+- **Full Backward Compatibility**: Legacy v2.0 payloads lacking `category_profile` infer `women_ethnic_kurta` with an advisory warning when `category == "Women Ethnic Wear"` or attributes resemble kurta data.
+
+---
+
 ## [v2.0] – 2026-08-22
 
 ### 🌟 New Features & Enhancements
-- **Amazon Title Quality & Order Pattern**: Added Amazon title quality validation enforcing the standard pattern `[Brand] [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])`. Blocks duplicate brand names, repeated adjacent tokens, and redundant phrase stacks as hard errors; flags excessive delimiters and stacked product types as advisory warnings.
-- **Truth Boundary & Claim Safety Validator**: Implemented comprehensive truthfulness validation across primary copy and all 5 alternate variants. Enforces hard errors on unverified technical/guarantee claims (`breathable`, `cooling`, `sweat-absorbent`, `quick-dry`, `lightweight`, `zero fading`, `superior quality`, `guaranteed`), advisory warnings on subjective fit/comfort phrases (`comfortable fit`, `perfect fit`, `soft feel`), and permits subjective styling suggestions.
-- **Structural Readiness Scope & Disclaimer**: Standardized `STRUCTURAL_READINESS_DISCLAIMER` across generated README, `Master_Summary` 15th column (`Status Scope / Meaning`), UI Section 4 notice, and README.md. Preserves exact 3 readiness status labels without collapsing to a simple "Ready".
-- **Declared Image Roles & Verification Notice**: Standardized `IMAGE_ROLES` to explicit declared slots (`Declared Hero Image`, `Declared Size Chart Slot`, etc.), added `IMAGE_ROLE_DISCLAIMER`, and labeled all folder hierarchy assets in handover instructions with `(manual visual check required)`.
-- **Cryptographic Package Metadata (`package_metadata.json`)**: Every generated package now contains an audit trail recording `tool_version`, `json_prompt_version`, `schema_version`, local ISO 8601 generation timestamp, and deterministic SHA-256 digests (`input_hash` & `output_hash`) for each SKU.
-- **Explicit Schema Version Contract**: Mandates top-level `"schema_version": "v2.0"` in input JSON payloads with strict compatibility checking between prompt output and packaging engines.
-- **"To be confirmed" Sentinel Handling**: Fields marked with `"To be confirmed"` or `"TBC"` are ingested safely as advisory review flags rather than throwing hard schema errors.
-- **Clear "Ready" Messaging & Seller Checklist**: Renamed status labels across Master Summary workbooks and UI to explicit actionable statements:
-  - `✅ Structurally Complete – Seller Review Required`
-  - `⚠️ Warnings – Seller Review Required`
-  - `❌ Not Ready – Fix Errors First`
-- **Structured Per-SKU Validation**: Replaced generic aggregate error outputs with structured per-SKU diagnostic cards separating hard schema errors from non-blocking advisory warnings.
-- **Batch-Level Configuration (`batch_config`)**: Enables batch-level inheritance for shared attributes (`brand`, `category`, `seller_config`), with per-SKU overrides.
-- **Sample / Dry-Run Mode**: Built-in sample generator endpoint (`/api/generate-sample`) and one-click demo data in the client UI for instant testing.
-- **Rollback & Versioned Output Archive**: Automatically maintains sequential package versions (`output/<client>_<batch>_v1.zip`, `v2.zip`, etc.) in the backend repository for audit and rollback.
-- **Performance & Soft Limits**: Surfaces non-blocking advisory warnings when batch size exceeds 50 SKUs or images exceed 200 MB.
-- **Scope & Limitations & Support Documentation**: Formalized operational boundaries, seller responsibilities, and SLA support expectations in README and in-app documentation.
+- **Amazon Title Quality & Order Pattern**: Added Amazon title quality validation enforcing standard pattern `[Brand] [Fabric] [Pattern] [Product Type] with [Verified Detail] ([Color])`. Blocks duplicate brand names, repeated adjacent tokens, and redundant phrase stacks.
+- **Truth Boundary & Claim Safety Validator**: Implemented truthfulness validation across primary copy and 5 alternate variants.
+- **Structural Readiness Scope & Disclaimer**: Standardized `STRUCTURAL_READINESS_DISCLAIMER` across generated README, `Master_Summary`, UI, and documentation.
+- **Declared Image Roles & Verification Notice**: Standardized `IMAGE_ROLES` to explicit declared slots (`Declared Hero Image`, `Declared Size Chart Slot`, etc.), added `IMAGE_ROLE_DISCLAIMER`.
+- **Cryptographic Package Metadata (`package_metadata.json`)**: Every package contains an audit trail recording `tool_version`, `json_prompt_version`, `schema_version`, local ISO 8601 timestamp, and SHA-256 digests (`input_hash` & `output_hash`).
+- **Explicit Schema Version Contract**: Mandates top-level `"schema_version": "v2.0"`.
+- **"To be confirmed" Sentinel Handling**: Fields marked with `"To be confirmed"` or `"TBC"` are ingested safely as advisory review flags.
 
 ---
 
@@ -32,14 +61,3 @@ All notable changes to the Listing Factory packaging studio will be documented i
 ### 🚀 Initial Release
 - Initial multi-marketplace mapping engine for Amazon.in, Flipkart Seller Hub, and Meesho Supplier Panel.
 - Client-side and FastAPI packaging with JSZip and ExcelJS.
-- Automated image routing by canonical SKU prefix.
-- Multi-tab Master Excel workbook builder.
-- Handover instructions generation (`README_Upload_Instructions.txt`).
-
----
-
-## 📌 Known Issues & Technical Boundaries
-
-1. **Filename-Based Image Role Assignment**: Image roles (Hero, Size Chart, Fabric Spec, Care Guide, Back View) are assigned strictly via filename tokens (`_MAIN`, `_PT01` to `_PT05`). Image visual content, background colors, and typography are not evaluated by computer vision.
-2. **Category Template Alignment**: The Excel workbooks produced by Listing Factory are structured mapping files. Because Indian e-commerce portals frequently update their vertical schemas, catalog teams must copy-paste data into the latest official portal upload flat files.
-3. **Marketplace Processing Times**: Processing windows stated in documentation (~15–30 min for Amazon, ~24–48 hr for Flipkart, ~2–4 hr for Meesho) are industry averages and vary depending on portal queue load and account standing.
