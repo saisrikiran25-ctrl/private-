@@ -433,7 +433,25 @@ const SAMPLE = [{
     search_keywords:"anarkali kurti, cotton kurta women, summer kurti" },
   meesho:{ title:"Trendy Pure Cotton Printed Anarkali Kurti with Pockets",
     hinglish_hook_description:"100% Pure Cotton fabric jo garmi mein bhi de pura comfort! Daily office aur festive wear ke liye best choice. Pockets ke saath stylish look aur soft feel.",
-    highlights:["Fabric: Pure Cotton (Soft & Breathable)","Style: Flared Anarkali with Side Pockets","Sizes: S to 3XL","Care: Normal Hand or Machine Wash"] }
+    highlights:["Fabric: Pure Cotton (Soft & Breathable)","Style: Flared Anarkali with Side Pockets","Sizes: S to 3XL","Care: Normal Hand or Machine Wash"] },
+  alternates: [
+    { variant_id:"V1", angle_theme:"Daily Office & Workwear",
+      amazon:{ title:"Women's Cotton Anarkali Kurti for Office | Professional Ethnic Wear with Pockets",
+        bullet_points:["FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.","DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.","COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.","VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.","SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."],
+        backend_search_terms:"office kurti women cotton formal ethnic workwear daily professional kurta",
+        description:"Designed for the modern professional. This pure cotton anarkali transitions seamlessly from boardroom meetings to after-work outings." },
+      flipkart:{ title:"Anvi Fabrics Women Cotton Office Wear Anarkali Kurta", search_keywords:"office kurti, formal kurta women, cotton workwear", description:"Professional cotton anarkali for the modern working woman." },
+      meesho:{ title:"Office Wear Pure Cotton Anarkali Kurti - Daily Professional", hinglish_hook_description:"Office ke liye perfect cotton kurti! 8 ghante comfort, pockets mein phone aur keys, aur style bhi top-class.", english_hook_description:"Effortless office elegance. Pure cotton anarkali with functional pockets for the modern professional.", highlights:["Fabric: Premium Cotton","Style: Office-Ready Anarkali","Pockets: Deep Side Pockets","Care: Machine Washable"] }
+    },
+    { variant_id:"V2", angle_theme:"Festive & Wedding Celebrations",
+      amazon:{ title:"Anvi Fabrics Festive Cotton Anarkali Kurti | Elegant Party Wear for Women",
+        bullet_points:["FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.","DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.","COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.","VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.","SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."],
+        backend_search_terms:"festive kurti women party wear wedding cotton anarkali celebration ethnic",
+        description:"Make every celebration special with this stunning cotton anarkali. Designed for women who want comfort without compromising on festive glamour." },
+      flipkart:{ title:"Anvi Fabrics Women Festive Party Wear Cotton Anarkali Kurta", search_keywords:"festive kurti, party wear kurta, wedding kurti women", description:"Elegant cotton anarkali for festivals, weddings, and celebrations." },
+      meesho:{ title:"Festive Party Wear Cotton Anarkali Kurti - Wedding & Puja", hinglish_hook_description:"Shaadi, puja ya festive party - har occasion pe compliments guaranteed! Pure cotton mein premium festive look.", english_hook_description:"Celebrate in style. Premium cotton anarkali crafted for weddings, festivals, and special occasions.", highlights:["Fabric: Festive Cotton","Style: Elegant Anarkali Flare","Occasion: Wedding & Puja","Care: Gentle Wash"] }
+    }
+  ]
 }];
 
 function loadSampleJson() {
@@ -510,6 +528,16 @@ function validateJsonClientSide() {
           pattern: fk.pattern||'', occasion: fk.occasion||'', search_keywords: fk.search_keywords||'' },
         meesho: { title: me.title||'', hinglish_hook_description: me.hinglish_hook_description||'',
           highlights: me.highlights||[] },
+        alternates: (item.alternates||[]).map((alt, ai) => ({
+          variant_id: alt.variant_id || ('V'+(ai+1)),
+          angle_theme: alt.angle_theme || ('Angle '+(ai+1)),
+          amazon: { title: (alt.amazon||{}).title||'', bullet_points: (alt.amazon||{}).bullet_points||[],
+            backend_search_terms: (alt.amazon||{}).backend_search_terms||'', description: (alt.amazon||{}).description||'' },
+          flipkart: { title: (alt.flipkart||{}).title||'', search_keywords: (alt.flipkart||{}).search_keywords||'',
+            description: (alt.flipkart||{}).description||'' },
+          meesho: { title: (alt.meesho||{}).title||'', hinglish_hook_description: (alt.meesho||{}).hinglish_hook_description||'',
+            english_hook_description: (alt.meesho||{}).english_hook_description||'', highlights: (alt.meesho||{}).highlights||[] }
+        })),
         bullet_count: (amz.bullet_points||[]).length
       });
     });
@@ -1031,6 +1059,110 @@ function showProgress() { document.getElementById('progressArea').classList.remo
 function hideProgress() { document.getElementById('progressArea').classList.add('hidden'); }
 
 // ── Package Generation (Enhancements #3 + #4) ──
+// ── 5x Alternate Listing Copies Workbook Builder ──
+async function createAlternatesWorkbook(clientName) {
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Listing Factory Studio v2';
+  wb.created = new Date();
+
+  const headerFill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF0F172A'} };
+  const headerFont = { name:'Calibri', size:11, bold:true, color:{argb:'FF38BDF8'} }; // Sky blue for alternates
+  const thin = { top:{style:'thin',color:{argb:'FF334155'}}, left:{style:'thin',color:{argb:'FF334155'}}, bottom:{style:'thin',color:{argb:'FF334155'}}, right:{style:'thin',color:{argb:'FF334155'}} };
+
+  function styleRow(ws) {
+    ws.getRow(1).eachCell(cell => {
+      cell.fill = headerFill; cell.font = headerFont; cell.border = thin;
+      cell.alignment = { vertical:'middle', horizontal:'center', wrapText:true };
+    });
+    ws.getRow(1).height = 32;
+  }
+  function autoFit(ws) {
+    ws.columns.forEach(col => {
+      let mx = 14;
+      col.eachCell({includeEmpty:true}, cell => { if (cell.value) mx = Math.max(mx, Math.min(String(cell.value).length+4, 50)); });
+      col.width = mx;
+    });
+  }
+
+  // Tab 1: Amazon 5x Alternates
+  const wsAmz = wb.addWorksheet('Amazon_Alternate_Copies');
+  wsAmz.addRow([
+    "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+    "Alternative Title (Amazon)",
+    "Bullet 1 (Fabric & Comfort)", "Bullet 2 (Design & Utility)",
+    "Bullet 3 (Colorfast & Durable)", "Bullet 4 (Versatile Styling)",
+    "Bullet 5 (Sizing & Care)",
+    "Alternative Backend Search Terms (<240 bytes)",
+    "Alternative Description"
+  ]);
+  styleRow(wsAmz);
+
+  // Tab 2: Flipkart 5x Alternates
+  const wsFk = wb.addWorksheet('Flipkart_Alternate_Copies');
+  wsFk.addRow([
+    "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+    "Alternative Flipkart Title",
+    "Alternative Search Keywords",
+    "Alternative Product Description"
+  ]);
+  styleRow(wsFk);
+
+  // Tab 3: Meesho 5x Alternates (Hinglish + English)
+  const wsMe = wb.addWorksheet('Meesho_Alternate_Copies');
+  wsMe.addRow([
+    "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+    "Alternative Product Title",
+    "Hinglish Hook Description (Conversational)",
+    "English Hook Description (Formal/Metro)",
+    "Key Highlights (Badges)"
+  ]);
+  styleRow(wsMe);
+
+  // Populate
+  parsedSkus.forEach(sku => {
+    const alts = sku.alternates && sku.alternates.length > 0 ? sku.alternates : [];
+    alts.forEach((alt, idx) => {
+      const vTag = alt.variant_id || ('V' + (idx+1));
+      const theme = alt.angle_theme || ('Angle ' + (idx+1));
+
+      // Amazon row
+      const amz = alt.amazon || {};
+      const bp = [...(amz.bullet_points||[]), '', '', '', '', ''].slice(0, 5);
+      wsAmz.addRow([
+        sku.sku_id, sku.brand, vTag, theme,
+        amz.title||'', bp[0], bp[1], bp[2], bp[3], bp[4],
+        amz.backend_search_terms||'',
+        amz.description||''
+      ]);
+
+      // Flipkart row
+      const fk = alt.flipkart || {};
+      wsFk.addRow([
+        sku.sku_id, sku.brand, vTag, theme,
+        fk.title||'',
+        fk.search_keywords||'',
+        fk.description||''
+      ]);
+
+      // Meesho row (Hinglish + English)
+      const me = alt.meesho || {};
+      wsMe.addRow([
+        sku.sku_id, sku.brand, vTag, theme,
+        me.title||'',
+        me.hinglish_hook_description||'',
+        me.english_hook_description||'',
+        (me.highlights||[]).join(' \u2022 ')
+      ]);
+    });
+  });
+
+  autoFit(wsAmz);
+  autoFit(wsFk);
+  autoFit(wsMe);
+
+  return await wb.xlsx.writeBuffer();
+}
+
 async function generatePackage(skipComplianceCheck) {
   // Compliance gate
   if (!skipComplianceCheck) {
@@ -1057,7 +1189,16 @@ async function generatePackage(skipComplianceCheck) {
     // Step 1: Build Excel
     setProgress(5, 'Building Master Excel workbook…');
     const xlsxBuffer = await createMasterWorkbook(safeClient, category);
-    setProgress(25, 'Excel built. Assembling ZIP archive…');
+    setProgress(20, 'Master Excel built.');
+
+    // Step 1b: Build Alternate Copies workbook if alternates exist
+    const hasAlternates = parsedSkus.some(s => s.alternates && s.alternates.length > 0);
+    let altXlsxBuffer = null;
+    if (hasAlternates) {
+      setProgress(28, 'Building 5x Alternate Copies workbook\u2026');
+      altXlsxBuffer = await createAlternatesWorkbook(safeClient);
+    }
+    setProgress(35, 'Assembling ZIP archive\u2026');
 
     // Step 2: Build ZIP with STORE compression for images (Enhancement #4)
     const zip = new JSZip();
@@ -1065,6 +1206,10 @@ async function generatePackage(skipComplianceCheck) {
 
     // Excel + README use DEFLATE (text compresses well)
     root.file(xlsxName, xlsxBuffer, { compression:'DEFLATE', compressionOptions:{level:6} });
+    if (altXlsxBuffer) {
+      const altXlsxName = safeClient + '_Alternate_Listing_Copies.xlsx';
+      root.file(altXlsxName, altXlsxBuffer, { compression:'DEFLATE', compressionOptions:{level:6} });
+    }
     root.file('README_Upload_Instructions.txt', generateReadme(safeClient, safeBatch), { compression:'DEFLATE' });
 
     // Organize images into SKU folders — STORE (no re-compression for JPEGs/PNGs)

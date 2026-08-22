@@ -67,6 +67,34 @@ class MeeshoData(BaseModel):
     highlights: list[str] = Field(default_factory=list)
 
 
+class AlternateAmazonData(BaseModel):
+    title: str = ""
+    bullet_points: list[str] = Field(default_factory=list)
+    backend_search_terms: str = ""
+    description: str = ""
+
+
+class AlternateFlipkartData(BaseModel):
+    title: str = ""
+    search_keywords: str = ""
+    description: str = ""
+
+
+class AlternateMeeshoData(BaseModel):
+    title: str = ""
+    hinglish_hook_description: str = ""
+    english_hook_description: str = ""
+    highlights: list[str] = Field(default_factory=list)
+
+
+class AlternateVariant(BaseModel):
+    variant_id: str = ""
+    angle_theme: str = ""
+    amazon: AlternateAmazonData = Field(default_factory=AlternateAmazonData)
+    flipkart: AlternateFlipkartData = Field(default_factory=AlternateFlipkartData)
+    meesho: AlternateMeeshoData = Field(default_factory=AlternateMeeshoData)
+
+
 class SKUItem(BaseModel):
     sku_id: str
     brand: str = ""
@@ -77,6 +105,7 @@ class SKUItem(BaseModel):
     amazon: AmazonData = Field(default_factory=AmazonData)
     flipkart: FlipkartData = Field(default_factory=FlipkartData)
     meesho: MeeshoData = Field(default_factory=MeeshoData)
+    alternates: list[AlternateVariant] = Field(default_factory=list)
 
 
 # ──────────────────────────────────────────────
@@ -314,6 +343,87 @@ def build_workbook(skus: list[SKUItem], category: str, image_map: dict[str, list
     return buf.getvalue()
 
 
+def build_alternates_workbook(skus: list[SKUItem]) -> bytes:
+    """Build the 5x Alternate Listing Copies workbook with 3 marketplace tabs."""
+    wb = Workbook()
+
+    # -- Tab 1: Amazon Alternates --
+    ws_amz = wb.active
+    ws_amz.title = "Amazon_Alternate_Copies"
+    ws_amz.append([
+        "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+        "Alternative Title (Amazon)",
+        "Bullet 1 (Fabric & Comfort)", "Bullet 2 (Design & Utility)",
+        "Bullet 3 (Colorfast & Durable)", "Bullet 4 (Versatile Styling)",
+        "Bullet 5 (Sizing & Care)",
+        "Alternative Backend Search Terms (<240 bytes)",
+        "Alternative Description",
+    ])
+    _style_header_row(ws_amz, 12)
+
+    # -- Tab 2: Flipkart Alternates --
+    ws_fk = wb.create_sheet("Flipkart_Alternate_Copies")
+    ws_fk.append([
+        "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+        "Alternative Flipkart Title",
+        "Alternative Search Keywords",
+        "Alternative Product Description",
+    ])
+    _style_header_row(ws_fk, 7)
+
+    # -- Tab 3: Meesho Alternates (Hinglish + English) --
+    ws_me = wb.create_sheet("Meesho_Alternate_Copies")
+    ws_me.append([
+        "SKU ID", "Brand", "Variant", "Marketing Angle / Theme",
+        "Alternative Product Title",
+        "Hinglish Hook Description (Conversational)",
+        "English Hook Description (Formal/Metro)",
+        "Key Highlights (Badges)",
+    ])
+    _style_header_row(ws_me, 8)
+
+    for sku in skus:
+        for idx, alt in enumerate(sku.alternates):
+            v_tag = alt.variant_id or f"V{idx+1}"
+            theme = alt.angle_theme or f"Angle {idx+1}"
+
+            # Amazon row
+            bp = (alt.amazon.bullet_points + [""] * 5)[:5]
+            ws_amz.append([
+                sku.sku_id, sku.brand, v_tag, theme,
+                alt.amazon.title,
+                bp[0], bp[1], bp[2], bp[3], bp[4],
+                alt.amazon.backend_search_terms,
+                alt.amazon.description,
+            ])
+
+            # Flipkart row
+            ws_fk.append([
+                sku.sku_id, sku.brand, v_tag, theme,
+                alt.flipkart.title,
+                alt.flipkart.search_keywords,
+                alt.flipkart.description,
+            ])
+
+            # Meesho row
+            ws_me.append([
+                sku.sku_id, sku.brand, v_tag, theme,
+                alt.meesho.title,
+                alt.meesho.hinglish_hook_description,
+                alt.meesho.english_hook_description,
+                " \u2022 ".join(alt.meesho.highlights),
+            ])
+
+    _auto_width(ws_amz)
+    _auto_width(ws_fk)
+    _auto_width(ws_me)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return buf.getvalue()
+
+
 # ──────────────────────────────────────────────
 # README generator
 # ──────────────────────────────────────────────
@@ -444,6 +554,10 @@ def build_zip(
     xlsx_bytes = build_workbook(skus, category, image_map)
     readme_text = generate_readme(client, batch)
 
+    # Build alternates workbook if any SKU has alternates
+    has_alternates = any(len(s.alternates) > 0 for s in skus)
+    alt_xlsx_bytes = build_alternates_workbook(skus) if has_alternates else None
+
     prefix = f"{client}_{batch}_Handover_Package"
     xlsx_name = f"{client}_Master_Marketplace_Upload.xlsx"
 
@@ -451,6 +565,10 @@ def build_zip(
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
         # Excel workbook
         zf.writestr(f"{prefix}/{xlsx_name}", xlsx_bytes)
+        # Alternate copies workbook
+        if alt_xlsx_bytes:
+            alt_xlsx_name = f"{client}_Alternate_Listing_Copies.xlsx"
+            zf.writestr(f"{prefix}/{alt_xlsx_name}", alt_xlsx_bytes)
         # README
         zf.writestr(f"{prefix}/README_Upload_Instructions.txt", readme_text)
         # Organized images
