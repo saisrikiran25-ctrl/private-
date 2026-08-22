@@ -249,6 +249,7 @@ CATEGORY_MAP = {
     "Home & Kitchen": "home-furnishing",
 }
 
+# Declared Image Roles (Assigned by filename suffix; does not verify visual content)
 IMAGE_ROLES = {
     "_MAIN": "Primary Image (Hero)",
     "_PT01": "Other Image 1 (Size Chart)",
@@ -259,6 +260,122 @@ IMAGE_ROLES = {
 }
 
 CORE_SUFFIXES = ["_MAIN", "_PT01", "_PT02", "_PT03"]
+
+
+# ──────────────────────────────────────────────
+# Search Term & Bullet 3 Safety Helpers
+# ──────────────────────────────────────────────
+
+UNVERIFIED_DURABILITY_TERMS = [
+    "colorfast", "colourfast", "fade resistant", "zero fade", "no fading",
+    "zero bleeding", "no bleeding", "shrink resistant", "anti-shrink", "pre-shrunk",
+    "pilling", "anti-pilling", "durable", "reinforced", "tested", "technology",
+    "vat dye", "reactive dye", "color lock", "colour lock"
+]
+
+
+def validate_amazon_backend_search_terms(title: str, bst: str, brand: str) -> tuple[list[str], list[str]]:
+    """
+    Validates Amazon Backend Search Terms hygiene:
+    - Must be lowercase ASCII only (no uppercase, no non-ASCII characters).
+    - Must not contain punctuation, commas, or repeated whitespace.
+    - Must not contain the brand name.
+    - Warns on exact title duplicates or close singular/plural title word matches.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not bst.strip() or bst == TO_BE_CONFIRMED:
+        return errors, warnings
+
+    # 1. Non-ASCII check
+    try:
+        bst.encode("ascii")
+    except UnicodeEncodeError:
+        errors.append("Amazon backend search terms must contain ASCII characters only.")
+
+    # 2. Uppercase check
+    if re.search(r"[A-Z]", bst):
+        errors.append("Amazon backend search terms must be lowercase only (uppercase characters found).")
+
+    # 3. Punctuation / commas check
+    invalid_chars = set(re.findall(r"[^a-z0-9\s]", bst))
+    if invalid_chars:
+        errors.append(f"Amazon backend search terms must not contain punctuation or commas (found: {', '.join(sorted(invalid_chars))}). Use single spaces only.")
+
+    # 4. Repeated whitespace
+    if re.search(r"\s{2,}", bst):
+        errors.append("Amazon backend search terms must not contain repeated whitespace. Use single spaces between terms.")
+
+    # 5. Brand occurrence check
+    bst_lower = bst.lower()
+    bst_tokens = bst_lower.split()
+    brand_tokens = [t.lower() for t in re.findall(r"[a-z0-9]+", brand) if len(t) >= 2]
+    for bt in brand_tokens:
+        if bt in bst_tokens or bt in bst_lower:
+            errors.append(f"Amazon backend search terms must not contain the brand name ('{brand}' / '{bt}').")
+            break
+
+    # 6. Title duplicate checks (Warnings)
+    stopwords = {"and", "or", "with", "for", "in", "of", "a", "an", "the", "to", "by", "on", "at", "from", "is", "it", "as"}
+    title_tokens = set(re.findall(r"[a-z0-9]+", title.lower())) - stopwords
+
+    exact_dupes = []
+    close_dupes = []
+
+    for word in bst_tokens:
+        clean_w = re.sub(r"[^a-z0-9]", "", word)
+        if not clean_w or clean_w in stopwords:
+            continue
+        if clean_w in title_tokens:
+            exact_dupes.append(clean_w)
+        else:
+            if clean_w.endswith("s") and clean_w[:-1] in title_tokens and len(clean_w) > 3:
+                close_dupes.append(f"'{clean_w}' (plural of '{clean_w[:-1]}' in title)")
+            elif (clean_w + "s") in title_tokens:
+                close_dupes.append(f"'{clean_w}' (singular of '{clean_w}s' in title)")
+
+    if exact_dupes:
+        warnings.append(f"Amazon backend search terms contain word(s) already in the title: {', '.join(sorted(set(exact_dupes)))}. Consider replacing with non-title search keywords.")
+
+    if close_dupes:
+        warnings.append(f"Amazon backend search terms contain close duplicate(s) of title words: {', '.join(sorted(set(close_dupes)))}.")
+
+    return errors, warnings
+
+
+def validate_bullet_3_safety(bullet_3: str, is_verified_durability: bool = False) -> tuple[list[str], list[str]]:
+    """
+    Validates that Bullet 3 begins with 'COLORFAST & DURABLE:' and does not contain
+    unsupported durability/guarantee/shrinkage/colorfastness claims without explicit verified support.
+    """
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if not bullet_3.strip() or bullet_3 == TO_BE_CONFIRMED:
+        return errors, warnings
+
+    b3_upper = bullet_3.upper().strip()
+    if not b3_upper.startswith("COLORFAST & DURABLE:"):
+        errors.append("Bullet 3 must start with the mandated heading 'COLORFAST & DURABLE:'.")
+
+    body = bullet_3.split(":", 1)[1] if ":" in bullet_3 else bullet_3
+    body_lower = body.lower()
+
+    if not is_verified_durability:
+        offending = []
+        for term in UNVERIFIED_DURABILITY_TERMS:
+            pattern = r"\b" + re.escape(term) + r"\b"
+            if re.search(pattern, body_lower):
+                offending.append(term)
+
+        if offending:
+            errors.append(
+                f"Bullet 3 ('COLORFAST & DURABLE:') contains unverified technical/guarantee claim(s): {', '.join(sorted(set(offending)))}. "
+                "Use neutral care-led language (e.g. 'COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric\\'s appearance and color.')"
+            )
+
+    return errors, warnings
 
 
 # ──────────────────────────────────────────────
@@ -337,7 +454,7 @@ def _sku_has_unconfirmed_fields(sku: SKUItem) -> bool:
 
 
 # ──────────────────────────────────────────────
-# Excel Workbook Builders
+# Excel Workbook Builders (Complete PT05 Support)
 # ──────────────────────────────────────────────
 
 def _style_header_row(ws, num_cols: int, header_color: str = "10B981"):
@@ -400,7 +517,6 @@ def _build_master_summary(
         has_tbc = _sku_has_unconfirmed_fields(sku)
         review_flags = "⚠️ Has unconfirmed fields" if has_tbc else "—"
         
-        # Quaternary Enhancement #1: Clear Readiness Phrasing
         if validation_status == "✅ Pass" and core_found == 4 and not has_tbc:
             readiness = "✅ Structurally Complete – Seller Review Required"
         elif validation_status == "✅ Pass":
@@ -435,7 +551,7 @@ def _build_amazon_tab(wb: Workbook, skus: list[SKUItem], category: str):
     headers = [
         "item_sku", "item_name", "brand_name", "feed_product_type", "item_type_keyword",
         "standard_price", "currency", "quantity", "condition_type",
-        "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4",
+        "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4", "other_image_url5",
         "bullet_point1", "bullet_point2", "bullet_point3", "bullet_point4", "bullet_point5",
         "generic_keyword", "item_description", "size", "color"
     ]
@@ -459,6 +575,7 @@ def _build_amazon_tab(wb: Workbook, skus: list[SKUItem], category: str):
             f"{sku.sku_id}_PT02.jpg",
             f"{sku.sku_id}_PT03.jpg",
             f"{sku.sku_id}_PT04.jpg",
+            f"{sku.sku_id}_PT05.jpg",
             bp[0],
             bp[1],
             bp[2],
@@ -478,7 +595,7 @@ def _build_flipkart_tab(wb: Workbook, skus: list[SKUItem]):
         "Seller SKU ID", "Product Title", "Brand", "Style Code", "Ideal For", "Size", "Color",
         "Pattern", "Type / Kurta Type", "Fabric", "Neck", "Sleeve", "Length Type", "Occasion",
         "Net Quantity", "GST (%)", "HSN Code", "Search Keywords",
-        "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image",
+        "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image", "Angle 4 Image", "Angle 5 Image",
         "Description"
     ]
     ws.append(headers)
@@ -508,6 +625,8 @@ def _build_flipkart_tab(wb: Workbook, skus: list[SKUItem]):
             f"{sku.sku_id}_PT01.jpg",
             f"{sku.sku_id}_PT02.jpg",
             f"{sku.sku_id}_PT03.jpg",
+            f"{sku.sku_id}_PT04.jpg",
+            f"{sku.sku_id}_PT05.jpg",
             sku.flipkart.description,
         ])
     _auto_width(ws)
@@ -526,7 +645,8 @@ def _build_meesho_tab(wb: Workbook, skus: list[SKUItem]):
         "Other Image 1 (Size Chart)",
         "Other Image 2 (Fabric Spec)",
         "Other Image 3 (Care Guide)",
-        "Other Image 4 (Back View)"
+        "Other Image 4 (Back View)",
+        "Other Image 5"
     ]
     ws.append(headers)
     _style_header_row(ws, len(headers))
@@ -551,6 +671,7 @@ def _build_meesho_tab(wb: Workbook, skus: list[SKUItem]):
             f"{sku.sku_id}_PT02.jpg",
             f"{sku.sku_id}_PT03.jpg",
             f"{sku.sku_id}_PT04.jpg",
+            f"{sku.sku_id}_PT05.jpg",
         ])
     _auto_width(ws)
 
@@ -687,6 +808,11 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   their respective Seller Central, Seller Hub, or Supplier Panel category upload
   templates.
 
+  Processing and approval times are approximate examples only. They may vary by
+  marketplace, category, seller account status, validation results, review queue,
+  and current platform workload. Listing Factory does not guarantee approval or
+  processing timelines.
+
 ================================================================================
   SELLER PRE-UPLOAD CHECKLIST
 ================================================================================
@@ -697,6 +823,7 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
     [ ] Data is mapped into the latest official marketplace templates for your category.
     [ ] Images meet each marketplace's current image policy (size, white background, count).
     [ ] All fields marked 'To be confirmed' have been finalized with confirmed values.
+    [ ] All visual image content has been manually verified against declared filename roles.
 
 ================================================================================
   SCOPE & LIMITATIONS
@@ -738,8 +865,8 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   2. Download the category-specific inventory flat file template for your product.
   3. Open the "01_Amazon_Bulk_Import" tab in the Master Excel mapping file.
   4. Copy-paste rows into Amazon's template columns matching headers carefully.
-  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04).
-  6. Submit file. (Average automated processing time: ~15-30 minutes).
+  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04, PT05).
+  6. Submit file. (Processing and review timelines vary by platform queue).
 
   STEP 2 ▸ FLIPKART SELLER HUB (seller.flipkart.com)
   ──────────────────────────────────────────────────
@@ -747,8 +874,8 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   2. Download Flipkart's bulk listing template for the selected vertical.
   3. Open the "02_Flipkart_Bulk_Import" tab in the Master Excel mapping file.
   4. Map Flipkart-specific copy, style code, fabric, and controlled attributes.
-  5. Upload the completed template and corresponding SKU image assets.
-  6. Submit for QC review. (Average manual QC window: ~24-48 hours).
+  5. Upload the completed template and corresponding SKU image assets (MAIN, PT01-PT05).
+  6. Submit for QC review. (QC review timelines vary by portal queue and category).
 
   STEP 3 ▸ MEESHO SUPPLIER PANEL (supplier.meesho.com)
   ────────────────────────────────────────────────────
@@ -756,29 +883,35 @@ def generate_readme(client: str, batch: str, category: str = "Women Ethnic Wear"
   2. Select your exact product vertical.
   3. Open the "03_Meesho_Bulk_Import" tab in the Master Excel mapping file.
   4. Use the Hinglish hook copy, English hook copy, and bullet highlight badges.
-  5. Upload primary hero cutouts and angle shots from SKU folders.
-  6. Submit for catalog approval. (Average automated/manual review: ~2-4 hours).
+  5. Upload primary hero cutouts and angle shots from SKU folders (MAIN, PT01-PT05).
+  6. Submit for catalog approval. (Catalog approval timelines vary by vertical queue).
 
 ================================================================================
   IMAGE NAMING & ASSET STRUCTURE
 ================================================================================
 
-  Canonical Image Naming Scheme:
-    • Primary Image (Hero)        : SKU_XX_MAIN.jpg
-    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg
-    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg
-    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg
-    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg
-    • Other Image 5               : SKU_XX_PT05.jpg
+  Canonical Image Naming Scheme (Declared Filename Slots):
+    • Primary Image (Hero)        : SKU_XX_MAIN.jpg (Declared Hero cutout)
+    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg (Declared Size Guide)
+    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg (Declared Fabric Highlight)
+    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg (Declared Care / Styling)
+    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg (Declared Angle / Back View)
+    • Other Image 5               : SKU_XX_PT05.jpg (Declared Other Image 5)
+
+  Note on Image Verification:
+    All image roles are assigned based on filename suffixes. Filename assignment
+    does NOT verify visual image content, white background quality, or resolution.
+    Catalog managers must manually visually verify image assets before upload.
 
   Folder Hierarchy in this ZIP:
     Organized_SKU_Images/
       ├── [SKU_ID]/              ← One subfolder per SKU
-      │   ├── [SKU]_MAIN.jpg     ← Primary hero (pure white background #FFFFFF)
-      │   ├── [SKU]_PT01.jpg     ← Size & measurement guide
-      │   ├── [SKU]_PT02.jpg     ← Fabric texture & spec highlight
-      │   ├── [SKU]_PT03.jpg     ← Care & styling recommendations
-      │   └── [SKU]_PT04.jpg     ← Additional angles / back view
+      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero
+      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide
+      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight
+      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations
+      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view
+      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================
@@ -958,11 +1091,11 @@ def get_sample_skus() -> list[dict]:
                 "bullet_points": [
                     "100% PURE COTTON: Soft, breathable 60s count fabric for all-day comfort.",
                     "POCKET UTILITY: Includes convenient deep side pocket for phone and essentials.",
-                    "COLORFAST GUARANTEE: Pre-washed cotton resists color fading and shrinkage.",
+                    "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and color.",
                     "VERSATILE STYLING: Pairs easily with denim, palazzo pants, or ethnic trousers.",
                     "PRECISE SIZING: Standard regular Indian fit from S(36) to XXL(44)."
                 ],
-                "backend_search_terms": "cotton kurti women straight kurta daily wear office festive ethnic top",
+                "backend_search_terms": "cotton kurti straight kurta daily wear office ethnic top",
                 "description": "Experience daily comfort and elegance with SampleBrand Pure Cotton Straight Kurti."
             },
             "flipkart": {
@@ -997,11 +1130,11 @@ def get_sample_skus() -> list[dict]:
                         "bullet_points": [
                             f"COMFORT {i+1}: Ultra-breathable weave for active daily ventilation.",
                             "DESIGN: Tailored silhouette designed for versatile ethnic styling.",
-                            "DURABILITY: Tested colorfast fabric retains crisp tone across 40+ washes.",
+                            "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance.",
                             "VERSATILITY: Complements office trousers and ethnic skirts seamlessly.",
                             "CARE: Easy machine wash with mild detergent."
                         ],
-                        "backend_search_terms": f"cotton kurti {theme.lower()} women ethnic kurta",
+                        "backend_search_terms": f"cotton kurti {theme.lower().replace('&', '').replace('  ', ' ')} women ethnic kurta",
                         "description": f"Designed specifically for {theme.lower()}. A premium wardrobe essential."
                     },
                     "flipkart": {
@@ -1017,10 +1150,10 @@ def get_sample_skus() -> list[dict]:
                     }
                 }
                 for i, theme in enumerate([
-                    "Daily Office & Workwear",
+                    "Daily Office Workwear",
                     "Festive Celebrations",
                     "Summer Cooling Comfort",
-                    "Durable Essential",
+                    "Everyday Essential",
                     "Modern Fusion Styling"
                 ])
             ]
@@ -1035,13 +1168,14 @@ def get_sample_skus() -> list[dict]:
 app = FastAPI(title="Listing Factory", version="2.0.0")
 
 
-# ── Validation endpoint (Quaternary: Schema Version Contract & Per-SKU Breakdown) ──
+# ── Validation endpoint ──
 
 @app.post("/api/validate-json")
 async def validate_json(request: Request):
     """
     Strictly validate AI-generated JSON listing data against the schema.
-    Enforces schema_version contract, structured per-SKU errors, and advisory warnings.
+    Enforces schema_version contract, structured per-SKU errors, backend search terms hygiene,
+    Bullet 3 truth-boundary safety, and advisory warnings.
     """
     try:
         body = await request.json()
@@ -1117,9 +1251,43 @@ async def validate_json(request: Request):
                 if sku_obj.meesho.title != TO_BE_CONFIRMED and m_len > 55:
                     sku_warnings.append(f"Meesho title length is near limit ({m_len}/60 chars)")
 
+                # Section 2: Amazon Backend Search-Term Hygiene Check
+                bst_errs, bst_warns = validate_amazon_backend_search_terms(
+                    sku_obj.amazon.title, sku_obj.amazon.backend_search_terms, sku_obj.brand
+                )
+                if bst_errs:
+                    sku_errors.extend(bst_errs)
+                if bst_warns:
+                    sku_warnings.extend(bst_warns)
+
+                # Section 3: Bullet 3 Safety Check (Neutralize COLORFAST & DURABLE)
+                if len(sku_obj.amazon.bullet_points) >= 3:
+                    b3_errs, b3_warns = validate_bullet_3_safety(sku_obj.amazon.bullet_points[2])
+                    if b3_errs:
+                        sku_errors.extend(b3_errs)
+                    if b3_warns:
+                        sku_warnings.extend(b3_warns)
+
+                # Validate alternates backend search terms & Bullet 3 as well
+                for alt in sku_obj.alternates:
+                    alt_bst_errs, alt_bst_warns = validate_amazon_backend_search_terms(
+                        alt.amazon.title, alt.amazon.backend_search_terms, sku_obj.brand
+                    )
+                    if alt_bst_errs:
+                        sku_errors.extend([f"Alternate {alt.variant_id}: {e}" for e in alt_bst_errs])
+                    if alt_bst_warns:
+                        sku_warnings.extend([f"Alternate {alt.variant_id}: {w}" for w in alt_bst_warns])
+
+                    if len(alt.amazon.bullet_points) >= 3:
+                        alt_b3_errs, alt_b3_warns = validate_bullet_3_safety(alt.amazon.bullet_points[2])
+                        if alt_b3_errs:
+                            sku_errors.extend([f"Alternate {alt.variant_id}: {e}" for e in alt_b3_errs])
+
             except Exception as pe:
-                overall_valid = False
                 sku_errors.append(str(pe))
+
+            if sku_errors:
+                overall_valid = False
 
             sku_results.append({
                 "sku_id": sk_id,
@@ -1165,7 +1333,7 @@ async def validate_json(request: Request):
         }, status_code=400)
 
 
-# ── Generation endpoint (Section 5 - #5: Versioned Output Archival) ──
+# ── Generation endpoint ──
 
 @app.post("/api/generate")
 async def generate_package(
@@ -1200,7 +1368,7 @@ async def generate_package(
         validation_status="✅ Pass", schema_version=ver_str
     )
 
-    # Section 5 (#5): Versioned Output Archival
+    # Versioned Output Archival
     pattern = str(OUTPUT_DIR / f"{safe_client}_{safe_batch}_v*.zip")
     existing_files = glob.glob(pattern)
     existing_versions = []
@@ -1224,7 +1392,7 @@ async def generate_package(
     )
 
 
-# ── Sample / Dry-Run Endpoint (Section 3 - #3) ──
+# ── Sample / Dry-Run Endpoint ──
 
 @app.post("/api/generate-sample")
 async def generate_sample():
@@ -1247,7 +1415,7 @@ async def generate_sample():
     )
 
 
-# ── History & Rollback Endpoint (Section 5 - #5) ──
+# ── History & Rollback Endpoint ──
 
 @app.get("/api/history")
 async def get_history(client: Optional[str] = None, batch: Optional[str] = None):

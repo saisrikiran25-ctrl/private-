@@ -23,6 +23,8 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 │ STAGE 1: AI Listing Generation (Claude / Gemini / GPT-4)    │
 │  • Truth Boundary: Forbids hallucination of fabric/specs    │
 │  • Separation of Facts vs Copy (verified.* product input)   │
+│  • Backend Search-Term Hygiene (ASCII, no brand, no dupes)  │
+│  • Neutralized Bullet 3 (Care-led unless verified)          │
 │  • Enforces schema_version: "v2.0" & batch_config defaults  │
 │  • Generates strictly formatted JSON with 5x A/B angles     │
 └──────────────────────────────┬──────────────────────────────┘
@@ -32,14 +34,14 @@ The primary, canonical version of Listing Factory runs 100% in your browser with
 │ STAGE 2: Listing Factory Studio (GitHub Pages Web App)      │
 │  • Schema Version Contract Enforcement ("v2.0")             │
 │  • Structured Per-SKU Validation (No Silent Truncation)     │
+│  • Backend Keyword Hygiene & Bullet 3 Safety Checks         │
 │  • "To be confirmed" Sentinel Handling & Review Flags       │
 │  • Clear "Structurally Complete – Seller Review Required"   │
 │  • Dynamic Tax & Commercial Ingestion (GST, HSN, Quantity)  │
-│  • Color Field Ingestion across Amazon, Flipkart & Meesho   │
-│  • Cryptographic Package Audit Trail (SHA-256 Metadata)     │
-│  • Canonical Image Routing (SKU_XX_MAIN.jpg ... PT05)       │
+│  • Complete 6-Slot Image Routing (SKU_XX_MAIN ... PT05)     │
 │  • Multi-Tab Marketplace Mapping Workbooks (.xlsx)          │
 │  • 5x Alternate Marketing Copies Workbook (.xlsx)           │
+│  • Cryptographic Package Audit Trail (SHA-256 Metadata)     │
 │  • Client Handover Delivery Archive (.zip)                  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -56,7 +58,16 @@ When generating JSON listing payloads with LLMs, the master generation prompt mu
 2. **Separation of Facts vs. Copy**:
    - **Stage A (Factual Basis)**: Verified physical product records (`sku_id`, `brand`, `product_type`, `color`, `sizes`, `mrp`, `meesho_price`, `seller_config`).
    - **Stage B (Creative Copywriting)**: Marketplace-specific copy, bullet points, Hinglish hooks, and 5x marketing variations derived strictly from verified facts.
-3. **Formal JSON Schema Contract**:
+3. **Amazon Backend Search-Term Hygiene**:
+   - Must be **lowercase ASCII** only (no uppercase, no special Unicode).
+   - Must **not** contain punctuation, commas, or repeated whitespace (use single spaces between terms).
+   - Must **not** contain the brand name or competitor brands.
+   - Must **not** duplicate words already present in the Amazon title (or simple singular/plural variants).
+4. **Neutralized Bullet 3 ("COLORFAST & DURABLE:")**:
+   - Heading sequence is retained: Bullet 3 must start with `COLORFAST & DURABLE:`.
+   - The body must use safe, care-led language (e.g. `COLORFAST & DURABLE: Follow the provided care label to help maintain the appearance of the print.`) unless durability claims are independently verified in the source data.
+   - Forbids unverified guarantee claims (`zero fading`, `no bleeding`, `pre-shrunk`, `anti-pilling`, `reactive dye`, `vat dye`).
+5. **Formal JSON Schema Contract**:
    - Every payload must declare top-level `"schema_version": "v2.0"`.
    - Exact array lengths: Amazon bullet points ($= 5$), Meesho highlights ($= 4$), Alternates ($= 5$).
    - Strict length/byte ceilings: Amazon Title $\le 180$ chars, Amazon BST $\le 240$ UTF-8 bytes, Meesho Title $\le 60$ chars.
@@ -126,7 +137,8 @@ Allows specifying shared brand, category, and seller configuration at the batch 
 
 - **Listing Copy & Mapping Preparation:** Prepares structured listing copy and multi-tab Excel mapping workbooks based on seller-provided catalog data.
 - **No Acceptance Guarantee:** Does not guarantee automatic marketplace approval, indexation, or exemption from category ungating requirements.
-- **Asset Slotting:** Assigns image slots based on canonical filename patterns; visual content, white background quality, and typography are not evaluated by computer vision.
+- **Approximate Processing Timelines:** Processing and approval times are illustrative only and vary by portal queue, category, seller standing, and current platform workload. Listing Factory does not guarantee review or approval duration.
+- **Asset Slotting vs. Visual Verification:** Assigns image slots based on declared filename patterns (`_MAIN` through `_PT05`). Visual content, white background quality, and typography must be manually verified by catalog managers prior to submission.
 - **Tax & Classification Disclaimer:** GST percentages and HSN codes are seller-provided configurations and do not constitute official tax advice.
 - **Mandatory Final Review:** All data must be reviewed, verified, and confirmed by the brand prior to live portal submission.
 
@@ -139,9 +151,9 @@ Listing Factory generates two structured mapping workbooks inside the client ZIP
 ### 1. `[Client]_Master_Marketplace_Upload.xlsx`
 Structured data sheets designed for transferring copy into official marketplace upload templates:
 - **`Master_Summary`**: Catalog overview including `Color`, `Fabric`, `Sizes Available`, core coverage (`4/4 Core`), `Validation Status` (`✅ Pass`), `Review Flags` (`⚠️ Has unconfirmed fields` / `—`), and `Package Readiness` (`✅ Structurally Complete – Seller Review Required`).
-- **`01_Amazon_Bulk_Import`**: Amazon.in 23-column mapping schema with dynamic `quantity`, generic keywords ($\le 240$ bytes), 5 bullet points, `size`, `color` (`sku.color`), and canonical image filenames.
-- **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 23-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), `Color` (`sku.color`), seller GST/HSN, and Flipkart-specific description.
-- **`03_Meesho_Bulk_Import`**: Meesho 17-column schema with dual Hinglish + English hook descriptions, `Color` (`sku.color`), 4 highlight badges, seller GST/HSN, dynamic Meesho price, and 5-slot image mappings.
+- **`01_Amazon_Bulk_Import`**: Amazon.in 24-column mapping schema with dynamic `quantity`, generic keywords ($\le 240$ bytes), 5 bullet points, `size`, `color` (`sku.color`), and canonical image filenames (`main_image_url`, `other_image_url1` through `other_image_url5`).
+- **`02_Flipkart_Bulk_Import`**: Flipkart Seller Hub 25-column schema with controlled attributes (fabric, kurta type, neck, sleeve, length, pattern, occasion), `Color` (`sku.color`), seller GST/HSN, search keywords, 6 image slot references (`Main Image Name`, `Angle 1 Image` through `Angle 5 Image`), and Flipkart-specific description.
+- **`03_Meesho_Bulk_Import`**: Meesho 18-column schema with dual Hinglish + English hook descriptions, `Color` (`sku.color`), 4 highlight badges, seller GST/HSN, dynamic Meesho price, and 6-slot image mappings (`Primary Image (Hero)`, `Other Image 1` through `Other Image 5`).
 
 ### 2. `[Client]_Alternate_Listing_Copies.xlsx`
 Contains 5 distinct marketing angle variations per SKU for A/B testing and seasonal refreshes:
@@ -153,16 +165,16 @@ Contains 5 distinct marketing angle variations per SKU for A/B testing and seaso
 
 ---
 
-## 📸 Canonical Image Naming Scheme
+## 📸 Canonical Image Naming Scheme (6 Declared Slots)
 
-| Role | Canonical Filename Pattern | Purpose / Content |
-|---|---|---|
-| **Primary Hero** | `SKU_XX_MAIN.jpg` | Pure white background (`#FFFFFF`), primary product cutout |
-| **Other Image 1** | `SKU_XX_PT01.jpg` | Size chart, measurement specifications, & fit guide |
-| **Other Image 2** | `SKU_XX_PT02.jpg` | Fabric texture, weave detail, & material spec |
-| **Other Image 3** | `SKU_XX_PT03.jpg` | Wash care instructions & styling recommendations |
-| **Other Image 4** | `SKU_XX_PT04.jpg` | Back view / alternate product angle |
-| **Other Image 5** | `SKU_XX_PT05.jpg` | Detail close-up / lifestyle photo |
+| Role | Canonical Filename Pattern | Declared Slot / Purpose | Verification Note |
+|---|---|---|---|
+| **Primary Hero** | `SKU_XX_MAIN.jpg` | Pure white background (`#FFFFFF`), primary product cutout | Declared Hero cutout — manual visual check required |
+| **Other Image 1** | `SKU_XX_PT01.jpg` | Size chart, measurement specifications, & fit guide | Declared Size Guide — manual visual check required |
+| **Other Image 2** | `SKU_XX_PT02.jpg` | Fabric texture, weave detail, & material spec | Declared Fabric Highlight — manual visual check required |
+| **Other Image 3** | `SKU_XX_PT03.jpg` | Wash care instructions & styling recommendations | Declared Care Guide — manual visual check required |
+| **Other Image 4** | `SKU_XX_PT04.jpg` | Back view / alternate product angle | Declared Back View / Angle — manual visual check required |
+| **Other Image 5** | `SKU_XX_PT05.jpg` | Detail close-up / alternate lifestyle shot | Declared Other Image 5 — manual visual check required |
 
 ---
 
@@ -180,7 +192,8 @@ Contains 5 distinct marketing angle variations per SKU for A/B testing and seaso
     │   ├── SKU_01_PT01.jpg
     │   ├── SKU_01_PT02.jpg
     │   ├── SKU_01_PT03.jpg
-    │   └── SKU_01_PT04.jpg
+    │   ├── SKU_01_PT04.jpg
+    │   └── SKU_01_PT05.jpg
     ├── SKU_02/
     │   └── ...
     └── Unassigned_Assets/

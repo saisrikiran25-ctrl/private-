@@ -505,7 +505,7 @@ const SAMPLE = {
         bullet_points: [
           "100% PURE COTTON: Premium 60s count breathable cotton for all-day comfort.",
           "ANARKALI FIT WITH POCKETS: Flattering flared design with functional side pockets.",
-          "COLORFAST & WASHABLE: Pre-shrunk fabric ensures no bleeding or shrinkage.",
+          "COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric's appearance and rich color.",
           "VERSATILE STYLING: Pairs with leggings, palazzos, or jeans.",
           "ACCURATE SIZING: Available from S (36 in) to 3XL (46 in)."
         ],
@@ -544,7 +544,7 @@ const SAMPLE = {
             bullet_points: [
               "FABRIC & COMFORT: Soft 60s cotton keeps you cool through 8-hour workdays.",
               "DESIGN & UTILITY: Flared anarkali silhouette with deep side pockets for phone & essentials.",
-              "COLORFAST & DURABLE: Pre-washed to resist color bleeding even after repeated laundering.",
+              "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's rich tone.",
               "VERSATILE STYLING: Pairs effortlessly with formal trousers, palazzos, or churidars.",
               "SIZING & CARE: True-to-size S(36) to 3XL(46). Machine wash safe."
             ],
@@ -576,7 +576,7 @@ const SAMPLE = {
             bullet_points: [
               "FABRIC & COMFORT: Luxuriously soft cotton that flows gracefully at festive gatherings.",
               "DESIGN & UTILITY: Statement anarkali flare perfect for mehendi, sangeet, and puja celebrations.",
-              "COLORFAST & DURABLE: Rich print colors stay vibrant through multiple festive seasons.",
+              "COLORFAST & DURABLE: Follow the provided care label to maintain the elegance of the festive print.",
               "VERSATILE STYLING: Accessorize with jhumkas, bangles, and embroidered dupattas.",
               "SIZING & CARE: Generous S to 3XL range. Gentle wash recommended for longevity."
             ],
@@ -608,7 +608,7 @@ const SAMPLE = {
             bullet_points: [
               "FABRIC & COMFORT: Ultra-breathable weave provides active ventilation in peak summer.",
               "DESIGN & UTILITY: Relaxed airy flare prevents cling and keeps you fresh all day long.",
-              "COLORFAST & DURABLE: Sun-resistant eco dyes keep the navy print crisp and bright.",
+              "COLORFAST & DURABLE: Follow the provided care label to help maintain the appearance of the fabric.",
               "VERSATILE STYLING: Match with cotton pants or breezy palazzo skirts.",
               "SIZING & CARE: Standard Indian sizing with generous ease."
             ],
@@ -638,27 +638,27 @@ const SAMPLE = {
           amazon: {
             title: "Durable Daily Wear Cotton Anarkali Kurti | Value Pack Ethnic Kurta with Pockets",
             bullet_points: [
-              "FABRIC & COMFORT: Heavy-duty 60s cotton built for 50+ washes without fading.",
+              "FABRIC & COMFORT: Premium 60s cotton built for comfortable daily wear.",
               "DESIGN & UTILITY: Reinforced seam stitching with twin functional side pockets.",
-              "COLORFAST & DURABLE: Tested colorfast dyes ensure zero shrinkage or pilling.",
+              "COLORFAST & DURABLE: Follow the provided care label to keep the everyday fabric looking fresh.",
               "VERSATILE STYLING: Everyday workhorse piece suitable for home, market, and travel.",
               "SIZING & CARE: Easy wash-and-wear care routine."
             ],
-            backend_search_terms: "durable kurti daily wear long lasting cotton kurta value pocket",
+            backend_search_terms: "everyday kurti daily wear comfortable cotton kurta value pocket",
             description: "An unbeatable combination of durability, utility pockets, and premium cotton feel."
           },
           flipkart: {
-            title: "Anvi Fabrics Women Durable Everyday Cotton Kurta",
-            search_keywords: "daily wear kurti, durable cotton kurta, pocket anarkali",
-            description: "Built for everyday endurance with reinforced seams, functional pockets, and colorfast cotton."
+            title: "Anvi Fabrics Women Everyday Cotton Kurta",
+            search_keywords: "daily wear kurti, comfortable cotton kurta, pocket anarkali",
+            description: "Built for everyday endurance with reinforced seams, functional pockets, and comfortable cotton."
           },
           meesho: {
-            title: "Durable Everyday Cotton Anarkali Kurti",
-            hinglish_hook_description: "Rozana pehanne ke liye sabse majboot cotton kurti! Bar bar dhone par bhi rang nahi chhootega.",
-            english_hook_description: "High-durability everyday ethnic kurti with dual side pockets.",
+            title: "Everyday Cotton Anarkali Kurti",
+            hinglish_hook_description: "Rozana pehanne ke liye sabse aaramdayak cotton kurti! Daily wear ke liye best quality.",
+            english_hook_description: "Comfortable everyday ethnic kurti with dual side pockets.",
             highlights: [
-              "Fabric: Tough Daily Cotton",
-              "Durability: 50+ Wash Tested",
+              "Fabric: Pure Daily Cotton",
+              "Fit: Regular Anarkali",
               "Pockets: 2 Side Pockets",
               "Value: Top Rating Quality"
             ]
@@ -672,7 +672,7 @@ const SAMPLE = {
             bullet_points: [
               "FABRIC & COMFORT: Premium drape that looks stunning on every body type.",
               "DESIGN & UTILITY: Contemporary silhouette blending Indian ethnic flare with modern utility.",
-              "COLORFAST & DURABLE: Comes pre-inspected with pristine finish and elegant tagging.",
+              "COLORFAST & DURABLE: Follow the provided care label to help preserve the fabric's finish and color.",
               "VERSATILE STYLING: Pairs effortlessly with denim jeans, palazzos, or jeggings.",
               "SIZING & CARE: Gift-ready sizing range S to 3XL."
             ],
@@ -802,6 +802,111 @@ async function buildPackageMetadataClient(client, batch, category, skus, schemaV
   };
 }
 
+const UNVERIFIED_DURABILITY_TERMS = [
+  "colorfast", "colourfast", "fade resistant", "zero fade", "no fading",
+  "zero bleeding", "no bleeding", "shrink resistant", "anti-shrink", "pre-shrunk",
+  "pilling", "anti-pilling", "durable", "reinforced", "tested", "technology",
+  "vat dye", "reactive dye", "color lock", "colour lock"
+];
+
+function validateAmazonBackendSearchTerms(title, bst, brand) {
+  const errors = [];
+  const warnings = [];
+  if (!bst || !bst.trim() || bst === TO_BE_CONFIRMED) return { errors, warnings };
+
+  // 1. Non-ASCII check
+  if (!/^[\x00-\x7F]*$/.test(bst)) {
+    errors.push("Amazon backend search terms must contain ASCII characters only.");
+  }
+
+  // 2. Uppercase check
+  if (/[A-Z]/.test(bst)) {
+    errors.push("Amazon backend search terms must be lowercase only (uppercase characters found).");
+  }
+
+  // 3. Punctuation & commas check
+  const invalidMatches = bst.match(/[^a-z0-9\s]/g);
+  if (invalidMatches) {
+    const uniq = [...new Set(invalidMatches)].sort();
+    errors.push(`Amazon backend search terms must not contain punctuation or commas (found: ${uniq.join(', ')}). Use single spaces only.`);
+  }
+
+  // 4. Repeated whitespace
+  if (/\s{2,}/.test(bst)) {
+    errors.push("Amazon backend search terms must not contain repeated whitespace. Use single spaces between terms.");
+  }
+
+  // 5. Brand occurrence check
+  const bstLower = bst.toLowerCase();
+  const bstTokens = bstLower.split(/\s+/);
+  const brandTokens = (brand.toLowerCase().match(/[a-z0-9]+/g) || []).filter(t => t.length >= 2);
+  for (const bt of brandTokens) {
+    if (bstTokens.includes(bt) || bstLower.includes(bt)) {
+      errors.push(`Amazon backend search terms must not contain the brand name ('${brand}' / '${bt}').`);
+      break;
+    }
+  }
+
+  // 6. Title duplicate checks (Warnings)
+  const stopwords = new Set(["and", "or", "with", "for", "in", "of", "a", "an", "the", "to", "by", "on", "at", "from", "is", "it", "as"]);
+  const titleTokens = new Set((title.toLowerCase().match(/[a-z0-9]+/g) || []).filter(t => !stopwords.has(t)));
+
+  const exactDupes = [];
+  const closeDupes = [];
+
+  for (const word of bstTokens) {
+    const cleanW = word.replace(/[^a-z0-9]/g, '');
+    if (!cleanW || stopwords.has(cleanW)) continue;
+    if (titleTokens.has(cleanW)) {
+      exactDupes.push(cleanW);
+    } else {
+      if (cleanW.endsWith('s') && titleTokens.has(cleanW.slice(0, -1)) && cleanW.length > 3) {
+        closeDupes.push(`'${cleanW}' (plural of '${cleanW.slice(0, -1)}' in title)`);
+      } else if (titleTokens.has(cleanW + 's')) {
+        closeDupes.push(`'${cleanW}' (singular of '${cleanW}s' in title)`);
+      }
+    }
+  }
+
+  if (exactDupes.length > 0) {
+    warnings.push(`Amazon backend search terms contain word(s) already in the title: ${[...new Set(exactDupes)].sort().join(', ')}. Consider replacing with non-title search keywords.`);
+  }
+  if (closeDupes.length > 0) {
+    warnings.push(`Amazon backend search terms contain close duplicate(s) of title words: ${[...new Set(closeDupes)].join(', ')}.`);
+  }
+
+  return { errors, warnings };
+}
+
+function validateBullet3Safety(bullet3, isVerifiedDurability = false) {
+  const errors = [];
+  const warnings = [];
+  if (!bullet3 || !bullet3.trim() || bullet3 === TO_BE_CONFIRMED) return { errors, warnings };
+
+  const b3Upper = bullet3.toUpperCase().trim();
+  if (!b3Upper.startsWith("COLORFAST & DURABLE:")) {
+    errors.push("Bullet 3 must start with the mandated heading 'COLORFAST & DURABLE:'.");
+  }
+
+  const body = bullet3.includes(":") ? bullet3.split(":", 2)[1] : bullet3;
+  const bodyLower = body.toLowerCase();
+
+  if (!isVerifiedDurability) {
+    const offending = [];
+    for (const term of UNVERIFIED_DURABILITY_TERMS) {
+      const regex = new RegExp(`\\b${term}\\b`, 'i');
+      if (regex.test(bodyLower)) {
+        offending.push(term);
+      }
+    }
+    if (offending.length > 0) {
+      errors.push(`Bullet 3 ('COLORFAST & DURABLE:') contains unverified technical/guarantee claim(s): ${[...new Set(offending)].sort().join(', ')}. Use neutral care-led language (e.g. 'COLORFAST & DURABLE: Follow the provided care label to help maintain the fabric\\'s appearance and color.')`);
+    }
+  }
+
+  return { errors, warnings };
+}
+
 // ── Client-Side JSON Validation & Schema Contract Checking ──
 function validateJsonClientSide() {
   if (!currentJsonText.trim()) {
@@ -928,10 +1033,20 @@ function validateJsonClientSide() {
       const bullets = amz.bullet_points || [];
       if (!Array.isArray(bullets) || bullets.length !== 5) {
         skuErrors.push(`Amazon bullet_points must contain exactly 5 points (got ${bullets.length})`);
+      } else {
+        // Section 3: Bullet 3 validation
+        const b3Res = validateBullet3Safety(bullets[2]);
+        if (b3Res.errors.length > 0) skuErrors.push(...b3Res.errors);
+        if (b3Res.warnings.length > 0) skuWarnings.push(...b3Res.warnings);
       }
       if (!amz.description || !amz.description.trim()) {
         skuErrors.push('Amazon description is missing');
       }
+
+      // Section 2: Amazon backend search-term hygiene check
+      const bstRes = validateAmazonBackendSearchTerms(amzTitle, bst, brand);
+      if (bstRes.errors.length > 0) skuErrors.push(...bstRes.errors);
+      if (bstRes.warnings.length > 0) skuWarnings.push(...bstRes.warnings);
 
       // Flipkart validations
       const fk = item.flipkart || {};
@@ -964,6 +1079,23 @@ function validateJsonClientSide() {
       const alts = item.alternates || [];
       if (alts.length > 0 && alts.length !== 5) {
         skuErrors.push(`When alternates array is provided, exactly 5 variants (V1-V5) are required (got ${alts.length})`);
+      } else if (alts.length === 5) {
+        alts.forEach(alt => {
+          const altAmz = alt.amazon || {};
+          const altBstRes = validateAmazonBackendSearchTerms(altAmz.title || '', altAmz.backend_search_terms || '', brand);
+          if (altBstRes.errors.length > 0) {
+            skuErrors.push(...altBstRes.errors.map(e => `Alternate ${alt.variant_id}: ${e}`));
+          }
+          if (altBstRes.warnings.length > 0) {
+            skuWarnings.push(...altBstRes.warnings.map(w => `Alternate ${alt.variant_id}: ${w}`));
+          }
+          if (Array.isArray(altAmz.bullet_points) && altAmz.bullet_points.length >= 3) {
+            const altB3Res = validateBullet3Safety(altAmz.bullet_points[2]);
+            if (altB3Res.errors.length > 0) {
+              skuErrors.push(...altB3Res.errors.map(e => `Alternate ${alt.variant_id}: ${e}`));
+            }
+          }
+        });
       }
 
       results.push({
@@ -1565,7 +1697,7 @@ async function createMasterWorkbook(clientName, category) {
   ws2.addRow([
     "item_sku", "item_name", "brand_name", "feed_product_type", "item_type_keyword",
     "standard_price", "currency", "quantity", "condition_type",
-    "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4",
+    "main_image_url", "other_image_url1", "other_image_url2", "other_image_url3", "other_image_url4", "other_image_url5",
     "bullet_point1", "bullet_point2", "bullet_point3", "bullet_point4", "bullet_point5",
     "generic_keyword", "item_description", "size", "color"
   ]);
@@ -1588,6 +1720,7 @@ async function createMasterWorkbook(clientName, category) {
       `${sku.sku_id}_PT02.jpg`,
       `${sku.sku_id}_PT03.jpg`,
       `${sku.sku_id}_PT04.jpg`,
+      `${sku.sku_id}_PT05.jpg`,
       bp[0], bp[1], bp[2], bp[3], bp[4],
       sku.amazon.backend_search_terms,
       sku.amazon.description,
@@ -1603,7 +1736,7 @@ async function createMasterWorkbook(clientName, category) {
     "Seller SKU ID", "Product Title", "Brand", "Style Code", "Ideal For", "Size", "Color",
     "Pattern", "Type / Kurta Type", "Fabric", "Neck", "Sleeve", "Length Type", "Occasion",
     "Net Quantity", "GST (%)", "HSN Code", "Search Keywords",
-    "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image",
+    "Main Image Name", "Angle 1 Image", "Angle 2 Image", "Angle 3 Image", "Angle 4 Image", "Angle 5 Image",
     "Description"
   ]);
   styleRow(ws3);
@@ -1632,6 +1765,8 @@ async function createMasterWorkbook(clientName, category) {
       `${sku.sku_id}_PT01.jpg`,
       `${sku.sku_id}_PT02.jpg`,
       `${sku.sku_id}_PT03.jpg`,
+      `${sku.sku_id}_PT04.jpg`,
+      `${sku.sku_id}_PT05.jpg`,
       sku.flipkart.description
     ]);
   });
@@ -1650,7 +1785,8 @@ async function createMasterWorkbook(clientName, category) {
     "Other Image 1 (Size Chart)",
     "Other Image 2 (Fabric Spec)",
     "Other Image 3 (Care Guide)",
-    "Other Image 4 (Back View)"
+    "Other Image 4 (Back View)",
+    "Other Image 5"
   ]);
   styleRow(ws4);
 
@@ -1672,7 +1808,8 @@ async function createMasterWorkbook(clientName, category) {
       `${sku.sku_id}_PT01.jpg`,
       `${sku.sku_id}_PT02.jpg`,
       `${sku.sku_id}_PT03.jpg`,
-      `${sku.sku_id}_PT04.jpg`
+      `${sku.sku_id}_PT04.jpg`,
+      `${sku.sku_id}_PT05.jpg`
     ]);
   });
   autoFit(ws4);
@@ -1810,6 +1947,11 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   their respective Seller Central, Seller Hub, or Supplier Panel category upload
   templates.
 
+  Processing and approval times are approximate examples only. They may vary by
+  marketplace, category, seller account status, validation results, review queue,
+  and current platform workload. Listing Factory does not guarantee approval or
+  processing timelines.
+
 ================================================================================
   SELLER PRE-UPLOAD CHECKLIST
 ================================================================================
@@ -1820,6 +1962,7 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
     [ ] Data is mapped into the latest official marketplace templates for your category.
     [ ] Images meet each marketplace's current image policy (size, white background, count).
     [ ] All fields marked 'To be confirmed' have been finalized with confirmed values.
+    [ ] All visual image content has been manually verified against declared filename roles.
 
 ================================================================================
   SCOPE & LIMITATIONS
@@ -1861,8 +2004,8 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   2. Download the category-specific inventory flat file template for your product.
   3. Open the "01_Amazon_Bulk_Import" tab in the Master Excel mapping file.
   4. Copy-paste rows into Amazon's template columns matching headers carefully.
-  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04).
-  6. Submit file. (Average automated processing time: ~15-30 minutes).
+  5. Link image assets from each SKU folder (MAIN, PT01, PT02, PT03, PT04, PT05).
+  6. Submit file. (Processing and review timelines vary by platform queue).
 
   STEP 2 ▸ FLIPKART SELLER HUB (seller.flipkart.com)
   ──────────────────────────────────────────────────
@@ -1870,8 +2013,8 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   2. Download Flipkart's bulk listing template for the selected vertical.
   3. Open the "02_Flipkart_Bulk_Import" tab in the Master Excel mapping file.
   4. Map Flipkart-specific copy, style code, fabric, and controlled attributes.
-  5. Upload the completed template and corresponding SKU image assets.
-  6. Submit for QC review. (Average manual QC window: ~24-48 hours).
+  5. Upload the completed template and corresponding SKU image assets (MAIN, PT01-PT05).
+  6. Submit for QC review. (QC review timelines vary by portal queue and category).
 
   STEP 3 ▸ MEESHO SUPPLIER PANEL (supplier.meesho.com)
   ────────────────────────────────────────────────────
@@ -1879,29 +2022,35 @@ function generateReadme(client, batch, category = "Women Ethnic Wear") {
   2. Select your exact product vertical.
   3. Open the "03_Meesho_Bulk_Import" tab in the Master Excel mapping file.
   4. Use the Hinglish hook copy, English hook copy, and bullet highlight badges.
-  5. Upload primary hero cutouts and angle shots from SKU folders.
-  6. Submit for catalog approval. (Average automated/manual review: ~2-4 hours).
+  5. Upload primary hero cutouts and angle shots from SKU folders (MAIN, PT01-PT05).
+  6. Submit for catalog approval. (Catalog approval timelines vary by vertical queue).
 
 ================================================================================
   IMAGE NAMING & ASSET STRUCTURE
 ================================================================================
 
-  Canonical Image Naming Scheme:
-    • Primary Image (Hero)        : SKU_XX_MAIN.jpg
-    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg
-    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg
-    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg
-    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg
-    • Other Image 5               : SKU_XX_PT05.jpg
+  Canonical Image Naming Scheme (Declared Filename Slots):
+    • Primary Image (Hero)        : SKU_XX_MAIN.jpg (Declared Hero cutout)
+    • Other Image 1 (Size Chart)  : SKU_XX_PT01.jpg (Declared Size Guide)
+    • Other Image 2 (Fabric Spec) : SKU_XX_PT02.jpg (Declared Fabric Highlight)
+    • Other Image 3 (Care Guide)  : SKU_XX_PT03.jpg (Declared Care / Styling)
+    • Other Image 4 (Back View)   : SKU_XX_PT04.jpg (Declared Angle / Back View)
+    • Other Image 5               : SKU_XX_PT05.jpg (Declared Other Image 5)
+
+  Note on Image Verification:
+    All image roles are assigned based on filename suffixes. Filename assignment
+    does NOT verify visual image content, white background quality, or resolution.
+    Catalog managers must manually visually verify image assets before upload.
 
   Folder Hierarchy in this ZIP:
     Organized_SKU_Images/
       ├── [SKU_ID]/              ← One subfolder per SKU
-      │   ├── [SKU]_MAIN.jpg     ← Primary hero (pure white background #FFFFFF)
-      │   ├── [SKU]_PT01.jpg     ← Size & measurement guide
-      │   ├── [SKU]_PT02.jpg     ← Fabric texture & spec highlight
-      │   ├── [SKU]_PT03.jpg     ← Care & styling recommendations
-      │   └── [SKU]_PT04.jpg     ← Additional angles / back view
+      │   ├── [SKU]_MAIN.jpg     ← Declared Primary hero
+      │   ├── [SKU]_PT01.jpg     ← Declared Size & measurement guide
+      │   ├── [SKU]_PT02.jpg     ← Declared Fabric texture & spec highlight
+      │   ├── [SKU]_PT03.jpg     ← Declared Care & styling recommendations
+      │   ├── [SKU]_PT04.jpg     ← Declared Additional angle / back view
+      │   └── [SKU]_PT05.jpg     ← Declared Other Image 5
       └── Unassigned_Assets/     ← Assets requiring manual prefix assignment
 
 ================================================================================
